@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { moveUser, getGameState } from '../../../lib/gameLogic';
 
 // POST /api/move
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { userId, direction } = body;
-
-  // Placeholder: In the future, update user position in the maze here
-
+  const { userId, dx, dy } = await req.json();
+  const success = moveUser(userId, dx, dy);
   return NextResponse.json({
-    status: 'success',
-    message: `User ${userId} moved ${direction}`,
+    success,
+    state: getGameState(),
   });
 } 

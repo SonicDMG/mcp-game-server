@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { paintTile, getGameState } from '../../../lib/gameLogic';
 
 // POST /api/paint
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { userId, x, y, color } = body;
-
-  // Placeholder: In the future, update mural state here
-
+  const { userId, color } = await req.json();
+  const success = paintTile(userId, color);
   return NextResponse.json({
-    status: 'success',
-    message: `User ${userId} painted (${x}, ${y}) with color ${color}`,
+    success,
+    state: getGameState(),
   });
 } 
