@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-
-const CELL_SIZE = 32;
+import './globals.css';
 
 function MazeMuralGrid() {
   const [maze, setMaze] = useState<number[][] | null>(null);
@@ -25,34 +24,33 @@ function MazeMuralGrid() {
   }
 
   return (
-    <div style={{ display: 'inline-block', border: '4px solid #222', background: '#111' }}>
-      {maze.map((row, y) => (
-        <div key={y} style={{ display: 'flex' }}>
-          {row.map((cell, x) => {
-            const color = mural[y][x];
-            return (
-              <div
-                key={x}
-                role="gridcell"
-                style={{
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
-                  background: color || (cell === 1 ? '#444' : '#222'),
-                  border: '2px solid #333',
-                  boxSizing: 'border-box',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 18,
-                  color: '#fff',
-                }}
-              >
-                {/* Placeholder for user avatar or icon */}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+    <div className="hud-frame">
+      <div className="hud-dragon" aria-label="Synthwave Dragon" />
+      <div className="hud-header">
+        <span className="hud-reserved">[HUD Area]</span>
+      </div>
+      <div className="hud-maze-container">
+        {maze.map((row, y) => (
+          <div key={y} style={{ display: 'flex' }}>
+            {row.map((cell, x) => {
+              const color = mural[y][x];
+              return (
+                <div
+                  key={x}
+                  role="gridcell"
+                  className="maze-cell"
+                  style={{
+                    background: color || (cell === 1 ? '#444' : '#222'),
+                    border: '2px solid #333',
+                  }}
+                >
+                  {/* Placeholder for user avatar or icon */}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

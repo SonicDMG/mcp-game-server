@@ -24,3 +24,139 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Synthwave HUD styles */
+.hud-frame {
+  position: relative;
+  display: inline-block;
+  padding: 32px 32px 48px 32px;
+  background: linear-gradient(135deg, #1a0033 0%, #2d004d 100%);
+  border: 8px double #ff00cc;
+  border-radius: 24px;
+  box-shadow: 0 0 32px 8px #ff00cc55, 0 0 64px 16px #00eaff33;
+  margin: 2rem auto;
+}
+
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.hud-title {
+  font-family: 'Orbitron', 'Arial Black', Arial, sans-serif;
+  font-size: 2rem;
+  color: #fff;
+  text-shadow: 0 0 8px #ff00cc, 0 0 16px #00eaff;
+  letter-spacing: 2px;
+}
+
+.hud-reserved {
+  min-width: 120px;
+  min-height: 32px;
+  background: linear-gradient(90deg, #222 60%, #ff00cc33 100%);
+  border: 2px solid #00eaff;
+  border-radius: 8px;
+  color: #ff00cc;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px #00eaff77;
+}
+
+.hud-maze-container {
+  background: #111122;
+  border-radius: 12px;
+  box-shadow: 0 0 24px #00eaff44;
+  padding: 16px;
+  overflow: auto;
+  max-width: 90vw;
+  max-height: 70vh;
+}
+
+/* CSS Pixel Art Dragon */
+.hud-dragon {
+  position: absolute;
+  top: -24px;
+  left: -24px;
+  width: 64px;
+  height: 64px;
+  z-index: 2;
+  /* Pixel art dragon using box-shadow for each pixel */
+  background: transparent;
+}
+.hud-dragon::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  box-shadow:
+    /* Head */
+    24px 8px #ff00cc,
+    28px 8px #ff00cc,
+    20px 12px #ff00cc,
+    24px 12px #ff00cc,
+    28px 12px #ff00cc,
+    32px 12px #ff00cc,
+    /* Jaw */
+    32px 16px #ff00cc,
+    36px 16px #ff00cc,
+    36px 20px #ff00cc,
+    /* Eye */
+    28px 16px #00eaff,
+    /* Neck */
+    24px 16px #ff00cc,
+    20px 16px #ff00cc,
+    16px 20px #ff00cc,
+    20px 20px #ff00cc,
+    24px 20px #ff00cc,
+    /* Body */
+    12px 24px #ff00cc,
+    16px 24px #ff00cc,
+    20px 24px #ff00cc,
+    24px 24px #ff00cc,
+    28px 24px #ff00cc,
+    32px 24px #ff00cc,
+    36px 24px #ff00cc,
+    40px 24px #ff00cc,
+    /* Tail */
+    8px 28px #ff00cc,
+    12px 28px #ff00cc,
+    16px 28px #ff00cc,
+    20px 28px #ff00cc,
+    24px 28px #ff00cc,
+    28px 28px #ff00cc,
+    32px 28px #ff00cc,
+    36px 28px #ff00cc,
+    40px 28px #ff00cc,
+    44px 28px #ff00cc,
+    /* Wing */
+    20px 8px #00eaff,
+    16px 12px #00eaff,
+    12px 16px #00eaff,
+    8px 20px #00eaff,
+    12px 20px #00eaff,
+    16px 16px #00eaff,
+    20px 20px #00eaff;
+}
+
+/* Ensure maze cells are always square */
+.maze-cell {
+  aspect-ratio: 1 / 1;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+}
