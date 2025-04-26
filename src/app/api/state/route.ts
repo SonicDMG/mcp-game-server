@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getGameState } from '../../../lib/gameLogic';
 
 // GET /api/state
-export async function GET(req: NextRequest) {
+export async function GET() {
   return NextResponse.json(getGameState());
 } 

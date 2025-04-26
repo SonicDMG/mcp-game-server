@@ -1,24 +1,35 @@
 "use client";
-import React from 'react';
-
-const MAZE = [
-  [0, 1],
-  [1, 0],
-];
-const MURAL = [
-  [null, 'red'],
-  ['blue', null],
-];
+import React, { useEffect, useState } from 'react';
 
 const CELL_SIZE = 32;
 
 function MazeMuralGrid() {
+  const [maze, setMaze] = useState<number[][] | null>(null);
+  const [mural, setMural] = useState<(string | null)[][] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchState() {
+      setLoading(true);
+      const res = await fetch('/api/state');
+      const data = await res.json();
+      setMaze(data.maze);
+      setMural(data.mural);
+      setLoading(false);
+    }
+    fetchState();
+  }, []);
+
+  if (loading || !maze || !mural) {
+    return <div style={{ color: '#fff', padding: '2rem' }}>Loading grid…</div>;
+  }
+
   return (
     <div style={{ display: 'inline-block', border: '4px solid #222', background: '#111' }}>
-      {MAZE.map((row, y) => (
+      {maze.map((row, y) => (
         <div key={y} style={{ display: 'flex' }}>
           {row.map((cell, x) => {
-            const color = MURAL[y][x];
+            const color = mural[y][x];
             return (
               <div
                 key={x}
