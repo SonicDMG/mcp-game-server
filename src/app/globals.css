@@ -160,3 +160,34 @@ body {
   font-size: 18px;
   color: #fff;
 }
+
+.hud-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.hud-zoom-btn {
+  background: linear-gradient(90deg, #ff00cc 0%, #00eaff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.5rem;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 0 8px #ff00cc88, 0 0 8px #00eaff88;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.hud-zoom-btn:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 16px #ff00cc, 0 0 16px #00eaff;
+}
+
+.hud-zoom-level {
+  color: #00eaff;
+  font-family: 'Orbitron', 'Arial Black', Arial, sans-serif;
+  font-size: 1.2rem;
+  text-shadow: 0 0 4px #ff00cc, 0 0 8px #00eaff;
+}
