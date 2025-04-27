@@ -599,10 +599,13 @@ body, html {
 
 .bracket-user-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 8px;
   margin-top: 24px;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 .bracket-user-card {
@@ -656,5 +659,49 @@ body, html {
     font-size: 0.95rem;
     padding: 8px 4px;
     max-width: 320px;
+  }
+}
+
+.bracket-user-card-portrait {
+  background: #23244aee;
+  color: #f5f6fa;
+  border-radius: 18px;
+  border: 2.5px solid #3b82f6;
+  box-shadow: 0 4px 24px 0 #3b82f633;
+  width: 100%;
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 14px 8px 8px 8px;
+  box-sizing: border-box;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: box-shadow 0.2s, border 0.2s;
+  margin: 0;
+  flex: 1 1 0;
+}
+.bracket-user-card-portrait:hover {
+  box-shadow: 0 8px 32px 0 #a78bfa55, 0 2px 12px 0 #0006;
+  border-color: #a78bfa;
+}
+.bracket-user-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #3b82f6;
+  margin-bottom: 12px;
+  background: #18191c;
+  box-shadow: 0 2px 8px #3b82f655;
+}
+
+@media (max-width: 900px) {
+  .bracket-user-card-portrait {
+    min-width: 60px;
+    font-size: 0.95rem;
+    padding: 8px 2px;
   }
 }
