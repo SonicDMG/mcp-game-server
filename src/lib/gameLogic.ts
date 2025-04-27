@@ -1,92 +1,166 @@
 // Types
-export type Maze = number[][]; // 0 = path, 1 = wall
-export type Mural = (string | null)[][]; // null = unpainted, string = color
+export type RoomId = string;
+export type Artifact = string;
+export interface Room {
+  id: RoomId;
+  description: string;
+  exits: Partial<Record<'north' | 'south' | 'east' | 'west', RoomId>>;
+  artifact?: Artifact;
+  goal?: boolean;
+}
 export interface User {
   id: string;
-  x: number;
-  y: number;
-  color: string;
+  room: RoomId;
+  inventory: Artifact[];
+  reachedGoal: boolean;
 }
 
-// Utility to generate a random maze and mural
-function generateRandomMaze(size: number): Maze {
-  const maze: Maze = [];
-  for (let y = 0; y < size; y++) {
-    const row: number[] = [];
-    for (let x = 0; x < size; x++) {
-      // Border is always wall, inside is random wall or path
-      if (x === 0 || y === 0 || x === size - 1 || y === size - 1) {
-        row.push(1);
-      } else {
-        row.push(Math.random() < 0.25 ? 1 : 0); // 25% chance of wall
-      }
-    }
-    maze.push(row);
+// Cyberpunk world definition
+const ROOMS: Record<RoomId, Room> = {
+  "alley": {
+    id: "alley",
+    description: "A rain-soaked neon alley. The hum of distant drones fills the air.",
+    exits: { east: "arcade", south: "market" },
+    artifact: "Neon Katana",
+  },
+  "arcade": {
+    id: "arcade",
+    description: "A retro arcade, screens flickering with synthwave games.",
+    exits: { west: "alley", south: "lobby" },
+    artifact: "Quantum Key",
+  },
+  "market": {
+    id: "market",
+    description: "A bustling night market, stalls selling chrome implants.",
+    exits: { north: "alley", east: "lobby" },
+    artifact: "Holo Badge",
+  },
+  "lobby": {
+    id: "lobby",
+    description: "A corporate lobby, guarded by holographic sentries.",
+    exits: { north: "arcade", west: "market", east: "vault" },
+    artifact: "Data Shard",
+  },
+  "vault": {
+    id: "vault",
+    description: "A hidden vault, pulsing with blue light. The final challenge awaits.",
+    exits: { west: "lobby" },
+    artifact: "Chrome Skull",
+    goal: true,
+  },
+};
+
+// Required artifacts to enter the goal room
+const REQUIRED_ARTIFACTS = ["Neon Katana", "Quantum Key", "Holo Badge", "Data Shard"];
+
+// In-memory user state
+let users: User[] = [];
+
+function getOrCreateUser(userId: string): User {
+  let user = users.find(u => u.id === userId);
+  if (!user) {
+    user = { id: userId, room: "alley", inventory: [], reachedGoal: false };
+    users.push(user);
   }
-  return maze;
+  return user;
 }
 
-function generateEmptyMural(size: number): Mural {
-  return Array.from({ length: size }, () => Array(size).fill(null));
-}
-
-function findRandomOpenPosition(maze: Maze): { x: number, y: number } {
-  let x = 0, y = 0;
-  const size = maze.length;
-  do {
-    x = Math.floor(Math.random() * size);
-    y = Math.floor(Math.random() * size);
-  } while (maze[y][x] !== 0);
-  return { x, y };
-}
-
-// Initial state (for demo)
-const GRID_SIZE = 128;
-let maze: Maze = generateRandomMaze(GRID_SIZE);
-let mural: Mural = generateEmptyMural(GRID_SIZE);
-const startPos = findRandomOpenPosition(maze);
-let users: User[] = [
-  { id: 'user1', x: startPos.x, y: startPos.y, color: 'blue' },
-];
-
-// Pure functions
-export function moveUser(userId: string, dx: number, dy: number) {
-  const user = users.find(u => u.id === userId);
-  if (!user) return false;
-  const newX = user.x + dx;
-  const newY = user.y + dy;
-  if (
-    newX < 0 || newY < 0 ||
-    newY >= maze.length || newX >= maze[0].length ||
-    maze[newY][newX] === 1
-  ) {
-    return false; // Blocked
+export function moveUser(userId: string, direction: 'north' | 'south' | 'east' | 'west') {
+  const user = getOrCreateUser(userId);
+  const currentRoom = ROOMS[user.room];
+  const nextRoomId = currentRoom.exits[direction];
+  if (!nextRoomId) return { success: false, error: "No exit that way." };
+  // Check for goal room requirements
+  if (ROOMS[nextRoomId].goal) {
+    const hasAll = REQUIRED_ARTIFACTS.every(a => user.inventory.includes(a));
+    if (!hasAll) return { success: false, error: "You need all artifacts to enter the vault!" };
+    user.reachedGoal = true;
   }
-  user.x = newX;
-  user.y = newY;
-  return true;
+  user.room = nextRoomId;
+  return { success: true, room: ROOMS[user.room] };
 }
 
-export function paintTile(userId: string, color: string) {
-  const user = users.find(u => u.id === userId);
-  if (!user) return false;
-  mural[user.y][user.x] = color;
-  return true;
+export function takeArtifact(userId: string) {
+  const user = getOrCreateUser(userId);
+  const room = ROOMS[user.room];
+  if (!room.artifact) return { success: false, error: "No artifact here." };
+  if (user.inventory.includes(room.artifact)) return { success: false, error: "Already taken." };
+  user.inventory.push(room.artifact);
+  return { success: true, artifact: room.artifact };
 }
 
-export function getGameState() {
+export function getUserStatus(userId: string) {
+  const user = getOrCreateUser(userId);
   return {
-    maze,
-    mural,
-    users,
+    id: user.id,
+    room: ROOMS[user.room],
+    inventory: user.inventory,
+    reachedGoal: user.reachedGoal,
   };
 }
 
-export function resetGameState() {
-  maze = generateRandomMaze(GRID_SIZE);
-  mural = generateEmptyMural(GRID_SIZE);
-  const startPos = findRandomOpenPosition(maze);
+export function getLeaderboard() {
+  return users.map(u => ({
+    id: u.id,
+    inventory: u.inventory,
+    reachedGoal: u.reachedGoal,
+    room: u.room,
+  }));
+}
+
+export function seedTestUsers() {
   users = [
-    { id: 'user1', x: startPos.x, y: startPos.y, color: 'blue' },
+    {
+      id: 'neo',
+      room: 'vault',
+      inventory: ["Neon Katana", "Quantum Key", "Holo Badge", "Data Shard", "Chrome Skull"],
+      reachedGoal: true,
+    },
+    {
+      id: 'trinity',
+      room: 'lobby',
+      inventory: ["Neon Katana", "Quantum Key", "Data Shard"],
+      reachedGoal: false,
+    },
+    {
+      id: 'case',
+      room: 'arcade',
+      inventory: ["Quantum Key"],
+      reachedGoal: false,
+    },
+    {
+      id: 'molly',
+      room: 'market',
+      inventory: ["Holo Badge"],
+      reachedGoal: false,
+    },
+    {
+      id: 'hiro',
+      room: 'alley',
+      inventory: [],
+      reachedGoal: false,
+    },
   ];
+}
+
+export function resetGameState() {
+  seedTestUsers();
+}
+
+export function getStoryMetadata() {
+  // Ordered by story progression
+  const roomOrder = ["alley", "arcade", "market", "lobby", "vault"];
+  const artifacts = roomOrder
+    .map(r => ROOMS[r].artifact)
+    .filter(Boolean);
+  const goalRoom = roomOrder.find(r => ROOMS[r].goal) || "vault";
+  return {
+    title: "Cyberpunk Maze Adventure",
+    description: "Navigate the neon-lit maze, collect artifacts, and reach the vault!",
+    roomOrder,
+    artifacts,
+    goalRoom,
+    rooms: roomOrder.map(r => ROOMS[r]),
+    requiredArtifacts: REQUIRED_ARTIFACTS,
+  };
 } 

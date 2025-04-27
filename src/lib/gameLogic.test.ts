@@ -1,44 +1,57 @@
-import { moveUser, paintTile, getGameState, resetGameState } from './gameLogic';
+import { moveUser, takeArtifact, getUserStatus, getLeaderboard, resetGameState } from './gameLogic';
 
-beforeEach(() => {
-  resetGameState();
-});
-
-describe('gameLogic', () => {
-  it('moves a user only if the path is open', () => {
+describe('gameLogic (Zork-like)', () => {
+  beforeEach(() => {
     resetGameState();
-    const { users, maze } = getGameState();
-    const user = users[0];
-    // Try all four directions
-    const directions = [
-      { dx: 1, dy: 0 }, // right
-      { dx: -1, dy: 0 }, // left
-      { dx: 0, dy: 1 }, // down
-      { dx: 0, dy: -1 }, // up
-    ];
-    directions.forEach(({ dx, dy }) => {
-      const nx = user.x + dx;
-      const ny = user.y + dy;
-      const expected =
-        nx >= 0 && ny >= 0 && ny < maze.length && nx < maze[0].length && maze[ny][nx] === 0;
-      expect(moveUser('user1', dx, dy)).toBe(expected);
-      // Move user back for next direction
-      if (expected) moveUser('user1', -dx, -dy);
-    });
   });
 
-  it('paints a tile at the user position', () => {
-    const { users } = getGameState();
-    const user = users[0];
-    paintTile('user1', 'green');
-    const state = getGameState();
-    expect(state.mural[user.y][user.x]).toBe('green');
+  it('lets a user move in cardinal directions and blocks invalid moves', () => {
+    let result = moveUser('alice', 'east');
+    expect(result.success).toBe(true);
+    expect(getUserStatus('alice').room.id).toBe('arcade');
+    result = moveUser('alice', 'north');
+    expect(result.success).toBe(false); // No exit north from arcade
+    expect(getUserStatus('alice').room.id).toBe('arcade');
+    result = moveUser('alice', 'south');
+    expect(result.success).toBe(true);
+    expect(getUserStatus('alice').room.id).toBe('lobby');
   });
 
-  it('returns the current game state', () => {
-    const state = getGameState();
-    expect(state).toHaveProperty('maze');
-    expect(state).toHaveProperty('mural');
-    expect(state).toHaveProperty('users');
+  it('lets a user take artifacts in rooms and blocks duplicates', () => {
+    expect(takeArtifact('bob').success).toBe(true); // Neon Katana in alley
+    expect(getUserStatus('bob').inventory).toContain('Neon Katana');
+    expect(takeArtifact('bob').success).toBe(false); // Already taken
+    moveUser('bob', 'east'); // To arcade
+    expect(takeArtifact('bob').success).toBe(true); // Quantum Key
+    expect(getUserStatus('bob').inventory).toContain('Quantum Key');
+  });
+
+  it('blocks entry to the goal room without all artifacts', () => {
+    moveUser('eve', 'east'); // alley -> arcade
+    moveUser('eve', 'south'); // arcade -> lobby
+    const result = moveUser('eve', 'east'); // lobby -> vault
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/need all artifacts/i);
+  });
+
+  it('allows entry to the goal room with all artifacts', () => {
+    // Collect all artifacts
+    takeArtifact('carol'); // alley
+    moveUser('carol', 'east'); takeArtifact('carol'); // arcade
+    moveUser('carol', 'south'); takeArtifact('carol'); // lobby
+    moveUser('carol', 'west'); takeArtifact('carol'); // market
+    moveUser('carol', 'east'); moveUser('carol', 'east'); // lobby -> vault
+    const status = getUserStatus('carol');
+    expect(status.room.id).toBe('vault');
+    expect(status.reachedGoal).toBe(true);
+  });
+
+  it('leaderboard shows all users and their progress', () => {
+    takeArtifact('alice');
+    moveUser('alice', 'east'); takeArtifact('alice');
+    const leaderboard = getLeaderboard();
+    expect(Array.isArray(leaderboard)).toBe(true);
+    const alice = leaderboard.find(u => u.id === 'alice');
+    expect(alice && alice.inventory.length).toBeGreaterThan(0);
   });
 }); 

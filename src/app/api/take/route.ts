@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { moveUser, getUserStatus } from '../../../lib/gameLogic';
+import { takeArtifact, getUserStatus } from '../../../lib/gameLogic';
 
-// POST /api/move
+// POST /api/take
 export async function POST(req: NextRequest) {
-  const { userId, direction } = await req.json();
-  const result = moveUser(userId, direction);
+  const { userId } = await req.json();
+  const result = takeArtifact(userId);
   return NextResponse.json({
     ...result,
     status: getUserStatus(userId),
