@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { Room } from '../lib/gameLogic';
 
 interface LeaderboardUser {
   id: string;
@@ -13,7 +14,7 @@ interface StoryMetadata {
   roomOrder: string[];
   artifacts: string[];
   goalRoom: string;
-  rooms: any[];
+  rooms: Room[];
   requiredArtifacts: string[];
 }
 
