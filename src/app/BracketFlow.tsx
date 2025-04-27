@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Room } from '../lib/gameLogic';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 interface LeaderboardUser {
   id: string;
@@ -32,9 +33,6 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
   const totalSteps = rooms.length;
 
   // Responsive user card component with framer-motion
-  const MIN_CARD_WIDTH = 80;
-  const CARD_GAP = 8;
-
   const UserCard = ({ user }: { user: LeaderboardUser }) => {
     return (
       <motion.div
@@ -43,10 +41,14 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
         whileTap={{ scale: 1.04, zIndex: 200 }}
         drag={false}
       >
-        <img
+        <Image
           className="bracket-user-avatar"
-          src="https://api.dicebear.com/7.x/pixel-art/svg?seed=placeholder"
+          src="https://api.dicebear.com/7.x/pixel-art/png?seed=placeholder"
           alt="avatar"
+          width={72}
+          height={72}
+          style={{ borderRadius: '50%' }}
+          priority
         />
         {user.id}
         <div className="bracket-user-card-artifacts">
@@ -56,15 +58,12 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
     );
   };
 
-  // --- Bracket row layout logic ---
-  const [containerWidth, setContainerWidth] = useState(1200);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     function updateWidths() {
       if (rowRefs.current.length > 0) {
-        const w = rowRefs.current[0]?.offsetWidth || 1200;
-        setContainerWidth(w);
+        // No longer needed, but keep for possible future use
       }
     }
     updateWidths();
@@ -72,30 +71,12 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
     return () => window.removeEventListener('resize', updateWidths);
   }, []);
 
-  // Move rows definition here, after useEffect and state
   const rows = rooms.map((room, idx) => {
     const stepIdx = idx;
     const usersAtStep = users.filter(u => {
       const artifactCount = Math.min(u.inventory.length, maxRooms - 1);
       return (u.reachedGoal ? 0 : totalSteps - 1 - artifactCount) === stepIdx;
     });
-    const n = usersAtStep.length;
-    // How many cards fit at min width + gap?
-    const fitCount = Math.floor((containerWidth + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP));
-    let overlap = 0;
-    let wrap = false;
-    // Always left-align and use a fixed gap
-    const justifyContent: React.CSSProperties['justifyContent'] = 'flex-start';
-    if (n > fitCount) {
-      // Calculate overlap so at least 50% of each card is visible
-      const visibleWidth = containerWidth / n;
-      if (visibleWidth < MIN_CARD_WIDTH / 2) {
-        wrap = true;
-        overlap = 0;
-      } else {
-        overlap = ((containerWidth - n * MIN_CARD_WIDTH) / (n - 1)) - CARD_GAP;
-      }
-    }
     return (
       <div key={room} className="bracket-row">
         <div className="bracket-heading">
@@ -103,8 +84,7 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
           <div className="bracket-separator" />
         </div>
         <div
-          className={`bracket-user-row${wrap ? ' bracket-user-row-wrap' : n > fitCount ? ' deck-style' : ''}`}
-          style={{ position: 'relative', minHeight: wrap ? 360 : 180, flexWrap: wrap ? 'wrap' : 'nowrap', display: 'flex', alignItems: 'flex-start', justifyContent, gap: 8 }}
+          className="bracket-user-row"
           ref={el => { rowRefs.current[idx] = el; }}
         >
           {usersAtStep.map((user) => (
