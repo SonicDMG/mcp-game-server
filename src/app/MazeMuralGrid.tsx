@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './globals.css';
 import BracketFlow from './BracketFlow';
+import type { Room } from '../lib/gameLogic';
 
 interface LeaderboardUser {
   id: string;
@@ -16,21 +17,8 @@ interface StoryMetadata {
   roomOrder: string[];
   artifacts: string[];
   goalRoom: string;
-  rooms: any[];
+  rooms: Room[];
   requiredArtifacts: string[];
-}
-
-function getProgressPercent(room: string, reachedGoal: boolean, roomOrder: string[]): number {
-  if (reachedGoal) return 100;
-  const step = roomOrder.indexOf(room);
-  if (step === -1) return 0;
-  return Math.round((step / (roomOrder.length - 1)) * 100);
-}
-
-function getCardLeft(progress: number, cardWidth: number = 180, barWidth: number = 1100) {
-  // Clamp so card doesn't overflow at 0% or 100%
-  const px = (progress / 100) * (barWidth - cardWidth);
-  return `${px}px`;
 }
 
 function LeaderboardHUD() {

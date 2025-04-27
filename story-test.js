@@ -18,9 +18,13 @@ async function get(endpoint) {
 }
 
 async function resetGame() {
-  // Optionally, expose a /api/reset endpoint. For now, just restart the server or rely on seedTestUsers.
-  // We'll simulate by taking over the test users.
-  console.log('Assuming test users are seeded.');
+  // Call the new /api/reset endpoint to reseed users
+  const res = await fetch(`${API}/reset`, { method: 'POST' });
+  if (res.ok) {
+    console.log('Game state reset via /api/reset.');
+  } else {
+    console.error('Failed to reset game state!');
+  }
 }
 
 async function run() {

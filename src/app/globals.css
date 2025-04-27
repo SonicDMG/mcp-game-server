@@ -194,23 +194,6 @@ body, html {
     20px 20px #00eaff;
 }
 
-/* Ensure maze cells are always square */
-.maze-cell {
-  aspect-ratio: 1 / 1;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  max-width: 32px;
-  max-height: 32px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: #fff;
-}
-
 .hud-zoom-controls {
   display: flex;
   align-items: center;
@@ -599,9 +582,9 @@ body, html {
 
 .bracket-user-row {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: flex-start;
-  align-items: stretch;
+  align-items: flex-start;
   gap: 8px;
   margin-top: 24px;
   box-sizing: border-box;
@@ -663,25 +646,26 @@ body, html {
 }
 
 .bracket-user-card-portrait {
+  width: 120px;
+  aspect-ratio: 1 / 1;
+  flex-basis: 120px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   background: #23244aee;
   color: #f5f6fa;
   border-radius: 18px;
   border: 2.5px solid #3b82f6;
   box-shadow: 0 4px 24px 0 #3b82f633;
-  width: 100%;
-  min-width: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 14px 8px 8px 8px;
   box-sizing: border-box;
+  padding: 12px 8px;
   text-align: center;
   font-weight: 600;
   font-size: 1.1rem;
   transition: box-shadow 0.2s, border 0.2s;
   margin: 0;
-  flex: 1 1 0;
 }
 .bracket-user-card-portrait:hover {
   box-shadow: 0 8px 32px 0 #a78bfa55, 0 2px 12px 0 #0006;

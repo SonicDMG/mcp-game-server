@@ -54,4 +54,15 @@ describe('gameLogic (Zork-like)', () => {
     const alice = leaderboard.find(u => u.id === 'alice');
     expect(alice && alice.inventory.length).toBeGreaterThan(0);
   });
+
+  it('leaderboard user distribution matches expected test data', () => {
+    const leaderboard = getLeaderboard();
+    const byRoom = (room: string) => leaderboard.filter(u => u.room === room);
+    expect(byRoom('alley').length).toBe(20);
+    expect(byRoom('arcade').length).toBe(5);
+    expect(byRoom('market').length).toBe(3);
+    expect(byRoom('lobby').length).toBe(2);
+    expect(byRoom('vault').length).toBe(1);
+    expect(byRoom('vault')[0].id).toBe('neo');
+  });
 }); 

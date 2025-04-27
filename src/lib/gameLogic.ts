@@ -110,12 +110,14 @@ export function getLeaderboard() {
 
 export function seedTestUsers() {
   users = [
+    // Goal: only neo
     {
       id: 'neo',
       room: 'vault',
       inventory: ["Neon Katana", "Quantum Key", "Holo Badge", "Data Shard", "Chrome Skull"],
       reachedGoal: true,
     },
+    // Lobby: 2 users with 3 artifacts
     {
       id: 'trinity',
       room: 'lobby',
@@ -123,23 +125,44 @@ export function seedTestUsers() {
       reachedGoal: false,
     },
     {
+      id: 'apoc',
+      room: 'lobby',
+      inventory: ["Neon Katana", "Quantum Key", "Data Shard"],
+      reachedGoal: false,
+    },
+    // Market: 3 users with 2 artifacts
+    {
       id: 'case',
-      room: 'arcade',
-      inventory: ["Quantum Key"],
-      reachedGoal: false,
-    },
-    {
-      id: 'molly',
       room: 'market',
-      inventory: ["Holo Badge"],
+      inventory: ["Neon Katana", "Quantum Key"],
       reachedGoal: false,
     },
     {
-      id: 'hiro',
+      id: 'cypher',
+      room: 'market',
+      inventory: ["Neon Katana", "Quantum Key"],
+      reachedGoal: false,
+    },
+    {
+      id: 'switch',
+      room: 'market',
+      inventory: ["Neon Katana", "Quantum Key"],
+      reachedGoal: false,
+    },
+    // Arcade: 5 users with 1 artifact
+    ...Array.from({ length: 5 }, (_, i) => ({
+      id: `arcader${i+1}`,
+      room: 'arcade',
+      inventory: ["Neon Katana"],
+      reachedGoal: false,
+    })),
+    // Alley: 20 users, no artifacts
+    ...Array.from({ length: 20 }, (_, i) => ({
+      id: `rookie${i+1}`,
       room: 'alley',
       inventory: [],
       reachedGoal: false,
-    },
+    })),
   ];
 }
 
