@@ -97,10 +97,17 @@ body, html {
 
 .hud-title {
   font-family: inherit;
-  font-size: 2rem;
-  color: var(--foreground);
-  text-shadow: none;
-  letter-spacing: 1px;
+  font-size: 3rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, #a78bfa 0%, #00eaff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  text-align: center;
+  margin: 32px 0 24px 0;
+  letter-spacing: 2px;
+  text-shadow: 0 0 24px #00eaff88, 0 0 32px #a78bfa44;
 }
 
 .hud-reserved {
@@ -548,27 +555,24 @@ body, html {
 }
 
 .bracket-row {
-  width: 100%;
-  margin: 0 auto;
-  max-width: 1200px;
+  width: 100vw;
+  margin: 0;
+  max-width: none;
   padding: 0 2vw 32px 2vw;
   box-sizing: border-box;
 }
 
 .bracket-heading {
-  background: none;
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.5rem;
   text-align: center;
+  margin-left: 0;
+  margin-right: 0;
+  min-width: 0;
+  color: #3b82f6;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-shadow: 0 0 8px #06b6d4, 0 0 16px #a78bfa88;
   letter-spacing: 1px;
   margin-bottom: 8px;
-  box-shadow: none;
-  border: none;
-  min-width: 220px;
-  pointer-events: none;
-  position: relative;
-  box-sizing: border-box;
 }
 
 .bracket-separator {
@@ -580,15 +584,26 @@ body, html {
   box-sizing: border-box;
 }
 
+.bracket-card-group {
+  padding: 24px 0 16px 0;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .bracket-user-row {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: flex-start;
-  gap: 8px;
-  margin-top: 24px;
+  gap: 24px;
+  margin-top: 0;
   box-sizing: border-box;
   overflow-x: auto;
+  width: 100vw;
+  max-width: none;
+  justify-items: center;
 }
 
 .bracket-user-card {
@@ -623,25 +638,53 @@ body, html {
 .bracket-user-card-artifacts {
   font-size: 1rem;
   margin-top: 8px;
+  color: #fff;
+  text-shadow: 0 0 8px #00eaff88;
 }
 
 @media (max-width: 700px) {
-  .bracket-row {
-    padding: 0 1vw 20px 1vw;
+  .main-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+    width: 100vw;
+    padding: 0 2vw;
+    justify-items: center;
+    align-items: start;
+  }
+  .main-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 98vw;
+    font-size: 1rem;
+    padding: 10px 4px;
+    margin: 0 auto 8px auto;
+    box-sizing: border-box;
+  }
+  .app-header {
+    padding: 6px 0 2px 0;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--background);
+  }
+  .app-footer {
+    font-size: 0.95rem;
+    padding: 6px 0 2px 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: var(--background);
+  }
+  .hud-frame {
+    padding: 4px 0 8px 0 !important;
   }
   .bracket-heading {
-    font-size: 1.1rem;
-    min-width: 0;
+    text-align: center;
   }
   .bracket-user-row {
-    gap: 10px;
-  }
-  .bracket-user-card {
-    width: 100%;
-    min-width: 120px;
-    font-size: 0.95rem;
-    padding: 8px 4px;
-    max-width: 320px;
+    justify-items: center;
+    justify-content: center !important;
   }
 }
 
@@ -654,32 +697,56 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  background: #23244aee;
+  background: rgba(30, 32, 60, 0.95);
   color: #f5f6fa;
   border-radius: 18px;
-  border: 2.5px solid #3b82f6;
-  box-shadow: 0 4px 24px 0 #3b82f633;
+  /* Neon gradient border */
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  position: relative;
   box-sizing: border-box;
-  padding: 12px 8px;
+  padding: 18px 8px 12px 8px;
   text-align: center;
   font-weight: 600;
   font-size: 1.1rem;
   transition: box-shadow 0.2s, border 0.2s;
   margin: 0;
 }
-.bracket-user-card-portrait:hover {
-  box-shadow: 0 8px 32px 0 #a78bfa55, 0 2px 12px 0 #0006;
-  border-color: #a78bfa;
+.bracket-user-card-portrait::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, #a78bfa, #3b82f6 40%, #06b6d4 100%);
+  opacity: 1;
+  box-shadow: 0 0 24px 6px #3b82f6cc, 0 0 48px 12px #a78bfa88;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
+.bracket-user-card-portrait > * {
+  position: relative;
+  z-index: 1;
+}
+.bracket-user-card-portrait:hover::before {
+  box-shadow: 0 0 48px 12px #a78bfa, 0 0 64px 24px #3b82f6;
+  opacity: 1;
+}
+
 .bracket-user-avatar {
   width: 72px;
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #3b82f6;
+  border: 3px solid #fff;
   margin-bottom: 12px;
   background: #18191c;
-  box-shadow: 0 2px 8px #3b82f655;
+  box-shadow: 0 0 12px #00eaff88;
 }
 
 @media (max-width: 900px) {
@@ -687,5 +754,74 @@ body, html {
     min-width: 60px;
     font-size: 0.95rem;
     padding: 8px 2px;
+  }
+}
+
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: var(--background);
+}
+
+.app-header {
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 0 8px 0;
+  background: transparent;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-logo {
+  display: block;
+  margin: 0 auto 4px auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #00eaff44;
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #a78bfa;
+  text-align: center;
+  letter-spacing: 1px;
+  margin-bottom: 0;
+  text-shadow: 0 0 8px #00eaff44;
+}
+
+.app-footer {
+  width: 100vw;
+  padding: 12px 0 8px 0;
+  text-align: center;
+  color: #a78bfa;
+  font-size: 1rem;
+  background: transparent;
+  margin-top: auto;
+}
+
+@media (max-width: 700px) {
+  .app-header {
+    padding: 10px 0 4px 0;
+  }
+  .app-logo {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .app-title {
+    font-size: 1rem;
+  }
+  .app-footer {
+    font-size: 0.95rem;
+    padding: 8px 0 4px 0;
+  }
+  .hud-frame {
+    padding: 8px 0 16px 0 !important;
   }
 }

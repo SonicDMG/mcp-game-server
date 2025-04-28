@@ -81,7 +81,6 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
       <div key={room} className="bracket-row">
         <div className="bracket-heading">
           {room}
-          <div className="bracket-separator" />
         </div>
         <div
           className="bracket-user-row"
@@ -120,7 +119,7 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
   }, [rows.length, users.length]);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', marginTop: 16 }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', marginTop: 16, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
       <div
         ref={bracketRef}
         style={{
@@ -129,9 +128,10 @@ export default function BracketFlow({ story, users }: BracketFlowProps) {
           transition: 'transform 0.2s',
           width: '100%',
           maxWidth: 1200,
+          margin: '0 auto',
         }}
       >
-        <div className="bracket-container">
+        <div className="bracket-container" style={{ margin: '0 auto', maxWidth: 1200 }}>
           {rows}
         </div>
       </div>
