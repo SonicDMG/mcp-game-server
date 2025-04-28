@@ -545,11 +545,28 @@ html, body {
 }
 
 /* --- Bracket Layout Styles (CLEANED) --- */
+.bracket-outer {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.bracket-scale {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .bracket-container {
   width: 100%;
-  min-height: 800px;
-  background: transparent;
-  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .bracket-row {
