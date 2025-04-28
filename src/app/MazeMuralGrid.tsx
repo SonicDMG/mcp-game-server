@@ -5,6 +5,7 @@ import BracketFlow from './BracketFlow';
 import type { Room } from '../lib/gameLogic';
 import Image from 'next/image';
 import Link from 'next/link';
+import AsciiLeaderboard from './AsciiLeaderboard';
 
 interface LeaderboardUser {
   id: string;
@@ -23,12 +24,13 @@ interface StoryMetadata {
   requiredArtifacts: string[];
 }
 
-function LeaderboardHUD() {
+export function LeaderboardHUD() {
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [story, setStory] = useState<StoryMetadata | null>(null);
   const hudHeaderRef = useRef<HTMLDivElement>(null);
   const firstLoad = useRef(true);
+  const [asciiMode, setAsciiMode] = React.useState(true);
 
   useEffect(() => {
     async function fetchMetadata() {
@@ -60,25 +62,49 @@ function LeaderboardHUD() {
   }
 
   return (
-    <div className="app-root">
-      <header className="app-header">
-        <nav style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%', justifyContent: 'flex-start', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', gap: 8 }}>
-              <Image src="/images/logo.png" alt="App Logo" width={40} height={40} className="app-logo" />
-              <span style={{ color: '#a78bfa', fontWeight: 600, fontSize: '1.1rem' }}>Home</span>
-            </Link>
-          </div>
-          <span style={{ color: '#a78bfa', fontSize: '1.5rem', margin: '0 8px' }}>&#8250;</span>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>{story.title}</span>
-        </nav>
-      </header>
-      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', minWidth: 0, padding: '16px 0 32px 0' }}>
-        <div className="hud-header" ref={hudHeaderRef}>
-          <span className="hud-reserved">[Adventure]</span>
-        </div>
+    <div className="leaderboard-hud-root">
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+        <button
+          onClick={() => setAsciiMode(true)}
+          style={{
+            background: asciiMode ? '#222' : '#111',
+            color: asciiMode ? '#3b82f6' : '#aaa',
+            border: '1px solid #3b82f6',
+            borderRadius: 6,
+            padding: '6px 18px',
+            marginRight: 8,
+            fontWeight: asciiMode ? 700 : 400,
+            cursor: 'pointer',
+            fontFamily: 'monospace',
+            fontSize: '1rem',
+            transition: 'all 0.15s',
+          }}
+        >
+          ASCII Art
+        </button>
+        <button
+          onClick={() => setAsciiMode(false)}
+          style={{
+            background: !asciiMode ? '#222' : '#111',
+            color: !asciiMode ? '#a78bfa' : '#aaa',
+            border: '1px solid #a78bfa',
+            borderRadius: 6,
+            padding: '6px 18px',
+            fontWeight: !asciiMode ? 700 : 400,
+            cursor: 'pointer',
+            fontFamily: 'monospace',
+            fontSize: '1rem',
+            transition: 'all 0.15s',
+          }}
+        >
+          Graphical
+        </button>
+      </div>
+      {asciiMode ? (
+        <AsciiLeaderboard story={story} users={users} />
+      ) : (
         <BracketFlow story={story} users={users} />
-      </main>
+      )}
     </div>
   );
 }
