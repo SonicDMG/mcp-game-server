@@ -889,3 +889,79 @@ html, body {
     padding: 8px 0 16px 0 !important;
   }
 }
+
+/* Winner Celebration Styles */
+@keyframes winner-glow {
+  0% { box-shadow: 0 0 30px #3b82f6, 0 0 60px #a78bfa; }
+  50% { box-shadow: 0 0 60px #a78bfa, 0 0 120px #3b82f6; }
+  100% { box-shadow: 0 0 30px #3b82f6, 0 0 60px #a78bfa; }
+}
+
+@keyframes winner-crown-float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes winner-confetti {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
+
+.winner-card {
+  position: relative;
+  animation: winner-glow 3s infinite ease-in-out;
+  border: 3px solid gold !important;
+  background: linear-gradient(135deg, #2a2d6d 0%, #1a1b4d 100%) !important;
+}
+
+.winner-crown {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  animation: winner-crown-float 3s infinite ease-in-out;
+  filter: drop-shadow(0 0 10px gold);
+  z-index: 10;
+}
+
+.winner-label {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #ffd700 0%, #ffb700 100%);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  color: #000;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  z-index: 5;
+}
+
+.winner-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle, transparent 20%, #1a1b4d 20%, #1a1b4d 80%, transparent 80%, transparent) 0 0/15px 15px,
+    radial-gradient(circle, transparent 20%, #1a1b4d 20%, #1a1b4d 80%, transparent 80%, transparent) 7.5px 7.5px/15px 15px;
+  mix-blend-mode: overlay;
+  opacity: 0.3;
+  animation: winner-confetti 20s linear infinite;
+}
+
+.winner-name {
+  background: linear-gradient(90deg, #ffd700 0%, #ffb700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}

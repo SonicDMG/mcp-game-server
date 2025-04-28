@@ -1,10 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
 import './globals.css';
-import BracketFlow from './BracketFlow';
 import type { Room } from '../lib/gameLogic';
-import Image from 'next/image';
-import Link from 'next/link';
 import AsciiLeaderboard from './AsciiLeaderboard';
 
 interface LeaderboardUser {
@@ -28,9 +25,7 @@ export function LeaderboardHUD() {
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [story, setStory] = useState<StoryMetadata | null>(null);
-  const hudHeaderRef = useRef<HTMLDivElement>(null);
   const firstLoad = useRef(true);
-  const [asciiMode, setAsciiMode] = React.useState(true);
 
   useEffect(() => {
     async function fetchMetadata() {
@@ -63,48 +58,7 @@ export function LeaderboardHUD() {
 
   return (
     <div className="leaderboard-hud-root">
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-        <button
-          onClick={() => setAsciiMode(true)}
-          style={{
-            background: asciiMode ? '#222' : '#111',
-            color: asciiMode ? '#3b82f6' : '#aaa',
-            border: '1px solid #3b82f6',
-            borderRadius: 6,
-            padding: '6px 18px',
-            marginRight: 8,
-            fontWeight: asciiMode ? 700 : 400,
-            cursor: 'pointer',
-            fontFamily: 'monospace',
-            fontSize: '1rem',
-            transition: 'all 0.15s',
-          }}
-        >
-          ASCII Art
-        </button>
-        <button
-          onClick={() => setAsciiMode(false)}
-          style={{
-            background: !asciiMode ? '#222' : '#111',
-            color: !asciiMode ? '#a78bfa' : '#aaa',
-            border: '1px solid #a78bfa',
-            borderRadius: 6,
-            padding: '6px 18px',
-            fontWeight: !asciiMode ? 700 : 400,
-            cursor: 'pointer',
-            fontFamily: 'monospace',
-            fontSize: '1rem',
-            transition: 'all 0.15s',
-          }}
-        >
-          Graphical
-        </button>
-      </div>
-      {asciiMode ? (
-        <AsciiLeaderboard story={story} users={users} />
-      ) : (
-        <BracketFlow story={story} users={users} />
-      )}
+      <AsciiLeaderboard story={story} users={users} />
     </div>
   );
 }

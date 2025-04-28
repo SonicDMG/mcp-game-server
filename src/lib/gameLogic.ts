@@ -2,10 +2,10 @@
 export type RoomId = string;
 export type Artifact = string;
 export interface Room {
-  id: RoomId;
+  id: string;
   description: string;
-  exits: Partial<Record<'north' | 'south' | 'east' | 'west', RoomId>>;
-  artifact?: Artifact;
+  exits: { [key: string]: string };
+  artifact?: string;
   goal?: boolean;
 }
 export interface User {
