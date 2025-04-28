@@ -9,6 +9,7 @@ interface LeaderboardUser {
   inventory: string[];
   reachedGoal: boolean;
   room: string;
+  isWinner?: boolean;
 }
 
 interface StoryMetadata {
