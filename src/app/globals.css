@@ -35,18 +35,16 @@
   }
 }
 
-body, html {
-  /* min-height: 100vh; */
-  /* min-width: 100vw; */
-  /* height: 100vh; */
+html, body {
+  min-height: 100vh;
   width: 100vw;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   font-family: 'Inter', 'Geist', 'Segoe UI', 'Arial', sans-serif;
   background: var(--background);
   color: var(--foreground);
@@ -662,7 +660,7 @@ body, html {
     box-sizing: border-box;
   }
   .app-header {
-    padding: 6px 0 2px 0;
+    padding: 14px 0 8px 0;
     position: sticky;
     top: 0;
     z-index: 20;
@@ -674,7 +672,8 @@ body, html {
     position: sticky;
     bottom: 0;
     z-index: 20;
-    background: var(--background);
+    background: var(--surface);
+    border-top: 1.5px solid var(--border);
   }
   .hud-frame {
     padding: 4px 0 8px 0 !important;
@@ -772,7 +771,7 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 18px 0 8px 0;
+  padding: 24px 0 16px 0;
   background: transparent;
   position: sticky;
   top: 0;
@@ -802,13 +801,17 @@ body, html {
   text-align: center;
   color: #a78bfa;
   font-size: 1rem;
-  background: transparent;
+  background: var(--surface);
   margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  border-top: 1.5px solid var(--border);
 }
 
 @media (max-width: 700px) {
   .app-header {
-    padding: 10px 0 4px 0;
+    padding: 14px 0 8px 0;
   }
   .app-logo {
     width: 40px !important;
@@ -819,7 +822,12 @@ body, html {
   }
   .app-footer {
     font-size: 0.95rem;
-    padding: 8px 0 4px 0;
+    padding: 6px 0 2px 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    background: var(--surface);
+    border-top: 1.5px solid var(--border);
   }
   .hud-frame {
     padding: 8px 0 16px 0 !important;

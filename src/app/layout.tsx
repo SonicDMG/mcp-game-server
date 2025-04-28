@@ -28,6 +28,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <footer className="app-footer">
+          <span>© {new Date().getFullYear()} Maze Adventure</span>
+        </footer>
       </body>
     </html>
   );

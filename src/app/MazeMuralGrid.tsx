@@ -62,7 +62,7 @@ function LeaderboardHUD() {
   return (
     <div className="app-root">
       <header className="app-header">
-        <nav style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'flex-start', gap: 12, position: 'relative' }}>
+        <nav style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%', justifyContent: 'flex-start', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', gap: 8 }}>
               <Image src="/images/logo.png" alt="App Logo" width={40} height={40} className="app-logo" />
@@ -79,9 +79,6 @@ function LeaderboardHUD() {
         </div>
         <BracketFlow story={story} users={users} />
       </main>
-      <footer className="app-footer">
-        <span>© {new Date().getFullYear()} Maze Adventure</span>
-      </footer>
     </div>
   );
 }
