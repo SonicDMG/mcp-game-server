@@ -5,6 +5,7 @@ export interface Story {
   startingLocation: string;
   version: string;
   requiredArtifacts?: string[];
+  image?: string;
 }
 
 export interface GameItem {

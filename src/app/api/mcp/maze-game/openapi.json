@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "MCP Maze Game API",
+    "title": "MCPlayerOne Game API",
     "version": "1.0.0",
     "description": "API for interacting with the MCP text adventure game. Allows starting games, getting state, moving, taking items, examining things, and viewing leaderboards."
   },
@@ -283,6 +283,95 @@
           "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
+    },
+    "/stories": {
+      "get": {
+        "summary": "List available game stories",
+        "description": "Retrieves a list of all available game stories that can be played. Returns an empty array if none are found.",
+        "operationId": "listStories",
+        "tags": ["Game Setup"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A list of available game stories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StoryRecord"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+             "content": {
+               "application/json": {
+                 "schema": {
+                   "$ref": "#/components/schemas/ErrorResponse"
+                 }
+               }
+             }
+          }
+        }
+      }
+    },
+    "/create": {
+      "post": {
+        "summary": "Create New Game Story",
+        "description": "Generates a basic new game story structure based on user input (title, theme, etc.). Returns the ID and title of the created story.",
+        "operationId": "createGame",
+        "tags": ["Game Setup"],
+        "requestBody": {
+          "description": "Parameters for generating the new game.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGameInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Game story created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                     "success": { "type": "boolean", "example": true },
+                     "message": { "type": "string", "example": "Successfully created story 'My New Game' with ID 'my_new_game'." },
+                     "storyId": { "type": "string", "example": "my_new_game" },
+                     "title": { "type": "string", "example": "My New Game" },
+                     "details": {
+                        "type": "object",
+                        "properties": {
+                            "locationsGenerated": { "type": "integer" },
+                            "startingLocation": { "type": "string" },
+                            "startingItemId": { "type": "string", "nullable": true }
+                        }
+                      }
+                   }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "409": { 
+             "description": "Conflict - A story with the same title or generated ID already exists.",
+             "content": {
+               "application/json": {
+                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+               }
+             }
+           },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
     }
   },
   "components": {
@@ -460,6 +549,38 @@
           }
         },
         "required": ["success", "error"]
+      },
+      "CreateGameInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The desired title for the new game story.",
+            "example": "Escape the Orc Fortress"
+          },
+          "theme": {
+            "type": "string",
+            "description": "Optional theme (e.g., Fantasy, Sci-Fi). Influences generated descriptions.",
+            "example": "Fantasy"
+          },
+          "setting": {
+            "type": "string",
+            "description": "Optional setting (e.g., Castle, Spaceship). Guides location generation.",
+            "example": "Castle"
+          },
+          "goal": {
+            "type": "string",
+            "description": "Optional simple objective for the generated game.",
+            "example": "Find the hidden artifact"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["Easy", "Medium"],
+            "description": "Optional difficulty, determines number of locations (Easy=3, Medium=5). Defaults to Easy.",
+            "example": "Easy"
+          }
+        },
+        "required": ["title"]
       }
     },
     "responses": {
