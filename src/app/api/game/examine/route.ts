@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
       console.log(`>>> Target ${target} identified as item. Fetching details... <<<`);
       const item = await itemsCollection.findOne({ id: target, storyId: storyId });
       if (item) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _id, ...itemData } = item;
         console.log(`>>> Examine item successful: ${item.id} <<<`);
         return NextResponse.json({
@@ -84,7 +83,6 @@ export async function POST(request: NextRequest) {
       console.log(`>>> Target ${target} identified as exit. Fetching destination details... <<<`);
       const destinationLocation = await locationsCollection.findOne({ id: target, storyId: storyId });
       if (destinationLocation) {
-         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _id, ...locationData } = destinationLocation;
         console.log(`>>> Examine exit successful: ${destinationLocation.id} <<<`);
         return NextResponse.json({

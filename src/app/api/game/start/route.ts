@@ -137,9 +137,7 @@ export async function POST(request: NextRequest) {
 
     // 5. Prepare and return the response
     // Omit _id from player and location in the response for cleaner output
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id: player_id, ...playerResponse } = player;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id: location_id, ...locationResponse } = currentLocation;
 
     console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);

@@ -139,8 +139,7 @@ export async function POST(request: NextRequest) {
     // --- Prepare Response --- 
     // console.log('>>> Move successful, preparing response <<<'); // Remove this
     // Destructure to omit the _id field from the response object
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, ...locationResponse } = destinationLocation;
+    const { _id: location_id, ...locationResponse } = destinationLocation;
 
      return NextResponse.json({
        success: true,

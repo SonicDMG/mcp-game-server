@@ -14,13 +14,11 @@ const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
 const playersCollection = db.collection<PlayerRecord>('game_players');
 
-interface RouteParams {
-  params: {
-    storyId: string;
-  }
-}
-
-export async function GET(request: NextRequest, { params }: RouteParams) {
+// Use inline type for params
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function GET(request: NextRequest, context: any) { // Use 'any' and disable eslint rule
+  // Extract params from context
+  const params = context.params;
   const storyId = params.storyId;
   console.log(`>>> ENTERING GET /api/game/stories/${storyId} handler <<<`);
 
@@ -52,7 +50,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+// Use inline type for params
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function DELETE(request: NextRequest, context: any) { // Use 'any' and disable eslint rule
+  // Extract params from context
+  const params = context.params;
   const storyId = params.storyId;
   console.log(`>>> ENTERING DELETE /api/game/stories/${storyId} handler <<<`);
 
@@ -84,7 +86,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     // 3. Check results and log errors
     let success = true;
-    let errors: string[] = [];
+    const errors: string[] = [];
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
         success = false;
@@ -92,9 +94,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         console.error(`>>> Error deleting from ${collectionName} for story ${storyId}:`, result.reason);
         errors.push(`Failed to delete from ${collectionName}.`);
       } else {
-         // Log success counts (Note: deleteMany result structure might vary)
+         // Log success counts 
          const collectionName = ['stories', 'locations', 'items', 'players'][index];
-         const deletedCount = (result.value as any)?.deletedCount ?? 'N/A'; // Type assertion needed
+         // Use a more specific type assertion if possible, otherwise keep 'any' but be aware
+         // Assuming the result.value has a deletedCount property based on MongoDB driver 
+         const deletedCount = (result.value as { deletedCount?: number })?.deletedCount ?? 'N/A'; 
          console.log(`>>> Successfully deleted ${deletedCount} document(s) from ${collectionName} for story ${storyId}.`);
       }
     });

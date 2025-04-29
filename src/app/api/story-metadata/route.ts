@@ -76,12 +76,14 @@ async function fetchAndFormatMetadata(storyId: string) {
     const goalRoom = story.goalRoom || roomOrder[roomOrder.length - 1] || ''; // Default to last room in order
     const requiredArtifacts = story.requiredArtifacts || []; // Default to empty array
 
-    // Ensure the mapped rooms match the ResponseRoom type
-    const mappedRooms: ResponseRoom[] = locations.map(loc => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _id, storyId: locStoryId, ...rest } = loc;
-        return rest as ResponseRoom; // Cast to ensure type match
-    });
+    // Get room data and filter to ResponseRoom type
+    const roomDataPromises = roomOrder.map(roomId => 
+        locationsCollection.findOne({ id: roomId, storyId: storyId })
+    );
+    const roomResults = await Promise.all(roomDataPromises);
+    const rooms: ResponseRoom[] = roomResults
+        .filter((room): room is LocationRecord => room !== null)
+        .map(({ _id, storyId: _storyIdIgnored, ...rest }) => rest); // Omit _id and storyId
 
     const metadata: StoryMetadataResponse = {
       title: story.title,
@@ -89,7 +91,7 @@ async function fetchAndFormatMetadata(storyId: string) {
       roomOrder: roomOrder,
       artifacts: artifacts,
       goalRoom: goalRoom,
-      rooms: mappedRooms, // Use the correctly typed mapped rooms
+      rooms: rooms, // Use the correctly typed mapped rooms
       requiredArtifacts: requiredArtifacts,
     };
 

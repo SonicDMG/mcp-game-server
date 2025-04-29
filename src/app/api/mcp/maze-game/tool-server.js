@@ -1,19 +1,25 @@
-const fs = require('fs');
-const path = require('path');
-const { URL, URLSearchParams } = require('url');
+import fs from 'fs';
+import path from 'path';
+// Keep URLSearchParams, remove URL if not used directly
+import { URLSearchParams } from 'url'; 
 // Import LOW-LEVEL Server class and Stdio transport
-const { Server } = require('@modelcontextprotocol/sdk/server/index.js'); 
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'; 
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 // Import the schemas for requests we need to handle
-const { 
+import { 
   CallToolRequestSchema, 
   ListToolsRequestSchema, 
   ListResourcesRequestSchema, 
   ListPromptsRequestSchema 
-} = require('@modelcontextprotocol/sdk/types.js');
+} from '@modelcontextprotocol/sdk/types.js';
 // Import Zod for schema validation (optional but recommended by SDK docs)
 // If not already installed: npm install zod
 // const { z } = require('zod'); 
+
+// Use __dirname replacement for ES Modules
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const MANIFEST_PATH = path.join(__dirname, 'openapi.json');
 const GAME_API_BASE_URL = 'http://localhost:3000/api/game'; 
@@ -235,7 +241,7 @@ async function main() {
   });
 
   // --- Handler for tools/list ---
-  server.setRequestHandler(ListToolsRequestSchema, async (request) => {
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
       console.error('[Tool Server] Received listTools request via SDK handler');
       const toolsList = [];
       if (openapiManifest && openapiManifest.paths) {
@@ -299,13 +305,13 @@ async function main() {
   });
 
   // --- Handler for resources/list ---
-  server.setRequestHandler(ListResourcesRequestSchema, async (request) => {
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
      console.error('[Tool Server] Received listResources request via SDK handler - returning empty list.');
      return { resources: [] }; // We don't offer separate MCP resources
   });
 
   // --- Handler for prompts/list ---
-   server.setRequestHandler(ListPromptsRequestSchema, async (request) => {
+   server.setRequestHandler(ListPromptsRequestSchema, async () => {
      console.error('[Tool Server] Received listPrompts request via SDK handler - returning empty list.');
      return { prompts: [] }; // We don't offer separate MCP prompts
   });

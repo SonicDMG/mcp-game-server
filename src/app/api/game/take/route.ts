@@ -83,7 +83,6 @@ export async function POST(request: NextRequest) {
     }
     console.log(`>>> Found current location: ${location.id}. Items: ${location.items?.join(', ') || 'None'} <<<`);
 
-
     // 3. Check if item exists in the location's item list (from DB)
     const itemIndex = location.items.indexOf(itemId);
     if (itemIndex === -1) {
@@ -93,97 +92,71 @@ export async function POST(request: NextRequest) {
 
     // 4. Get Item Details from DB using item ID and story ID
     console.log(`>>> Fetching item: id=${itemId}, storyId=${storyId} <<<`); 
-    const item = await itemsCollection.findOne({ id: itemId, storyId: storyId }); // Add storyId filter
+    const item = await itemsCollection.findOne({ id: itemId, storyId: storyId });
     if (!item) {
-       // This could mean the item ID exists in the location array but not in the items collection *for this story*
-       console.error(`Inconsistency: Item ID ${itemId} listed in location ${location.id} but not found in game_items for story ${storyId}.`);
-       return NextResponse.json({ success: false, error: `You see ${itemId}, but it seems to be illusory.` }, { status: 500 });
+        // This could mean the item ID exists in the location array but not in the items collection *for this story*
+        console.error(`Inconsistency: Item ID ${itemId} listed in location ${location.id} but not found in game_items for story ${storyId}.`);
+        return NextResponse.json({ success: false, error: `Item '${itemId}' not found in this area of story '${storyId}'.` }, { status: 404 });
     }
-    console.log(`>>> Found item: ${item.id} (${item.name}). Can take: ${item.canTake} <<<`);
+
+    // Omit _id field from item response
+    const { _id: item_id, ...itemResponse } = item;
+
+    console.log(`>>> Examine successful for ${itemId} <<<`);
 
     // 5. Check if item is takeable (from DB item data)
-    if (!item.canTake) {
+    if (!itemResponse.canTake) {
       console.log(`>>> Item ${itemId} cannot be taken, returning 400 <<<`);
-      return NextResponse.json({ success: false, error: `You cannot take the ${item.name}.` }, { status: 400 });
+      return NextResponse.json({ success: false, error: `You cannot take the ${itemResponse.name}.` }, { status: 400 });
     }
 
-    // --- Update State in DB --- 
-    console.log(`>>> Updating DB state for taking ${itemId} from ${location.id} by ${userId} <<<`);
-
-    // Prepare updated data
-    // const updatedLocationItems = location.items.filter(id => id !== itemId); // No longer removing from location
-    const updatedPlayerInventory = [...player.inventory, itemId];
-    const updatedItemsFound = player.gameProgress.itemsFound.includes(itemId)
-      ? player.gameProgress.itemsFound
-      : [...player.gameProgress.itemsFound, itemId];
-
-    // Player payload remains
-    const playerUpdatePayload = {
-      $set: {
-        inventory: updatedPlayerInventory,
-        gameProgress: {
-          ...player.gameProgress,
-          itemsFound: updatedItemsFound
-        }
-      }
-    };
-
-    // --- Win Condition Check ---
-    let playerWon = false;
-    // Use updated inventory length for the check
-    if (requiredArtifactsCount > 0 && updatedPlayerInventory.length >= requiredArtifactsCount) {
-        // Double check: does inventory contain ALL required artifacts?
-        const hasAllRequired = story.requiredArtifacts?.every(reqItem => updatedPlayerInventory.includes(reqItem)) ?? false;
-        if (hasAllRequired) {
-            console.log(`>>> WIN CONDITION MET for player ${userId} in story ${storyId}! <<<`);
-            playerWon = true;
-            // Add storyProgress update to the payload
-            playerUpdatePayload.$set.gameProgress.storyProgress = 100;
-        }
+    // Check if item is already in inventory
+    if (player.inventory.includes(itemId)) {
+      console.log(`>>> Item ${itemId} already in inventory, returning 400 <<<`);
+      return NextResponse.json({ success: false, error: `You already have the ${itemResponse.name}.` }, { status: 400 });
     }
-    // ---------------------------
 
-    // 7. Update Player in DB (add item to inventory, update itemsFound)
-    console.log(`>>> Updating player ${player._id} inventory (Win status: ${playerWon}) <<<`);
-    const playerUpdateResult = await playersCollection.updateOne({ _id: player._id }, playerUpdatePayload);
-     if (!playerUpdateResult || playerUpdateResult.modifiedCount === 0) {
-        // If player update fails, the item remains in the location (as we didn't remove it),
-        // so the state isn't critically inconsistent, just the action failed.
-        console.error(`Failed to update player inventory for _id ${player._id} (userId: ${userId}). Player Update Result:`, playerUpdateResult);
-        return NextResponse.json({ success: false, error: 'Failed to update player inventory' }, { status: 500 });
-     }
-     console.log(`>>> Player ${player._id} inventory updated. <<<`);
+    // 6. Update Player State & Location State (atomicity is tricky here without transactions)
+    const updatedInventory = [...player.inventory, itemId];
+    const updatedLocationItems = location.items.filter((id) => id !== itemId);
 
-    console.log(`Player ${userId} (DB _id: ${player._id}) took ${itemId} from ${location.id} (DB updated)`);
+    // Update player: Add item to inventory
+    // Update location: Remove item from items array
+    const playerUpdatePromise = playersCollection.updateOne({ _id: playerDocId }, { $set: { inventory: updatedInventory } });
+    const locationUpdatePromise = locationsCollection.updateOne({ id: location.id, storyId: storyId }, { $set: { items: updatedLocationItems } });
 
-    // --- Prepare Response --- 
-    // Fetch full details for the items in the *updated* inventory for the response
-    // Use $in operator to fetch multiple items efficiently
-    console.log(`>>> Fetching details for updated inventory: ${updatedPlayerInventory.join(', ')} <<<`);
-    // Also filter items by storyId when fetching for inventory response
-    const detailedInventoryItems = await itemsCollection.find({ 
-        id: { $in: updatedPlayerInventory },
-        storyId: storyId 
-    }).toArray();
+    await Promise.all([playerUpdatePromise, locationUpdatePromise]);
+    console.log(`>>> Player inventory and location items updated for ${itemId} <<<`);
     
-    // Map DB records to GameItem type for the response (excluding _id)
-    const detailedInventory = detailedInventoryItems.map(dbItem => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _id, ...itemData } = dbItem;
-        return itemData;
-    });
-
-    let message = `You took the ${item.name}.`;
+    // --- Post-take Checks (e.g., Win Condition) ---
+    // Re-fetch player state to check win condition based on *new* inventory
+    const updatedPlayer = await playersCollection.findOne({_id: playerDocId});
+    let playerWon = false;
+    if (updatedPlayer && story && story.requiredArtifacts && story.requiredArtifacts.length > 0) {
+        const artifactsOwned = updatedPlayer.inventory.filter(invItem => story.requiredArtifacts!.includes(invItem));
+        if (artifactsOwned.length >= story.requiredArtifacts.length) {
+             console.log(`>>> WIN CONDITION MET for ${playerDocId} in story ${storyId}! <<<`);
+             playerWon = true;
+            // Optionally set player status to 'winner'
+            await playersCollection.updateOne({ _id: playerDocId }, { $set: { status: 'winner' } });
+        }
+    }
+    // ---------------------------------------------
+    
+    // 7. Prepare and return success response
+    const { _id: player_id, ...finalPlayerState } = updatedPlayer ?? player; // Use updated state if fetched
+    
+    let message = `You took the ${itemResponse.name}.`;
     if (playerWon) {
         message += `\n\n*** Congratulations! You have collected all the required artifacts for ${story.title}! You WIN! ***`;
     }
 
-    console.log(`>>> Take successful, returning inventory count: ${detailedInventory.length} <<<`);
+    console.log(`>>> Take successful, returning inventory count: ${finalPlayerState.inventory.length} <<<`);
     // 8. Return success response
     return NextResponse.json({
       success: true,
       message: message,
-      inventory: detailedInventory, // Return full item details (without _id)
+      inventory: finalPlayerState.inventory, // Return full item details (without _id)
       win: playerWon // Add a win flag to the response
     });
 

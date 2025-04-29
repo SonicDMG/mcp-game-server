@@ -49,7 +49,7 @@
     "/state": {
       "post": {
         "summary": "Get Current Game State",
-        "description": "Retrieves the current state of the game (player and location) for a specific user and story.",
+        "description": "Retrieves the current state of the game (player and location) for a specific user and story. Requires `userId` and `storyId`. Obtain `storyId` using the `listStories` tool. Obtain `userId` from the result of `startGame` (for new players) or user input (for resuming). NOTE: The current MCP tool definition for `getGameState` may be faulty and might not accept the required `userId` and `storyId` parameters, potentially only accepting `random_string`. A correctly defined tool *must* send `userId` and `storyId`.",
         "operationId": "getGameState",
         "tags": ["Game Actions"],
         "requestBody": {
