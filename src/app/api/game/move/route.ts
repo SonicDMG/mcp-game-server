@@ -13,7 +13,7 @@ const locationsCollection = db.collection<LocationRecord>('game_locations');
 // const storiesCollection = db.collection('game_stories'); 
 
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/move handler (Database) <<<'); 
+  console.log('>>> ENTERING /api/game/move handler <<<'); 
   interface MoveRequestBody {
     userId?: string;
     target?: string;
@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
   let requestBody: MoveRequestBody;
   try {
     requestBody = await request.json() as MoveRequestBody;
-    // console.log('>>> Parsed request body:', JSON.stringify(requestBody)); // Remove this
+    // Log request body after parsing
+    console.log('[API /move] Received request body:', JSON.stringify(requestBody)); 
 
     // Destructure storyId as well
     const { userId, target: targetLocationId, storyId } = requestBody;

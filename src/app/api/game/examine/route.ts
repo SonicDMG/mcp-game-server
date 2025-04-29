@@ -14,15 +14,18 @@ const itemsCollection = db.collection<ItemRecord>('game_items');
 
 // POST /api/game/examine
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/examine handler (Database) <<<');
+  console.log('>>> ENTERING /api/game/examine handler <<<');
   interface ExamineRequestBody {
     userId?: string;
     storyId?: string;
     target?: string; // ID of the item or location exit to examine
   }
+  let requestBody: ExamineRequestBody;
   try {
-    const body: ExamineRequestBody = await request.json();
-    const { userId, storyId, target } = body;
+    requestBody = await request.json() as ExamineRequestBody;
+    // Log request body after parsing
+    console.log('[API /examine] Received request body:', JSON.stringify(requestBody));
+    const { userId, storyId, target } = requestBody;
 
     if (!userId || !storyId || !target) {
       return NextResponse.json({

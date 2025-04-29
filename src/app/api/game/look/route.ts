@@ -14,14 +14,17 @@ const itemsCollection = db.collection<ItemRecord>('game_items');
 
 // POST /api/game/look
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/look handler (Database) <<<');
+  console.log('>>> ENTERING /api/game/look handler <<< ');
   interface LookRequestBody {
     userId?: string;
     storyId?: string;
   }
+  let requestBody: LookRequestBody;
   try {
-    const body: LookRequestBody = await request.json();
-    const { userId, storyId } = body;
+    requestBody = await request.json() as LookRequestBody;
+    // Log request body after parsing
+    console.log('[API /look] Received request body:', JSON.stringify(requestBody)); 
+    const { userId, storyId } = requestBody;
 
     if (!userId || !storyId) {
       return NextResponse.json({

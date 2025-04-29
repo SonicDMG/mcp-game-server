@@ -19,16 +19,19 @@ const storiesCollection = db.collection<StoryRecord>('game_stories');
 
 // POST /api/game/take
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/take handler (Database) <<<');
+  console.log('>>> ENTERING /api/game/take handler <<<');
   interface TakeRequestBody {
     userId?: string;
     target?: string;
     storyId?: string; // Add storyId to expected request body
   }
+  let requestBody: TakeRequestBody;
   try {
-    const body: TakeRequestBody = await request.json();
+    requestBody = await request.json() as TakeRequestBody;
+    // Log request body after parsing
+    console.log('[API /take] Received request body:', JSON.stringify(requestBody));
     // Destructure storyId as well
-    const { userId, target: itemId, storyId } = body;
+    const { userId, target: itemId, storyId } = requestBody;
 
     // Add check for storyId
     if (!userId || !itemId || !storyId) {

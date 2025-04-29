@@ -13,7 +13,7 @@ const locationsCollection = db.collection<LocationRecord>('game_locations');
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/start handler <<<');
+  console.log('>>> ENTERING /api/game/start handler <<< ');
   interface StartRequestBody {
     userId?: string;
     storyId?: string;
@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
 
   try {
     requestBody = await request.json() as StartRequestBody;
+    // Log request body after parsing
+    console.log('[API /start] Received request body:', JSON.stringify(requestBody)); 
     const { userId, storyId } = requestBody;
 
     if (!userId || !storyId) {

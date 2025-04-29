@@ -1,11 +1,22 @@
-const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { URL, URLSearchParams } = require('url'); // Added URLSearchParams
+const { URL, URLSearchParams } = require('url');
+// Import LOW-LEVEL Server class and Stdio transport
+const { Server } = require('@modelcontextprotocol/sdk/server/index.js'); 
+const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+// Import the schemas for requests we need to handle
+const { 
+  CallToolRequestSchema, 
+  ListToolsRequestSchema, 
+  ListResourcesRequestSchema, 
+  ListPromptsRequestSchema 
+} = require('@modelcontextprotocol/sdk/types.js');
+// Import Zod for schema validation (optional but recommended by SDK docs)
+// If not already installed: npm install zod
+// const { z } = require('zod'); 
 
-const PORT = 3001; // Choose a port different from your main app (Next.js default is 3000)
 const MANIFEST_PATH = path.join(__dirname, 'openapi.json');
-const GAME_API_BASE_URL = 'http://localhost:3000/api/game'; // URL of your running Next.js game API
+const GAME_API_BASE_URL = 'http://localhost:3000/api/game'; 
 
 let openapiManifest = null;
 
@@ -30,152 +41,199 @@ function findOperationDetails(operationId) {
 }
 // --- End Helper Function ---
 
+// --- Load Manifest ---
 try {
   openapiManifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
-  console.log(`Successfully loaded OpenAPI manifest from ${MANIFEST_PATH}`);
+  console.error(`[Tool Server] Successfully loaded OpenAPI manifest from ${MANIFEST_PATH}`);
 } catch (error) {
-  console.error(`Failed to load OpenAPI manifest: ${error.message}`);
-  process.exit(1); // Exit if manifest can't be loaded
+  console.error(`[Tool Server] Failed to load OpenAPI manifest: ${error.message}`);
+  process.exit(1);
 }
 
-const server = http.createServer(async (req, res) => {
-  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
-  const pathname = requestUrl.pathname;
-  const method = req.method;
+// --- SDK Execute Function --- 
+// This function handles the core logic of calling the game API
+async function executeGameApi(operationId, parameters) {
+   console.error(`[Tool Server] executeGameApi called for: ${operationId}`);
+   const operationDetails = findOperationDetails(operationId);
 
-  console.log(`[Tool Server] Received request: ${method} ${pathname}`);
+    if (!operationDetails) {
+      console.error(`[Tool Server] Operation ID not found: ${operationId}`);
+      // Throw an error that the SDK can catch and format as JSON-RPC error
+      throw { code: -32601, message: `Method not found: Operation ID '${operationId}' not found in manifest` };
+    }
 
-  // CORS Headers - Important for browser-based MCP clients
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin (adjust in production)
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    const targetPath = operationDetails.path;
+    const targetMethod = operationDetails.method;
+    let targetUrl = GAME_API_BASE_URL + targetPath;
+    let fetchOptions = {
+      method: targetMethod,
+      headers: { 'Content-Type': 'application/json' },
+    };
+    console.error(`[Tool Server] Found operation: ${targetMethod} ${targetPath}`);
+    console.error(`[Tool Server] Parameters received:`, parameters);
 
-  // Handle CORS preflight requests
-  if (method === 'OPTIONS') {
-    res.writeHead(204); // No Content
-    res.end();
-    return;
-  }
-
-  // Serve the OpenAPI manifest
-  if (method === 'GET' && (pathname === '/' || pathname === '/openapi.json')) {
-    console.log('[Tool Server] Serving OpenAPI manifest...');
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(openapiManifest));
-    return;
-  }
-
-  // Endpoint to execute API calls based on operationId
-  if (method === 'POST' && pathname === '/execute') {
-    console.log('[Tool Server] Received /execute request...');
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-    req.on('end', async () => {
-      let requestPayload;
-      try {
-        requestPayload = JSON.parse(body);
-      } catch (parseError) {
-        console.error('[Tool Server] Invalid JSON in /execute request:', parseError);
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid JSON request body' }));
-        return;
+    if (targetMethod === 'GET') {
+      const queryParams = new URLSearchParams();
+      if (operationDetails.details.parameters) {
+        operationDetails.details.parameters.forEach(param => {
+          if (param.in === 'query' && parameters[param.name] !== undefined) {
+            queryParams.append(param.name, parameters[param.name]);
+          }
+        });
       }
-
-      const { operationId, parameters } = requestPayload;
-
-      if (!operationId || !parameters) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Missing operationId or parameters in request body' }));
-        return;
+      if (queryParams.toString()) {
+         targetUrl += `?${queryParams.toString()}`;
       }
+    } else if (targetMethod === 'POST') {
+      fetchOptions.body = JSON.stringify(parameters);
+    } else {
+       console.error(`[Tool Server] Unsupported HTTP method: ${targetMethod}`);
+       throw { code: -32601, message: `Method not found: HTTP method '${targetMethod}' not implemented` };
+    }
 
-      console.log(`[Tool Server] Attempting to execute operation: ${operationId}`);
+    console.error(`[Tool Server] Calling Game API: ${targetMethod} ${targetUrl}`);
+    if (fetchOptions.body) {
+      console.error(`[Tool Server] Request Body: ${fetchOptions.body}`);
+    }
 
-      // Find the operation details in the manifest
-      const operationDetails = findOperationDetails(operationId);
+    try {
+      const apiResponse = await fetch(targetUrl, fetchOptions);
+      const contentType = apiResponse.headers.get("content-type");
+      let responseBody;
 
-      if (!operationDetails) {
-        console.error(`[Tool Server] Operation ID not found in manifest: ${operationId}`);
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: `Operation ID '${operationId}' not found in manifest` }));
-        return;
+      if (!apiResponse.ok) {
+          console.error(`[Tool Server] Game API returned error status: ${apiResponse.status}`);
+          try { 
+             responseBody = await apiResponse.json(); 
+             console.error('[Tool Server] Game API Error Body (JSON):', responseBody);
+          } catch(e) { 
+             responseBody = await apiResponse.text(); 
+             console.error('[Tool Server] Game API Error Body (text):', responseBody);
+          }
+          // Throw an error to be converted to JSON-RPC error
+          throw { code: -32000, message: `Game API Error: ${apiResponse.status}`, data: responseBody };
       }
-
-      const targetPath = operationDetails.path;
-      const targetMethod = operationDetails.method;
-      let targetUrl = GAME_API_BASE_URL + targetPath;
-      let fetchOptions = {
-        method: targetMethod,
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any other required headers if needed, e.g., Authorization
-        },
-      };
-
-      console.log(`[Tool Server] Found operation: ${targetMethod} ${targetPath}`);
-      console.log(`[Tool Server] Parameters received:`, parameters);
-
-      // Prepare request based on method
-      if (targetMethod === 'GET') {
-        // Find query parameters defined in the manifest for this operation
-        const queryParams = new URLSearchParams();
-        if (operationDetails.details.parameters) {
-          operationDetails.details.parameters.forEach(param => {
-            if (param.in === 'query' && parameters[param.name] !== undefined) {
-              queryParams.append(param.name, parameters[param.name]);
-            }
-          });
-        }
-        if (queryParams.toString()) {
-           targetUrl += `?${queryParams.toString()}`;
-        }
-      } else if (targetMethod === 'POST') {
-        // For POST, assume the entire parameters object is the body
-        fetchOptions.body = JSON.stringify(parameters);
+      
+      if (contentType && contentType.includes("application/json")) {
+          responseBody = await apiResponse.json(); 
+          console.error(`[Tool Server] Game API Response Status: ${apiResponse.status}`);
+          console.error(`[Tool Server] Game API Response Body (JSON):`, responseBody);
+          return responseBody; // Return the parsed JSON result for execute
       } else {
-        // Handle other methods (PUT, DELETE, etc.) if needed
-         console.error(`[Tool Server] Unsupported HTTP method: ${targetMethod}`);
-         res.writeHead(501, { 'Content-Type': 'application/json' });
-         res.end(JSON.stringify({ error: `HTTP method '${targetMethod}' not implemented by tool server` }));
-         return;
+          responseBody = await apiResponse.text(); 
+          console.error(`[Tool Server] Warning: Game API response was not JSON (Content-Type: ${contentType}). Body: ${responseBody.substring(0,100)}...`);
+          // Throw an error as we expect JSON from successful calls
+          throw { code: -32000, message: "Received non-JSON response from game API", data: responseBody };
       }
+    } catch (fetchError) {
+       console.error(`[Tool Server] Error during fetch or processing (${targetUrl}):`, fetchError);
+       // Re-throw fetch/parsing errors for the SDK to handle
+       if (fetchError.code) throw fetchError; // Propagate our custom errors
+       throw { code: -32000, message: 'Failed to communicate with or parse response from the game API', data: fetchError.message };
+    }
+}
+// --- End Execute Function ---
 
-      console.log(`[Tool Server] Calling Game API: ${targetMethod} ${targetUrl}`);
-      if (fetchOptions.body) {
-        console.log(`[Tool Server] Request Body: ${fetchOptions.body}`);
+// --- Main Function to Setup and Run SDK Server ---
+async function main() {
+  console.error('[Tool Server] Initializing MCP Low-Level SDK Server...');
+
+  const server = new Server(
+    { // Server Info
+      name: "MCPlayerOne-Maze-Game", 
+      version: "1.0.0"
+    },
+    { // Server Capabilities
+      capabilities: { 
+        tools: {}, 
+        resources: {}, // Declare capability even if list is empty
+        prompts: {}    // Declare capability even if list is empty
       }
+    }
+  );
 
-      // Call the actual game API
-      try {
-        const apiResponse = await fetch(targetUrl, fetchOptions);
-        const responseBody = await apiResponse.json(); // Assume game API always returns JSON
+  // --- Handler for tools/execute ---
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    console.error('[Tool Server] Received execute request via SDK handler');
+    const operationId = request.params.name; 
+    const parameters = request.params.arguments; 
+    if (!operationId || !parameters) {
+       throw { code: -32602, message: "Invalid params: Missing tool name (operationId) or arguments (parameters)" };
+    }
+    const result = await executeGameApi(operationId, parameters);
+    return { content: result }; 
+  });
 
-        console.log(`[Tool Server] Game API Response Status: ${apiResponse.status}`);
-        console.log(`[Tool Server] Game API Response Body:`, responseBody);
+  // --- Handler for tools/list ---
+  server.setRequestHandler(ListToolsRequestSchema, async (request) => {
+      console.error('[Tool Server] Received listTools request via SDK handler');
+      const toolsList = [];
+      if (openapiManifest && openapiManifest.paths) {
+          for (const path in openapiManifest.paths) {
+              for (const method in openapiManifest.paths[path]) {
+                   const op = openapiManifest.paths[path][method];
+                   // Only list operations that have an operationId (our tool name)
+                   if (op.operationId) { 
+                      // Map OpenAPI schema to MCP Tool definition
+                      // Note: This is a basic mapping. More complex schema conversion might be needed.
+                      let inputSchema = { type: 'object', properties: {}, required: [] }; // Default empty schema
+                      if (method.toUpperCase() === 'POST' && op.requestBody?.content?.['application/json']?.schema) {
+                         // Attempt to use the existing schema or reference
+                         inputSchema = op.requestBody.content['application/json'].schema;
+                         // If it's a $ref, keep it as is (clients often resolve these)
+                      } else if (method.toUpperCase() === 'GET' && op.parameters) {
+                         // Build properties from query parameters for GET requests
+                         inputSchema.properties = {};
+                         inputSchema.required = [];
+                         op.parameters.forEach(param => {
+                             if (param.in === 'query') {
+                                 inputSchema.properties[param.name] = { 
+                                     type: param.schema.type, 
+                                     description: param.description 
+                                 };
+                                 if (param.required) {
+                                     inputSchema.required.push(param.name);
+                                 }
+                             }
+                         });
+                      }
 
-        // Forward the response (status and body) back to the MCP client
-        res.writeHead(apiResponse.status, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(responseBody));
-
-      } catch (fetchError) {
-        console.error(`[Tool Server] Error calling Game API (${targetUrl}):`, fetchError);
-        res.writeHead(502, { 'Content-Type': 'application/json' }); // Bad Gateway
-        res.end(JSON.stringify({ error: 'Failed to communicate with the underlying game API', details: fetchError.message }));
+                      toolsList.push({
+                          name: op.operationId, // Use operationId as the tool name
+                          description: op.description || op.summary || 'No description available',
+                          inputSchema: inputSchema
+                      });
+                   }
+              }
+          }
       }
-    });
-    return;
-  }
+      console.error(`[Tool Server] Responding to listTools with ${toolsList.length} tools.`);
+      return { tools: toolsList };
+  });
 
-  // Not Found
-  console.log(`[Tool Server] Path not found: ${pathname}`);
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'Not Found' }));
+  // --- Handler for resources/list ---
+  server.setRequestHandler(ListResourcesRequestSchema, async (request) => {
+     console.error('[Tool Server] Received listResources request via SDK handler - returning empty list.');
+     return { resources: [] }; // We don't offer separate MCP resources
+  });
+
+  // --- Handler for prompts/list ---
+   server.setRequestHandler(ListPromptsRequestSchema, async (request) => {
+     console.error('[Tool Server] Received listPrompts request via SDK handler - returning empty list.');
+     return { prompts: [] }; // We don't offer separate MCP prompts
+  });
+
+  // --- Connect Transport --- 
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+
+  console.error('[Tool Server] SDK Server connected to stdio transport and running.');
+}
+
+// --- Run the Server --- 
+main().catch((error) => {
+  console.error("[Tool Server] Fatal error during server startup or operation:", error);
+  process.exit(1);
 });
 
-server.listen(PORT, () => {
-  console.log(`MCP Tool Server listening on http://localhost:${PORT}`);
-  console.log(`Serving OpenAPI manifest at http://localhost:${PORT}/openapi.json`);
-  console.log('Ensure your main game API server (Next.js) is running on http://localhost:3000');
-}); 
+// Remove all the previous manual stdin/stdout handling code 
