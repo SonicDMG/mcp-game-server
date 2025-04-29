@@ -277,24 +277,89 @@ async function main() {
                          originalSchemaSource = queryParamsSchema;
                       }
                       
-                      // If we found an original schema (either direct or built from query params), 
-                      // merge its properties/required fields if it's not a $ref
-                      if (originalSchemaSource && !originalSchemaSource['$ref']) {
-                          finalInputSchema.properties = originalSchemaSource.properties || {};
-                          finalInputSchema.required = originalSchemaSource.required || [];
-                          // Overwrite description if the original schema had one
-                          finalInputSchema.description = originalSchemaSource.description || finalInputSchema.description;
-                      } else if (originalSchemaSource && originalSchemaSource['$ref']) {
-                           // If it was a ref, add a note about the reference
+                      // --- Resolve $ref and Merge --- 
+                      let resolvedSchema = null;
+                      if (originalSchemaSource && originalSchemaSource['$ref']) {
                            finalInputSchema.description += ` Defined by $ref: ${originalSchemaSource['$ref']}`;
-                           // Optionally add the ref itself under a custom key if needed, e.g.:
-                           // finalInputSchema['_ref'] = originalSchemaSource['$ref'];
+                           const refPath = originalSchemaSource['$ref'].split('/');
+                           if (refPath.length === 4 && refPath[0] === '#' && refPath[1] === 'components' && refPath[2] === 'schemas') {
+                               const schemaName = refPath[3];
+                               if (openapiManifest.components?.schemas?.[schemaName]) {
+                                   resolvedSchema = openapiManifest.components.schemas[schemaName];
+                                   console.error(`[Tool Server] Resolved $ref ${originalSchemaSource['$ref']} to schema ${schemaName}`);
+                               } else {
+                                   console.error(`[Tool Server] Warning: Could not resolve $ref ${originalSchemaSource['$ref']}. Schema ${schemaName} not found.`);
+                               }
+                           } else {
+                               console.error(`[Tool Server] Warning: Could not parse $ref format: ${originalSchemaSource['$ref']}`);
+                           }
+                      } else {
+                          // If not a $ref, the schema is inline (or built from query params)
+                          resolvedSchema = originalSchemaSource;
                       }
+
+                      // Reset properties and required for merging
+                      finalInputSchema.properties = {};
+                      finalInputSchema.required = [];
+
+                      // Function to process and merge a single schema (inline or resolved $ref)
+                      const processAndMergeSchema = (schemaToProcess) => {
+                          if (!schemaToProcess || typeof schemaToProcess !== 'object') return;
+
+                          // Merge properties
+                          if (schemaToProcess.properties && typeof schemaToProcess.properties === 'object') {
+                              Object.assign(finalInputSchema.properties, schemaToProcess.properties);
+                          }
+                          // Merge required fields (avoid duplicates)
+                          if (schemaToProcess.required && Array.isArray(schemaToProcess.required)) {
+                              schemaToProcess.required.forEach(req => {
+                                  if (!finalInputSchema.required.includes(req)) {
+                                      finalInputSchema.required.push(req);
+                                  }
+                              });
+                          }
+                           // Update description if the schema part has one (prefer more specific)
+                           if (schemaToProcess.description && typeof schemaToProcess.description === 'string') {
+                                finalInputSchema.description = schemaToProcess.description;
+                           }
+                      };
+                      
+                      // --- Handle allOf --- 
+                      if (resolvedSchema && Array.isArray(resolvedSchema.allOf)) {
+                          console.error(`[Tool Server] Processing allOf for ${op.operationId}`);
+                          resolvedSchema.allOf.forEach(subSchema => {
+                              let schemaPartToProcess = subSchema; // Assume inline initially
+                              // Check if this part of allOf is a $ref
+                              if (subSchema && subSchema['$ref']) {
+                                  const refPath = subSchema['$ref'].split('/');
+                                  if (refPath.length === 4 && refPath[0] === '#' && refPath[1] === 'components' && refPath[2] === 'schemas') {
+                                      const schemaName = refPath[3];
+                                      if (openapiManifest.components?.schemas?.[schemaName]) {
+                                          console.error(`[Tool Server] Resolving nested $ref ${subSchema['$ref']} within allOf`);
+                                          schemaPartToProcess = openapiManifest.components.schemas[schemaName];
+                                      } else {
+                                           console.error(`[Tool Server] Warning: Could not resolve nested $ref ${subSchema['$ref']} within allOf.`);
+                                           schemaPartToProcess = null; // Skip if ref cannot be resolved
+                                      }
+                                  } else {
+                                      console.error(`[Tool Server] Warning: Could not parse nested $ref format: ${subSchema['$ref']}`);
+                                      schemaPartToProcess = null; // Skip if ref format is wrong
+                                  }
+                              }
+                              // Process and merge the resolved part (either inline or from resolved $ref)
+                              processAndMergeSchema(schemaPartToProcess);
+                          });
+                      } else {
+                          // --- Handle simple schema (no allOf) --- 
+                          // Process the single resolved schema (inline or from direct $ref)
+                          processAndMergeSchema(resolvedSchema);
+                      }
+                      // --- End Schema Processing Logic ---
 
                       toolsList.push({
                           name: op.operationId,
                           description: op.description || op.summary || 'No description available',
-                          inputSchema: finalInputSchema // Use the schema that always has type: 'object'
+                          inputSchema: finalInputSchema // Use the potentially populated schema
                       });
                    }
               }
