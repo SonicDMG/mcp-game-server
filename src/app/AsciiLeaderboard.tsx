@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import UserDetailCard from './UserDetailCard';
+import { Location as GameLocation } from '@/app/api/game/types';
 
 interface LeaderboardUser {
   id: string;
@@ -10,21 +11,13 @@ interface LeaderboardUser {
   isWinner?: boolean;
 }
 
-interface Room {
-  id: string;
-  description: string;
-  exits: Record<string, string>;
-  artifact?: string;
-  goal?: boolean;
-}
-
 interface StoryMetadata {
   title: string;
   description: string;
   roomOrder: string[];
   artifacts: string[];
   goalRoom: string;
-  rooms: Room[];
+  rooms: GameLocation[];
   requiredArtifacts: string[];
 }
 
@@ -96,7 +89,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         <div style={{ color: color.winner, fontWeight: 700, fontSize: '1.2rem', marginBottom: 8 }}>
           <WinnerSparkles /> WINNER{winners.length > 1 ? 'S' : ''} <WinnerSparkles />
         </div>
-        {winners.map((winner, i) => (
+        {winners.map((winner) => (
           <div key={winner.id} style={{ 
             display: 'inline-flex', 
             alignItems: 'center',
@@ -133,7 +126,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   }
 
   // Reverse the room order for display
-  [...story.roomOrder].reverse().forEach((room, idx) => {
+  [...story.roomOrder].reverse().forEach((room) => {
     const usersInRoom = users.filter(u => u.room === room && !u.reachedGoal); // Don't show winners in room list
     asciiRows.push(
       <div key={room} style={{ margin: '16px 0 0 0', fontFamily: 'monospace', fontSize: '1.08rem' }}>

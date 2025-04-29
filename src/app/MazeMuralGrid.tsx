@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import './globals.css';
-import type { Room } from '../lib/gameLogic';
+import { Location as GameLocation } from '@/app/api/game/types';
 import AsciiLeaderboard from './AsciiLeaderboard';
 
 interface LeaderboardUser {
@@ -18,7 +19,7 @@ interface StoryMetadata {
   roomOrder: string[];
   artifacts: string[];
   goalRoom: string;
-  rooms: Room[];
+  rooms: GameLocation[];
   requiredArtifacts: string[];
 }
 
@@ -27,31 +28,48 @@ export function LeaderboardHUD() {
   const [loading, setLoading] = useState(true);
   const [story, setStory] = useState<StoryMetadata | null>(null);
   const firstLoad = useRef(true);
+  const pathname = usePathname();
+
+  const storyId = pathname?.split('/').pop() || 'mystic_library';
 
   useEffect(() => {
     async function fetchMetadata() {
-      const res = await fetch('/api/story-metadata');
-      const data = await res.json();
-      setStory(data);
+      const res = await fetch(`/api/story-metadata?id=${storyId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStory(data);
+      } else {
+        console.error(`Failed to fetch metadata for story ${storyId}:`, res.status);
+      }
     }
-    fetchMetadata();
-  }, []);
+    if (storyId) {
+      fetchMetadata();
+    }
+  }, [storyId]);
 
   useEffect(() => {
     async function fetchLeaderboard() {
       if (firstLoad.current) setLoading(true);
-      const res = await fetch('/api/leaderboard');
-      const data = await res.json();
-      setUsers(data);
+      const res = await fetch(`/api/leaderboard?storyId=${storyId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data);
+      } else {
+        console.error(`Failed to fetch leaderboard for story ${storyId}:`, res.status);
+      }
+      
       if (firstLoad.current) {
         setLoading(false);
         firstLoad.current = false;
       }
     }
-    fetchLeaderboard();
-    const interval = setInterval(fetchLeaderboard, 2000); // Poll every 2s
-    return () => clearInterval(interval);
-  }, []);
+    
+    if (storyId) {
+        fetchLeaderboard();
+        const interval = setInterval(fetchLeaderboard, 2000);
+        return () => clearInterval(interval);
+    }
+  }, [storyId]);
 
   if (loading || !story) {
     return <div style={{ color: '#fff', padding: '2rem' }}>Loading leaderboard…</div>;

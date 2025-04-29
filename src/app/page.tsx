@@ -1,18 +1,36 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import db from '@/lib/astradb'; // Import DB instance
+import { Story } from '@/app/api/game/types'; // Import Story type
 
+// Define DB record interface
+interface StoryRecord extends Story { 
+  _id: string; 
+  image?: string; // Optional image field
+}
+
+const storiesCollection = db.collection<StoryRecord>('game_stories');
 const placeholderImage = 'https://placehold.co/320x200/23244a/3b82f6.png?text=Story+Image';
 
-const mockStories = [
-  {
-    id: 'cyberpunk-maze',
-    title: 'Cyberpunk Maze Adventure',
-    description: 'Navigate the neon-lit maze, collect artifacts, and reach the vault!',
-    image: placeholderImage,
-  },
-];
+// Removed mockStories array
 
-export default function LandingPage() {
+// Make the component async to fetch data
+export default async function LandingPage() {
+  let stories: StoryRecord[] = [];
+  let fetchError = null;
+
+  try {
+    // Fetch all stories from the database
+    console.log('Fetching stories from database...');
+    const cursor = storiesCollection.find({});
+    stories = await cursor.toArray();
+    console.log(`Fetched ${stories.length} stories.`);
+  } catch (error) {
+    console.error("Failed to fetch stories:", error);
+    fetchError = "Could not load stories. Please try again later.";
+    // Optionally, return an error component or message here
+  }
+
   return (
     <div className="app-root">
       <header className="app-header">
@@ -23,7 +41,14 @@ export default function LandingPage() {
           <span className="hud-reserved">[Choose a Story]</span>
         </div>
         <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'center', marginTop: 32 }}>
-          {mockStories.map(story => (
+          {fetchError && (
+            <div style={{ color: 'red', textAlign: 'center', width: '100%' }}>{fetchError}</div>
+          )}
+          {!fetchError && stories.length === 0 && (
+            <div style={{ color: '#aaa', textAlign: 'center', width: '100%' }}>No stories available yet.</div>
+          )}
+          {/* Use fetched stories data */}
+          {stories.map(story => (
             <Link key={story.id} href={`/story/${story.id}`} style={{ textDecoration: 'none' }}>
               <div style={{
                 background: '#23244aee',
@@ -43,7 +68,8 @@ export default function LandingPage() {
                 transition: 'box-shadow 0.2s, border 0.2s',
                 cursor: 'pointer',
               }}>
-                <Image src={story.image} alt={story.title} width={160} height={100} style={{ borderRadius: 12, marginBottom: 16, objectFit: 'cover' }} />
+                 {/* Use story.image if available, otherwise placeholder */}
+                <Image src={story.image || placeholderImage} alt={story.title} width={160} height={100} style={{ borderRadius: 12, marginBottom: 16, objectFit: 'cover' }} />
                 <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{story.title}</div>
                 <div style={{ fontSize: '1rem', color: '#a78bfa', marginBottom: 8 }}>{story.description}</div>
               </div>
