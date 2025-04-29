@@ -11,7 +11,7 @@ interface UserDetailCardProps {
   onClose: () => void;
   story: {
     title: string;
-    artifacts: string[];
+    requiredArtifacts?: string[];
   };
 }
 
@@ -25,6 +25,11 @@ export default function UserDetailCard({ user, onClose, story }: UserDetailCardP
       onClose();
     }
   };
+
+  // Calculate total required artifacts, defaulting to 0 if undefined/empty
+  const totalRequired = story.requiredArtifacts?.length ?? 0;
+  // Prevent division by zero for progress bar width
+  const progressPercentage = totalRequired > 0 ? (user.inventory.length / totalRequired) * 100 : 0;
 
   return (
     <div
@@ -121,7 +126,7 @@ export default function UserDetailCard({ user, onClose, story }: UserDetailCardP
             <div style={{ flex: 1, height: '8px', background: '#2a2a2a', borderRadius: '4px' }}>
               <div
                 style={{
-                  width: `${(user.inventory.length / story.artifacts.length) * 100}%`,
+                  width: `${progressPercentage}%`,
                   height: '100%',
                   background: '#3b82f6',
                   borderRadius: '4px',
@@ -130,7 +135,7 @@ export default function UserDetailCard({ user, onClose, story }: UserDetailCardP
               />
             </div>
             <div style={{ color: '#fff', fontSize: '0.9rem' }}>
-              {user.inventory.length}/{story.artifacts.length}
+              {user.inventory.length}/{totalRequired}
             </div>
           </div>
         </div>
