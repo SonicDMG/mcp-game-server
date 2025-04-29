@@ -15,6 +15,13 @@ interface StoryRecord {
 // Get a typed collection instance
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 
+// Define the structure for story information
+export interface StoryInfo {
+  storyId: string;
+  name: string;
+  description: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Expecting a complete story object, except for _id
