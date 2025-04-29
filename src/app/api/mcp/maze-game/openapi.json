@@ -1,0 +1,500 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "MCP Maze Game API",
+    "version": "1.0.0",
+    "description": "API for interacting with the MCP text adventure game. Allows starting games, getting state, moving, taking items, examining things, and viewing leaderboards."
+  },
+  "servers": [
+    {
+      "url": "/api/game",
+      "description": "Relative path to the game API endpoints"
+    }
+  ],
+  "paths": {
+    "/start": {
+      "post": {
+        "summary": "Start Game / Get Initial State",
+        "description": "Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.",
+        "operationId": "startGame",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStoryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Game started or state retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameStateResponse"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/state": {
+      "post": {
+        "summary": "Get Current Game State",
+        "description": "Retrieves the current state of the game (player and location) for a specific user and story.",
+        "operationId": "getGameState",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStoryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current game state retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameStateResponse"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/look": {
+      "post": {
+        "summary": "Look Around Current Location",
+        "description": "Gets details about the player's current location (description, items, exits). Functionally similar to /state but may provide slightly different presentation.",
+        "operationId": "lookAround",
+        "tags": ["Game Actions"],
+         "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStoryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "location": { "$ref": "#/components/schemas/Location" },
+                    "message": { "type": "string", "example": "You are in the Dragon Entrance..." },
+                    "hint": { "type": "string", "example": "You see a Rusty Sword." }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+     "/move": {
+      "post": {
+        "summary": "Move Player",
+        "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.",
+        "operationId": "movePlayer",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, and target Location identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Move successful. Returns the details of the new location.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                   "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "location": { "$ref": "#/components/schemas/Location" },
+                    "message": { "type": "string", "example": "You move to the Guard Chamber..." },
+                    "hint": { "type": "string", "example": "Remember to look around." }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/take": {
+      "post": {
+        "summary": "Take Item",
+        "description": "Allows the player to pick up a specified item from their current location.",
+        "operationId": "takeItem",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, and target Item identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TakeInput"
+              }
+            }
+          }
+        },
+         "responses": {
+          "200": {
+            "description": "Item taken successfully. Returns the updated inventory.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                   "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string", "example": "You picked up the rusty_sword." },
+                    "item": { "type": "string", "description": "ID of the item taken.", "example": "rusty_sword"},
+                    "inventory": { 
+                      "type": "array", 
+                      "items": { "type": "string" },
+                      "description": "Player's full inventory after taking the item." ,
+                      "example": ["rusty_sword", "torch"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/examine": {
+      "post": {
+        "summary": "Examine Target",
+        "description": "Gets a detailed description of a specific item or feature in the player's current location.",
+        "operationId": "examineTarget",
+        "tags": ["Game Actions"],
+         "requestBody": {
+          "description": "User, Story, and target Item/Feature identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamineInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Examination successful. Returns details about the target.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                   "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "name": { "type": "string", "example": "Rusty Sword" },
+                    "description": { "type": "string", "example": "A standard-issue sword, showing signs of rust and neglect." },
+                    "type": { "type": "string", "enum": ["item", "feature"], "example": "item" },
+                    "hint": { "type": "string", "example": "It might be useful in a fight." }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+     "/leaderboard": {
+      "get": {
+        "summary": "Get Leaderboard",
+        "description": "Retrieves the leaderboard data (player progress) for a specific story.",
+        "operationId": "getLeaderboard",
+        "tags": ["Game Info"],
+        "parameters": [
+          {
+            "name": "storyId",
+            "in": "query",
+            "required": true,
+            "description": "The ID of the story for which to retrieve the leaderboard.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "dragon_lair"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeaderboardEntry"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserStoryInput": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "The unique identifier for the player.",
+            "example": "user123"
+          },
+          "storyId": {
+            "type": "string",
+            "description": "The unique identifier for the story.",
+            "example": "dragon_lair"
+          }
+        },
+        "required": ["userId", "storyId"]
+      },
+      "MoveInput": {
+        "allOf": [
+          { "$ref": "#/components/schemas/UserStoryInput" },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "The ID of the location the player wants to move to.",
+                "example": "guard_chamber"
+              }
+            },
+             "required": ["target"]
+          }
+        ]
+      },
+      "TakeInput": {
+         "allOf": [
+          { "$ref": "#/components/schemas/UserStoryInput" },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "The ID of the item the player wants to take.",
+                "example": "rusty_sword"
+              }
+            },
+             "required": ["target"]
+          }
+        ]
+      },
+      "ExamineInput": {
+          "allOf": [
+          { "$ref": "#/components/schemas/UserStoryInput" },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "The ID of the item or feature the player wants to examine.",
+                "example": "rusty_sword"
+              }
+            },
+             "required": ["target"]
+          }
+        ]
+      },
+      "PlayerState": {
+        "type": "object",
+        "description": "Represents the state of a player within a story.",
+        "properties": {
+          "_id": { "type": "string", "description": "Internal document ID (storyId_userId).", "example": "dragon_lair_user123" },
+          "userId": { "type": "string", "example": "user123" },
+          "storyId": { "type": "string", "example": "dragon_lair" },
+          "currentLocation": { "type": "string", "description": "ID of the player's current location.", "example": "dragon_entrance" },
+          "inventory": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of item IDs in the player's inventory.",
+            "example": ["rusty_sword"]
+          },
+           "discoveredLocations": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of location IDs the player has visited.",
+            "example": ["dragon_entrance", "guard_chamber"]
+          },
+          "gameProgress": {
+            "type": "object",
+            "properties": {
+              "itemsFound": { "type": "array", "items": { "type": "string" }, "example": ["rusty_sword", "dragon_scale"]},
+              "puzzlesSolved": { "type": "array", "items": { "type": "string" }, "example": ["gate_puzzle"]},
+              "storyProgress": { "type": "number", "format": "int32", "example": 50 }
+            }
+          }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "description": "Represents a location within a story.",
+        "properties": {
+          "id": { "type": "string", "description": "Unique ID for the location within the story.", "example": "dragon_entrance" },
+          "storyId": { "type": "string", "example": "dragon_lair" },
+          "name": { "type": "string", "example": "Dragon Entrance" },
+          "description": { "type": "string", "example": "You stand before a dark cave entrance..." },
+          "items": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of item IDs currently present in the location.",
+            "example": ["rusty_sword"] 
+          },
+           "features": { 
+             "type": "array", 
+             "items": { 
+               "type": "object", 
+               "properties": {
+                 "id": {"type": "string", "example": "large_door"},
+                 "name": {"type": "string", "example": "Large Door"},
+                 "description": {"type": "string", "example": "A heavy oak door..."}
+               }
+             }, 
+             "description": "List of examinable features in the location."
+          },
+          "exits": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of location IDs accessible from this location.",
+            "example": ["guard_chamber"]
+          },
+           "requirements": {
+             "type": "object",
+             "properties": {
+               "item": { "type": "string", "nullable": true, "description": "Item ID required to enter.", "example": "silver_key" },
+               "condition": { "type": "string", "nullable": true, "description": "Condition ID (e.g., puzzle) required to enter.", "example": "gate_puzzle" }
+             }
+           }
+        }
+      },
+      "GameStateResponse": {
+        "type": "object",
+        "properties": {
+           "success": { "type": "boolean", "example": true },
+           "message": { "type": "string", "nullable": true, "example": "Welcome back!" },
+           "player": { "$ref": "#/components/schemas/PlayerState" },
+           "location": { "$ref": "#/components/schemas/Location" }
+        }
+      },
+       "LeaderboardEntry": {
+         "type": "object",
+         "properties": {
+            "id": { "type": "string", "description": "User ID.", "example": "player123" },
+            "name": { "type": "string", "example": "player123" },
+            "avatarUrl": { "type": "string", "format": "url", "example": "https://api.dicebear.com/..." },
+            "artifactsFound": { "type": "integer", "example": 3 },
+            "puzzlesSolved": { "type": "integer", "example": 1 },
+            "progress": { "type": "integer", "description": "Overall story progress percentage.", "example": 75 }
+         }
+       },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "A message describing the error."
+          },
+          "hint": {
+             "type": "string",
+             "nullable": true,
+             "description": "An optional hint for the user/agent."
+          }
+        },
+        "required": ["success", "error"]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request - The request was malformed or missing required parameters.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+       "Forbidden": {
+        "description": "Forbidden - The action is not allowed (e.g., unmet requirements).",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found - The requested resource (player, story, location, item) could not be found.",
+         "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal Server Error - Something went wrong on the server.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    }
+  }
+} 

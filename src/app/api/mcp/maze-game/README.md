@@ -1,143 +1,205 @@
 # MCP Game Commands Documentation
 
-This text adventure game is designed to be played through MCP tools with AI agent assistance. The game focuses on exploration, item collection, and puzzle solving.
+This text adventure game is designed to be played through MCP tools with AI agent assistance. The game focuses on exploration, item collection, and potentially puzzle solving within different stories.
 
-## Available Commands
+## Core Concepts
 
-### look
-Get a description of your current location and visible items/exits.
-```json
-{
-  "action": "look",
-  "playerId": "player123"
-}
-```
-Response example:
-```json
-{
-  "location": "Ancient Library",
-  "description": "You're in a vast library filled with dusty tomes. Moonlight filters through stained glass windows.",
-  "visible_items": ["old_book", "silver_key"],
-  "exits": ["hallway", "secret_passage"],
-  "hint": "You can examine specific things you see for more details"
-}
-```
+*   **Story ID (`storyId`):** Identifies the specific adventure being played (e.g., `dragon_lair`, `mystic_library`). Required for most actions.
+*   **User ID (`userId`):** Identifies the player within a specific story.
+*   **Locations:** Rooms or areas within a story.
+*   **Items:** Objects that can be examined, taken, or potentially used.
+*   **Exits:** Connections between locations.
 
-### examine [target]
-Look at a specific item, location, or feature in detail.
+## Available API Endpoints
+
+All endpoints expect a JSON request body and return a JSON response.
+
+### `POST /api/game/start`
+Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.
+
+**Request Body:**
 ```json
 {
-  "action": "examine",
-  "target": "old_book",
-  "playerId": "player123"
-}
-```
-Response example:
-```json
-{
-  "target": "old_book",
-  "description": "A leather-bound tome with strange symbols on its cover. It looks important.",
-  "interactions": ["take", "use"],
-  "hint": "This item might be useful later"
+  "userId": "player123",
+  "storyId": "dragon_lair"
 }
 ```
 
-### move [target]
-Move to a new location that is currently available.
-```json
-{
-  "action": "move",
-  "target": "secret_passage",
-  "playerId": "player123"
-}
-```
-Response example:
+**Response Example (Success):**
 ```json
 {
   "success": true,
-  "new_location": "secret_passage",
-  "description": "You've entered a narrow, torch-lit corridor.",
-  "hint": "Remember to look around in new areas"
+  "message": "Welcome to The Dragon's Hoard (Probably)! You find yourself at the entrance...",
+  "player": { /* PlayerState object */ },
+  "location": { /* Location object for starting location */ }
 }
 ```
 
-### take [target]
-Pick up an item and add it to your inventory.
+### `POST /api/game/state`
+Retrieves the current state of the game for a specific user and story.
+
+**Request Body:**
 ```json
 {
-  "action": "take",
-  "target": "silver_key",
-  "playerId": "player123"
+  "userId": "player123",
+  "storyId": "dragon_lair"
 }
 ```
-Response example:
+
+**Response Example (Success):**
 ```json
 {
   "success": true,
-  "item": "silver_key",
-  "message": "You pick up the silver key.",
-  "inventory_space": "4/10"
+  "player": { /* PlayerState object */ },
+  "location": { /* Location object for current location */ }
 }
 ```
 
-### use [target] (with [item])
-Use an item, optionally with another item.
+### `POST /api/game/look`
+Gets details about the player's current location (description, items, exits). (This endpoint might be functionally replaced by `/api/game/state`, but kept for potential specific use cases).
+
+**Request Body:**
 ```json
 {
-  "action": "use",
-  "target": "silver_key",
-  "with": "locked_chest",
-  "playerId": "player123"
+  "userId": "player123",
+  "storyId": "dragon_lair"
 }
 ```
-Response example:
+
+**Response Example (Success):**
 ```json
 {
   "success": true,
-  "message": "The key fits! The chest creaks open.",
-  "effects": ["chest_opened", "key_consumed"],
-  "new_items": ["ancient_scroll"]
+  "location": { /* Location object */ },
+  "message": "You are in the Dragon Entrance...",
+  "hint": "You see a Rusty Sword."
 }
 ```
 
-### inventory
-Check what items you're currently carrying.
+### `POST /api/game/move`
+Moves the player to a connected location.
+
+**Request Body:**
 ```json
 {
-  "action": "inventory",
-  "playerId": "player123"
+  "userId": "player123",
+  "storyId": "dragon_lair",
+  "target": "guard_chamber" // ID of the location to move to
 }
 ```
-Response example:
+
+**Response Example (Success):**
 ```json
 {
-  "items": [
-    {
-      "id": "silver_key",
-      "name": "Silver Key",
-      "description": "An ornate silver key with mysterious engravings"
-    }
-  ],
-  "capacity": "1/10",
-  "effects": ["none"]
+  "success": true,
+  "location": { /* Location object for the new location */ },
+  "message": "You move to the Guard Chamber...",
+  "hint": "Remember to look around."
 }
+```
+
+**Response Example (Failure - Invalid Exit):**
+```json
+{
+  "success": false,
+  "error": "You cannot move to \"treasure_hoard\" from here."
+}
+```
+
+### `POST /api/game/take`
+Picks up a specified item from the current location and adds it to the player's inventory.
+
+**Request Body:**
+```json
+{
+  "userId": "player123",
+  "storyId": "dragon_lair",
+  "target": "rusty_sword" // ID of the item to take
+}
+```
+
+**Response Example (Success):**
+```json
+{
+  "success": true,
+  "message": "You picked up the rusty_sword.",
+  "item": "rusty_sword",
+  "inventory": ["rusty_sword", /* other items */ ]
+}
+```
+
+**Response Example (Failure - Item Not Found):**
+```json
+{
+    "success": false,
+    "error": "Item \"shiny_rock\" not found here."
+}
+```
+
+### `POST /api/game/examine`
+Gets a detailed description of a specific item or feature within the current location.
+
+**Request Body:**
+```json
+{
+  "userId": "player123",
+  "storyId": "dragon_lair",
+  "target": "rusty_sword" // ID of the item/feature to examine
+}
+```
+
+**Response Example (Success - Item):**
+```json
+{
+  "success": true,
+  "name": "Rusty Sword",
+  "description": "A standard-issue sword, showing signs of rust and neglect.",
+  "type": "item",
+  "hint": "It might be useful in a fight."
+}
+```
+
+**Response Example (Success - Feature):**
+```json
+{
+  "success": true,
+  "name": "Large Door",
+  "description": "A heavy oak door reinforced with iron bands. It looks sturdy.",
+  "type": "feature",
+  "hint": "Perhaps it needs a key?"
+}
+```
+
+### `GET /api/leaderboard?storyId={storyId}`
+Retrieves the leaderboard data for a specific story.
+
+**Query Parameter:**
+*   `storyId`: The ID of the story (e.g., `dragon_lair`).
+
+**Response Example (Success):**
+```json
+[
+  {
+    "id": "player123",
+    "name": "player123",
+    "avatarUrl": "...",
+    "artifactsFound": 3,
+    "puzzlesSolved": 1,
+    "progress": 75
+  },
+  // ... other players
+]
 ```
 
 ## Tips for AI Agents
 
-1. Always start with `look` when entering a new area
-2. `examine` everything that seems interesting
-3. Track your inventory and item usage
-4. Remember locations you've visited
-5. Look for patterns in item descriptions that might hint at their use
+1.  Use `start` first for a user and story.
+2.  Use `state` frequently to understand the current situation (location, inventory, exits, items).
+3.  Use `move` to navigate between locations via valid exits found in the state.
+4.  Use `take` to pick up items found in the location details from the state.
+5.  Use `examine` to get more details about specific items or features mentioned in the location description.
+6.  Always include the correct `userId` and `storyId` in your requests.
 
 ## Error Handling
 
-All commands will return helpful error messages and hints when something goes wrong:
-```json
-{
-  "error": "You can't move there right now",
-  "hint": "Try examining your surroundings with 'look' to find valid locations",
-  "status": 400
-}
-``` 
+Endpoints generally return a `{ "success": false, "error": "Error message..." }` structure on failure, often with a relevant HTTP status code (400, 404, 500, etc.). 
