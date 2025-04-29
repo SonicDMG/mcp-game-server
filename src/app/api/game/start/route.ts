@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb';
 import { PlayerState, Location as GameLocation, Story } from '../types'; // Import necessary types
 
+// --- Fun Username Generation ---
+const adjectives = [
+  'Adventurous', 'Brave', 'Clever', 'Daring', 'Eager', 'Fearless', 'Gallant', 'Heroic',
+  'Intrepid', 'Jolly', 'Keen', 'Lucky', 'Mighty', 'Noble', 'Optimistic', 'Proud', 'Quick',
+  'Resourceful', 'Sturdy', 'Tenacious', 'Unflappable', 'Valiant', 'Witty', 'Xenial',
+  'Youthful', 'Zealous'
+];
+const nouns = [
+  'Adventurer', 'Badger', 'Capybara', 'Dragon', 'Explorer', 'Fox', 'Griffin', 'Hero',
+  'Inventor', 'Jaguar', 'Knight', 'Librarian', 'Mage', 'Navigator', 'Owl', 'Pioneer',
+  'Quester', 'Ranger', 'Sorcerer', 'Traveler', 'Unicorn', 'Voyager', 'Wizard', 'Xenops',
+  'Yeoman', 'Zephyr'
+];
+
+function generateFunUsername(): string {
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = Math.floor(Math.random() * 90) + 10; // Add a two-digit number
+  return `${adj}${noun}${num}`;
+}
+// --- End Fun Username Generation ---
+
 // Define interfaces for DB records, adding _id where needed
 interface PlayerRecord extends PlayerState { _id: string; userId: string; }
 interface LocationRecord extends GameLocation { _id: string; }
@@ -24,12 +46,26 @@ export async function POST(request: NextRequest) {
     requestBody = await request.json() as StartRequestBody;
     // Log request body after parsing
     console.log('[API /start] Received request body:', JSON.stringify(requestBody)); 
-    const { userId, storyId } = requestBody;
+    // Destructure storyId first, handle userId separately
+    let { userId } = requestBody;
+    const { storyId } = requestBody;
 
-    if (!userId || !storyId) {
-      console.log('>>> Missing userId or storyId, returning 400 <<<');
-      return NextResponse.json({ success: false, error: 'User ID and Story ID are required' }, { status: 400 });
+    // Still require storyId
+    if (!storyId) {
+      console.log('>>> Missing storyId, returning 400 <<<');
+      return NextResponse.json({ success: false, error: 'Story ID is required' }, { status: 400 });
     }
+
+    // Generate userId if missing
+    let isNewUser = false;
+    if (!userId) {
+      userId = generateFunUsername();
+      isNewUser = true;
+      console.log(`>>> No userId provided, generated fun username: ${userId} <<<`);
+    } else {
+       console.log(`>>> Received userId: ${userId} <<<`);
+    }
+
     console.log(`>>> Processing start request for userId: ${userId}, storyId: ${storyId} <<<`);
 
     // Construct the unique player document ID
@@ -43,6 +79,12 @@ export async function POST(request: NextRequest) {
       console.log(`>>> Player ${playerDocId} found. Retrieving state. <<<`);
       message = "Welcome back! Resuming your adventure.";
     } else {
+      // Ensure we generated a user ID if the player wasn't found and no ID was given
+      if (!userId) {
+          // This case should theoretically not be reached due to the generation above, but it's a safeguard.
+          console.error(">>> Critical error: Player not found and userId is somehow missing. <<<");
+          return NextResponse.json({ success: false, error: 'Internal server error: User ID could not be determined.' }, { status: 500 });
+      }
       console.log(`>>> Player ${playerDocId} not found. Creating new game state. <<<`);
       
       // 2. If player doesn't exist, fetch the story to get starting location
@@ -79,7 +121,10 @@ export async function POST(request: NextRequest) {
       
       // Use the newly created player object for the response
       player = newPlayer; 
-      message = `Welcome to "${story.title}"! Your adventure begins now.`;
+      // Adjust welcome message based on whether the user ID was generated
+      message = isNewUser 
+          ? `Welcome, new adventurer (User ID: ${userId})! Your journey in "${story.title}" begins now.` 
+          : `Welcome to "${story.title}"! Your adventure begins now.`;
     }
 
     // 4. Fetch the player's current location details (either existing or starting)
