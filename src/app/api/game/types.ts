@@ -41,6 +41,7 @@ export interface PlayerState {
     puzzlesSolved: string[];
     storyProgress: number;
   };
+  status?: 'playing' | 'winner';
 }
 
 export interface GameResponse {

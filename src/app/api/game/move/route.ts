@@ -3,7 +3,7 @@ import db from '@/lib/astradb'; // Import the initialized Db instance
 import { PlayerState, Location as GameLocation } from '../types'; // Import types
 
 // Define interfaces for DB records adding _id 
-interface PlayerRecord extends PlayerState { _id: string; }
+interface PlayerRecord extends PlayerState { _id: string; userId: string; } // Added userId based on leaderboard fix
 interface LocationRecord extends GameLocation { _id: string; }
 
 // Get typed collection instances
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   let requestBody: MoveRequestBody;
   try {
     requestBody = await request.json() as MoveRequestBody;
-    console.log('>>> Parsed request body:', JSON.stringify(requestBody));
+    // console.log('>>> Parsed request body:', JSON.stringify(requestBody)); // Remove this
 
     // Destructure storyId as well
     const { userId, target: targetLocationId, storyId } = requestBody;
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         hint: 'Specify where you want to move and in which story'
       }, { status: 400 });
     }
-    console.log(`>>> Processing move for userId: ${userId}, target: ${targetLocationId}, story: ${storyId} (Database) <<<`);
+    console.log(`>>> Processing move for userId: ${userId}, target: ${targetLocationId}, story: ${storyId} (Database) <<<`); // Keep this
 
     // --- Database Operations ---
     
@@ -44,11 +44,11 @@ export async function POST(request: NextRequest) {
     const playerDocId = `${storyId}_${userId}`;
 
     // 1. Get Player State from DB
-    console.log(`>>> Fetching player: ${playerDocId} <<<`);
+    // console.log(`>>> Fetching player: ${playerDocId} <<<`); // Remove this
     const player = await playersCollection.findOne({ _id: playerDocId });
     if (!player) {
       console.error(`Player ${playerDocId} not found.`);
-      console.log('>>> Player not found, returning 404 <<<');
+      // console.log('>>> Player not found, returning 404 <<<'); // Keep console.error
       return NextResponse.json({ success: false, error: 'Player not found. Please start the game first.' }, { status: 404 });
     }
     // Ensure player belongs to the correct story (safety check)
@@ -56,45 +56,45 @@ export async function POST(request: NextRequest) {
         console.error(`Player ${playerDocId} story mismatch. Found: ${player.storyId}, Expected: ${storyId}`);
         return NextResponse.json({ success: false, error: 'Player story mismatch.' }, { status: 400 });
     }
-    console.log(`>>> Found player. Current location: ${player.currentLocation} <<<`);
+    // console.log(`>>> Found player. Current location: ${player.currentLocation} <<<`); // Remove this
 
     // 2. Get Current Location from DB using player's location and provided story ID
-    console.log(`>>> Fetching current location: id=${player.currentLocation}, storyId=${storyId} <<<`);
+    // console.log(`>>> Fetching current location: id=${player.currentLocation}, storyId=${storyId} <<<`); // Remove this
     const currentLocation = await locationsCollection.findOne({ id: player.currentLocation, storyId: storyId });
     if (!currentLocation) {
       console.error(`Current location ${player.currentLocation} for player ${playerDocId} not found in story ${storyId}.`);
-      console.log('>>> Current location not found, returning 500 <<<');
+      // console.log('>>> Current location not found, returning 500 <<<'); // Keep console.error
       return NextResponse.json({ success: false, error: 'Internal error: Current location data missing' }, { status: 500 });
     }
-    console.log(`>>> Found current location: ${currentLocation.id}. Exits: ${currentLocation.exits?.join(', ') || 'None'} <<<`);
+    // console.log(`>>> Found current location: ${currentLocation.id}. Exits: ${currentLocation.exits?.join(', ') || 'None'} <<<`); // Remove this
 
     // 3. Get Destination Location from DB using target ID and provided story ID
-    console.log(`>>> Fetching destination location: id=${targetLocationId}, storyId=${storyId} <<<`);
+    // console.log(`>>> Fetching destination location: id=${targetLocationId}, storyId=${storyId} <<<`); // Remove this
     const destinationLocation = await locationsCollection.findOne({ id: targetLocationId, storyId: storyId });
     if (!destinationLocation) {
-      console.log(`>>> Destination location ${targetLocationId} not found in story ${storyId}, returning 404 <<<`);
+      console.log(`>>> Destination location ${targetLocationId} not found in story ${storyId}, returning 404 <<<`); // Keep this
       return NextResponse.json(
         { success: false, error: `Location "${targetLocationId}" does not exist in this story.` }, 
         { status: 404 }
       );
     }
-    console.log(`>>> Found destination location: ${destinationLocation.id} <<<`);
+    // console.log(`>>> Found destination location: ${destinationLocation.id} <<<`); // Remove this
 
     // 4. Validate Exit Check using DB data
-    console.log('>>> Validating exit check (DB)... <<<');
+    // console.log('>>> Validating exit check (DB)... <<<'); // Remove this
     if (!currentLocation.exits || !currentLocation.exits.includes(targetLocationId)) {
       console.error(`Exit check failed: Cannot move from ${currentLocation.id} to ${targetLocationId}. Available exits: ${currentLocation.exits?.join(', ') || 'None'}`);
-      console.log('>>> Exit check failed, returning 400 <<<');
+      // console.log('>>> Exit check failed, returning 400 <<<'); // Keep console.error
       return NextResponse.json({ success: false, error: `You cannot move to "${targetLocationId}" from here.` }, { status: 400 });
     }
-    console.log('>>> Exit check passed <<<');
+    // console.log('>>> Exit check passed <<<'); // Remove this
 
     // 5. Requirements Check using DB data
-    console.log('>>> Checking requirements... <<<');
+    // console.log('>>> Checking requirements... <<<'); // Remove this
     if (destinationLocation.requirements) {
         // Item requirement
         if (destinationLocation.requirements.item && !player.inventory.includes(destinationLocation.requirements.item)) {
-             console.log(`>>> Requirement failed: Player lacks item ${destinationLocation.requirements.item} <<<`);
+             // console.log(`>>> Requirement failed: Player lacks item ${destinationLocation.requirements.item} <<<`); // Remove this
              return NextResponse.json({
                 success: false,
                 error: `You cannot enter the ${destinationLocation.name} yet.`,
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
             // Assuming puzzle ID convention for now
             const requiredPuzzle = `puzzle_for_${destinationLocation.requirements.condition}`; 
             if (!player.gameProgress.puzzlesSolved.includes(requiredPuzzle)) {
-                console.log(`>>> Requirement failed: Player hasn't solved condition ${destinationLocation.requirements.condition} <<<`);
+                // console.log(`>>> Requirement failed: Player hasn't solved condition ${destinationLocation.requirements.condition} <<<`); // Remove this
                  return NextResponse.json({
                     success: false,
                     error: `You sense a mechanism preventing entry to the ${destinationLocation.name}.`,
@@ -115,10 +115,10 @@ export async function POST(request: NextRequest) {
             }
         }
     }
-    console.log('>>> Requirements passed <<<');
+    // console.log('>>> Requirements passed <<<'); // Remove this
 
     // 6. Update Player State in DB
-     console.log(`>>> Updating player ${player._id} location to ${targetLocationId} in DB <<<`);
+     // console.log(`>>> Updating player ${player._id} location to ${targetLocationId} in DB <<<`); // Remove this
      // Update current location and add destination to discoveredLocations atomically
      const playerUpdatePayload = {
        $set: { currentLocation: targetLocationId },
@@ -129,14 +129,14 @@ export async function POST(request: NextRequest) {
      // Check if the update was successful (optional, but good practice)
      if (!updateResult || updateResult.modifiedCount === 0) {
          // This might happen if player was already in the target location for some reason
-         console.warn(`Player ${player._id} move update to ${targetLocationId} failed or resulted in no changes. Result:`, updateResult);
+         console.warn(`Player ${player._id} move update to ${targetLocationId} failed or resulted in no changes. Result:`, updateResult); // Keep this
          // Decide if this is an error or just a warning. For now, proceed.
      }
  
-     console.log(`Player ${player._id} moved to ${targetLocationId} (DB updated)`);
+     console.log(`Player ${player._id} moved to ${targetLocationId} (DB updated)`); // Keep this
  
     // --- Prepare Response --- 
-    console.log('>>> Move successful, preparing response <<<');
+    // console.log('>>> Move successful, preparing response <<<'); // Remove this
     // Destructure to omit the _id field from the response object
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, ...locationResponse } = destinationLocation;
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in move handler (Database):', error);
+    console.error('Error in move handler (Database):', error); // Keep this
     let errorMessage = 'Failed to process move command due to an internal error.';
     const status = 500;
     if (error instanceof Error) {

@@ -65,6 +65,17 @@ const WinnerSparkles = () => (
 
 export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps) {
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
+  // console.log('[AsciiLeaderboard Render] selectedUser:', selectedUser);
+
+  const handleUserClick = (user: LeaderboardUser) => {
+    // console.log('[AsciiLeaderboard] handleUserClick called for user:', user);
+    setSelectedUser(user);
+  };
+
+  const handleCloseCard = () => {
+    // console.log('[AsciiLeaderboard] handleCloseCard called.');
+    setSelectedUser(null);
+  };
 
   // Build ASCII art string and avatar map
   const asciiRows: React.ReactNode[] = [];
@@ -114,7 +125,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
               textDecorationStyle: 'dotted',
               textDecorationColor: 'rgba(251, 191, 36, 0.4)',
             }}
-              onClick={() => setSelectedUser(winner)}
+              onClick={() => handleUserClick(winner)}
             >
               {winner.id}
             </span>
@@ -153,7 +164,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
                     textDecorationStyle: 'dotted',
                     textDecorationColor: 'rgba(59, 130, 246, 0.4)',
                   }}
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => handleUserClick(user)}
                 >
                   {user.id}
                 </span>
@@ -178,7 +189,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         <UserDetailCard
           user={selectedUser}
           story={story}
-          onClose={() => setSelectedUser(null)}
+          onClose={handleCloseCard}
         />
       )}
     </>

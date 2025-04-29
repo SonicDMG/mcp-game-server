@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
 import { PlayerState } from '../game/types'; // Import core types
 
-// Define interface for Player DB record 
-interface PlayerRecord extends PlayerState { _id: string; }
+// Define interface for Player DB record, adding _id and userId
+interface PlayerRecord extends PlayerState { 
+  _id: string; 
+  userId: string; // Add userId here
+}
 
 // Get typed collection instance
 const playersCollection = db.collection<PlayerRecord>('game_players');
@@ -35,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Map player data to the format expected by the client/frontend
     const leaderboardData = players.map(player => ({
-      id: player.id, // The logical user ID
+      id: player.userId, // Use userId instead of id
       room: player.currentLocation, // Use currentLocation for room
       inventory: player.inventory,
       // Goal condition is now correctly handled by the take handler setting progress to 100
