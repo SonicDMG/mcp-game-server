@@ -62,15 +62,32 @@ async function executeGameApi(operationId, parameters) {
       throw { code: -32601, message: `Method not found: Operation ID '${operationId}' not found in manifest` };
     }
 
-    const targetPath = operationDetails.path;
-    const targetMethod = operationDetails.method;
-    let targetUrl = GAME_API_BASE_URL + targetPath;
+    const targetPath = operationDetails.path; // e.g., /stories/{storyId}
+    const targetMethod = operationDetails.method; // e.g., DELETE
+    let finalTargetPath = targetPath;
+
+    // --- Handle Path Parameters --- 
+    if (operationDetails.details.parameters) {
+        operationDetails.details.parameters.forEach(param => {
+            if (param.in === 'path' && parameters[param.name]) {
+                // Replace placeholder like {storyId} with actual value
+                finalTargetPath = finalTargetPath.replace(`{${param.name}}`, encodeURIComponent(parameters[param.name]));
+            }
+        });
+    }
+    // --- End Path Parameter Handling ---
+
+    let targetUrl = GAME_API_BASE_URL + finalTargetPath; // Use the path with substitutions
     let fetchOptions = {
-      method: targetMethod,
-      headers: { 'Content-Type': 'application/json' },
+        method: targetMethod,
+        headers: { /*'Content-Type': 'application/json'*/ }, // Content-Type often not needed for DELETE/GET
     };
-    console.error(`[Tool Server] Found operation: ${targetMethod} ${targetPath}`);
+    console.error(`[Tool Server] Found operation: ${targetMethod} ${targetPath} -> ${finalTargetPath}`);
     console.error(`[Tool Server] Parameters received:`, parameters);
+
+    // --- Add specific logging for targetMethod value and type ---
+    console.error(`[Tool Server] DEBUG: Checking targetMethod. Value: "${targetMethod}", Type: ${typeof targetMethod}`);
+    // --- End specific logging ---
 
     if (targetMethod === 'GET') {
       const queryParams = new URLSearchParams();
@@ -84,8 +101,15 @@ async function executeGameApi(operationId, parameters) {
       if (queryParams.toString()) {
          targetUrl += `?${queryParams.toString()}`;
       }
-    } else if (targetMethod === 'POST') {
+      // No body for GET
+    } else if (targetMethod === 'POST' || targetMethod === 'PUT' || targetMethod === 'PATCH') {
+      // Assume body parameters are directly in 'parameters' object for simplicity
       fetchOptions.body = JSON.stringify(parameters);
+      // Ensure Content-Type header for methods with bodies
+      fetchOptions.headers = { ...fetchOptions.headers, 'Content-Type': 'application/json' };
+    } else if (targetMethod === 'DELETE') {
+       // Typically no body or query params for simple DELETE by ID
+       // Path parameter was handled above
     } else {
        console.error(`[Tool Server] Unsupported HTTP method: ${targetMethod}`);
        throw { code: -32601, message: `Method not found: HTTP method '${targetMethod}' not implemented` };
