@@ -99,31 +99,56 @@ async function executeGameApi(operationId, parameters) {
     try {
       const apiResponse = await fetch(targetUrl, fetchOptions);
       const contentType = apiResponse.headers.get("content-type");
-      let responseBody;
+      let responseBodyText; // Read body as text first
+      let responseBodyJson = null; // Store potential JSON parse result
+      let parseError = null;
+
+      // Read the body ONCE as text
+      try {
+          responseBodyText = await apiResponse.text();
+      } catch (readError) {
+          console.error(`[Tool Server] Failed to read response body from ${targetUrl}:`, readError);
+          throw { code: -32000, message: `Failed to read response body: ${readError.message}`, data: null };
+      }
+      
+      // Try to parse as JSON if content type suggests it
+      if (contentType && contentType.includes("application/json")) {
+          try {
+              responseBodyJson = JSON.parse(responseBodyText);
+          } catch (jsonError) {
+              console.error(`[Tool Server] Failed to parse JSON response despite Content-Type header:`, jsonError);
+              parseError = jsonError; // Store error but continue, we might need the text body for errors
+          }
+      }
 
       if (!apiResponse.ok) {
           console.error(`[Tool Server] Game API returned error status: ${apiResponse.status}`);
-          try { 
-             responseBody = await apiResponse.json(); 
-             console.error('[Tool Server] Game API Error Body (JSON):', responseBody);
-          } catch(e) { 
-             responseBody = await apiResponse.text(); 
-             console.error('[Tool Server] Game API Error Body (text):', responseBody);
+          // Log the body (prefer JSON if parsed, otherwise text)
+          if (responseBodyJson !== null) {
+              console.error('[Tool Server] Game API Error Body (JSON):', responseBodyJson);
+          } else {
+              console.error('[Tool Server] Game API Error Body (text):', responseBodyText);
           }
-          // Throw an error to be converted to JSON-RPC error
-          throw { code: -32000, message: `Game API Error: ${apiResponse.status}`, data: responseBody };
+          // Throw an error using the parsed JSON or the raw text as data
+          throw { code: -32000, message: `Game API Error: ${apiResponse.status}`, data: responseBodyJson ?? responseBodyText };
       }
       
-      if (contentType && contentType.includes("application/json")) {
-          responseBody = await apiResponse.json(); 
+      // Handle successful response
+      if (responseBodyJson !== null) {
+          // Successfully parsed JSON
           console.error(`[Tool Server] Game API Response Status: ${apiResponse.status}`);
-          console.error(`[Tool Server] Game API Response Body (JSON):`, responseBody);
-          return responseBody; // Return the parsed JSON result for execute
+          console.error(`[Tool Server] Game API Response Body (JSON):`, responseBodyJson);
+          return responseBodyJson; // Return the parsed JSON result
+      } else if (contentType && contentType.includes("application/json")) {
+         // Content-Type was JSON but parsing failed
+         console.error(`[Tool Server] Error: API claimed JSON but parsing failed. Status: ${apiResponse.status}. Body: ${responseBodyText.substring(0, 200)}...`);
+         throw { code: -32000, message: "Received invalid JSON response from game API", data: parseError?.message ?? responseBodyText };
       } else {
-          responseBody = await apiResponse.text(); 
-          console.error(`[Tool Server] Warning: Game API response was not JSON (Content-Type: ${contentType}). Body: ${responseBody.substring(0,100)}...`);
-          // Throw an error as we expect JSON from successful calls
-          throw { code: -32000, message: "Received non-JSON response from game API", data: responseBody };
+          // Response was not JSON, return/handle as text if needed, or throw error
+          console.error(`[Tool Server] Warning: Game API response was not JSON (Content-Type: ${contentType}). Status: ${apiResponse.status}. Body: ${responseBodyText.substring(0,100)}...`);
+          // If non-JSON success is unexpected, throw error. Otherwise, return text.
+          // Assuming JSON is always expected on success:
+          throw { code: -32000, message: "Received non-JSON response from game API on success", data: responseBodyText };
       }
     } catch (fetchError) {
        console.error(`[Tool Server] Error during fetch or processing (${targetUrl}):`, fetchError);
@@ -140,7 +165,7 @@ async function main() {
 
   const server = new Server(
     { // Server Info
-      name: "MCPlayerOne-Maze-Game", 
+      name: "MCPlayerOne-Game",
       version: "1.0.0"
     },
     { // Server Capabilities
@@ -161,7 +186,28 @@ async function main() {
        throw { code: -32602, message: "Invalid params: Missing tool name (operationId) or arguments (parameters)" };
     }
     const result = await executeGameApi(operationId, parameters);
-    return { content: result }; 
+    
+    // Format the result based on expected MCP content structure
+    // For listStories, return as a text block containing the JSON string
+    // For other endpoints, we might need different formatting later
+    if (operationId === 'listStories' && typeof result === 'object') {
+        return { 
+            content: [{ 
+                type: 'text', 
+                text: JSON.stringify(result, null, 2) // Stringify the JSON result
+            }] 
+        };
+    } 
+    
+    // Default/Fallback: Attempt to return raw result wrapped in a basic structure
+    // This might still fail validation for complex objects if not expected
+    console.error(`[Tool Server] Warning: Returning raw result for ${operationId}. Validation might fail if structure is unexpected.`);
+    return { 
+        content: [{ 
+            type: 'text', // Assume text as a fallback
+            text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) 
+        }] 
+    }; 
   });
 
   // --- Handler for tools/list ---
@@ -172,36 +218,53 @@ async function main() {
           for (const path in openapiManifest.paths) {
               for (const method in openapiManifest.paths[path]) {
                    const op = openapiManifest.paths[path][method];
-                   // Only list operations that have an operationId (our tool name)
                    if (op.operationId) { 
-                      // Map OpenAPI schema to MCP Tool definition
-                      // Note: This is a basic mapping. More complex schema conversion might be needed.
-                      let inputSchema = { type: 'object', properties: {}, required: [] }; // Default empty schema
+                      // Ensure inputSchema always has type: 'object'
+                      let finalInputSchema = { 
+                          type: 'object',
+                          description: `Input schema for ${op.operationId}. Refer to tool definition for details.`,
+                          properties: {},
+                          required: []
+                      };
+                      
+                      let originalSchemaSource = null;
                       if (method.toUpperCase() === 'POST' && op.requestBody?.content?.['application/json']?.schema) {
-                         // Attempt to use the existing schema or reference
-                         inputSchema = op.requestBody.content['application/json'].schema;
-                         // If it's a $ref, keep it as is (clients often resolve these)
+                         originalSchemaSource = op.requestBody.content['application/json'].schema;
                       } else if (method.toUpperCase() === 'GET' && op.parameters) {
-                         // Build properties from query parameters for GET requests
-                         inputSchema.properties = {};
-                         inputSchema.required = [];
+                         // Build properties from query parameters if needed (for simpler cases)
+                         const queryParamsSchema = { type: 'object', properties: {}, required: [] };
                          op.parameters.forEach(param => {
                              if (param.in === 'query') {
-                                 inputSchema.properties[param.name] = { 
+                                 queryParamsSchema.properties[param.name] = { 
                                      type: param.schema.type, 
                                      description: param.description 
                                  };
                                  if (param.required) {
-                                     inputSchema.required.push(param.name);
+                                     queryParamsSchema.required.push(param.name);
                                  }
                              }
                          });
+                         originalSchemaSource = queryParamsSchema;
+                      }
+                      
+                      // If we found an original schema (either direct or built from query params), 
+                      // merge its properties/required fields if it's not a $ref
+                      if (originalSchemaSource && !originalSchemaSource['$ref']) {
+                          finalInputSchema.properties = originalSchemaSource.properties || {};
+                          finalInputSchema.required = originalSchemaSource.required || [];
+                          // Overwrite description if the original schema had one
+                          finalInputSchema.description = originalSchemaSource.description || finalInputSchema.description;
+                      } else if (originalSchemaSource && originalSchemaSource['$ref']) {
+                           // If it was a ref, add a note about the reference
+                           finalInputSchema.description += ` Defined by $ref: ${originalSchemaSource['$ref']}`;
+                           // Optionally add the ref itself under a custom key if needed, e.g.:
+                           // finalInputSchema['_ref'] = originalSchemaSource['$ref'];
                       }
 
                       toolsList.push({
-                          name: op.operationId, // Use operationId as the tool name
+                          name: op.operationId,
                           description: op.description || op.summary || 'No description available',
-                          inputSchema: inputSchema
+                          inputSchema: finalInputSchema // Use the schema that always has type: 'object'
                       });
                    }
               }
