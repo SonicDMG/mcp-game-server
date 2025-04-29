@@ -316,53 +316,37 @@
              }
           }
         }
-      }
-    },
-    "/create": {
+      },
       "post": {
-        "summary": "Create New Game Story",
-        "description": "Generates a basic new game story structure based on user input (title, theme, etc.). Returns the ID and title of the created story.",
+        "summary": "Create New Story (Theme-Based Generation)",
+        "description": "Generates a new game story, locations, items, and cover image based on a provided theme using AI services (Langflow, EverArt).",
         "operationId": "createGame",
         "tags": ["Game Setup"],
         "requestBody": {
-          "description": "Parameters for generating the new game.",
+          "description": "Theme for generation and optional story metadata.",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateGameInput"
+                "$ref": "#/components/schemas/CreateStoryInputThemeBased"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Game story created successfully.",
+            "description": "Story created successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                     "success": { "type": "boolean", "example": true },
-                     "message": { "type": "string", "example": "Successfully created story 'My New Game' with ID 'my_new_game'." },
-                     "storyId": { "type": "string", "example": "my_new_game" },
-                     "title": { "type": "string", "example": "My New Game" },
-                     "details": {
-                        "type": "object",
-                        "properties": {
-                            "locationsGenerated": { "type": "integer" },
-                            "startingLocation": { "type": "string" },
-                            "startingItemId": { "type": "string", "nullable": true }
-                        }
-                      }
-                   }
+                  "$ref": "#/components/schemas/CreateStoryResponseThemeBased"
                 }
               }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "409": { 
-             "description": "Conflict - A story with the same title or generated ID already exists.",
+             "description": "Conflict - A story with the same ID (provided or generated) already exists.",
              "content": {
                "application/json": {
                  "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -620,37 +604,71 @@
         },
         "required": ["success", "error"]
       },
-      "CreateGameInput": {
-        "type": "object",
+      "StoryRecord": {
         "properties": {
-          "title": {
-            "type": "string",
-            "description": "The desired title for the new game story.",
-            "example": "Escape the Orc Fortress"
+          "_id": { "type": "string", "description": "Internal database ID.", "readOnly": true },
+          "id": { "type": "string", "description": "Unique logical story identifier.", "example": "mystic_library" },
+          "title": { "type": "string", "example": "The Mystic Library" },
+          "description": { "type": "string", "example": "An ancient library filled with magical secrets." },
+          "startingLocation": { "type": "string", "example": "entrance_hall" },
+          "version": { "type": "string", "example": "1.1" },
+          "requiredArtifacts": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of item IDs needed to win (optional)."
           },
-          "theme": {
-            "type": "string",
-            "description": "Optional theme (e.g., Fantasy, Sci-Fi). Influences generated descriptions.",
-            "example": "Fantasy"
+          "theme": { "type": "string", "description": "Theme used for generation (optional)." },
+          "image": { "type": "string", "format": "uri", "description": "URL of the generated story cover image (optional).", "nullable": true }
+        },
+        "required": ["id", "title", "description", "startingLocation", "version"]
+      },
+      "CreateStoryInputThemeBased": {
+        "type": "object",
+        "description": "Input for creating a story using theme-based generation.",
+        "properties": {
+          "theme": { 
+            "type": "string", 
+            "description": "The core theme to guide world generation (e.g., 'haunted library')."
           },
-          "setting": {
-            "type": "string",
-            "description": "Optional setting (e.g., Castle, Spaceship). Guides location generation.",
-            "example": "Castle"
+          "id": { 
+            "type": "string", 
+            "description": "Optional unique ID for the story. If omitted, a UUID will be generated."
           },
-          "goal": {
-            "type": "string",
-            "description": "Optional simple objective for the generated game.",
-            "example": "Find the hidden artifact"
+          "title": { 
+            "type": "string", 
+            "description": "Optional title for the story. If omitted, a default will be generated from the theme."
           },
-          "difficulty": {
-            "type": "string",
-            "enum": ["Easy", "Medium"],
-            "description": "Optional difficulty, determines number of locations (Easy=3, Medium=5). Defaults to Easy.",
-            "example": "Easy"
+          "description": { 
+            "type": "string", 
+            "description": "Optional description/premise. If omitted, a default will be generated."
+          },
+           "version": { 
+             "type": "string", 
+             "description": "Optional version string. Defaults to '1.0'."
+           }
+        },
+        "required": ["theme"]
+      },
+      "CreateStoryResponseThemeBased": {
+        "type": "object",
+        "description": "Response after successfully creating a story via theme-based generation.",
+        "properties": {
+          "message": { "type": "string" },
+          "storyId": { "type": "string" },
+          "title": { "type": "string" },
+          "theme": { "type": "string" },
+          "storyDbId": { "type": "string", "description": "Internal Astra DB document ID." },
+          "locationsGenerated": { "type": "integer" },
+          "itemsGenerated": { "type": "integer" },
+          "startingLocationId": { "type": "string" },
+          "imageUrl": { 
+            "type": "string", 
+            "format": "uri", 
+            "nullable": true, 
+            "description": "URL of the generated image, or null/undefined if failed."
           }
         },
-        "required": ["title"]
+        "required": ["message", "storyId", "title", "theme", "storyDbId", "locationsGenerated", "itemsGenerated", "startingLocationId"]
       }
     },
     "responses": {

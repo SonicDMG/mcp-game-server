@@ -86,34 +86,36 @@ export async function POST(request: NextRequest) {
     // 3. Check if item exists in the location's item list (from DB)
     const itemIndex = location.items.indexOf(itemId);
     if (itemIndex === -1) {
-      console.log(`>>> Item ${itemId} not found in location ${location.id}, returning 400 <<<`);
-      return NextResponse.json({ success: false, error: `You don't see ${itemId} here.` }, { status: 400 });
+      console.log(`>>> Item ${itemId} not found in location ${location.id}, returning 200 with success:false <<<`);
+      // Return 200 OK, but indicate failure in the body
+      return NextResponse.json({ success: false, message: `You don't see ${itemId} here.` }, { status: 200 });
     }
 
     // 4. Get Item Details from DB using item ID and story ID
     console.log(`>>> Fetching item: id=${itemId}, storyId=${storyId} <<<`); 
     const item = await itemsCollection.findOne({ id: itemId, storyId: storyId });
     if (!item) {
-        // This could mean the item ID exists in the location array but not in the items collection *for this story*
+        // Keep this as 404 - Data inconsistency
         console.error(`Inconsistency: Item ID ${itemId} listed in location ${location.id} but not found in game_items for story ${storyId}.`);
-        return NextResponse.json({ success: false, error: `Item '${itemId}' not found in this area of story '${storyId}'.` }, { status: 404 });
+        return NextResponse.json({ success: false, error: `Item '${itemId}' not found in this area of story '${storyId}'.` }, { status: 404 }); 
     }
 
-    // Omit _id field from item response
     const { _id: item_id, ...itemResponse } = item;
 
-    console.log(`>>> Examine successful for ${itemId} <<<`);
+    // console.log(`>>> Examine successful for ${itemId} <<<`); // This log seems misplaced, commenting out
 
     // 5. Check if item is takeable (from DB item data)
     if (!itemResponse.canTake) {
-      console.log(`>>> Item ${itemId} cannot be taken, returning 400 <<<`);
-      return NextResponse.json({ success: false, error: `You cannot take the ${itemResponse.name}.` }, { status: 400 });
+      console.log(`>>> Item ${itemId} cannot be taken, returning 200 with success:false <<<`);
+       // Return 200 OK, but indicate failure in the body
+      return NextResponse.json({ success: false, message: `You cannot take the ${itemResponse.name}.` }, { status: 200 });
     }
 
     // Check if item is already in inventory
     if (player.inventory.includes(itemId)) {
-      console.log(`>>> Item ${itemId} already in inventory, returning 400 <<<`);
-      return NextResponse.json({ success: false, error: `You already have the ${itemResponse.name}.` }, { status: 400 });
+      console.log(`>>> Item ${itemId} already in inventory, returning 200 with success:false <<<`);
+       // Return 200 OK, but indicate failure in the body
+      return NextResponse.json({ success: false, message: `You already have the ${itemResponse.name}.` }, { status: 200 });
     }
 
     // 6. Update Player State & Location State (atomicity is tricky here without transactions)

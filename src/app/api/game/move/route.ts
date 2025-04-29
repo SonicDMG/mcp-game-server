@@ -82,41 +82,37 @@ export async function POST(request: NextRequest) {
     // console.log(`>>> Found destination location: ${destinationLocation.id} <<<`); // Remove this
 
     // 4. Validate Exit Check using DB data
-    // console.log('>>> Validating exit check (DB)... <<<'); // Remove this
     if (!currentLocation.exits || !currentLocation.exits.includes(targetLocationId)) {
       console.error(`Exit check failed: Cannot move from ${currentLocation.id} to ${targetLocationId}. Available exits: ${currentLocation.exits?.join(', ') || 'None'}`);
-      // console.log('>>> Exit check failed, returning 400 <<<'); // Keep console.error
-      return NextResponse.json({ success: false, error: `You cannot move to "${targetLocationId}" from here.` }, { status: 400 });
+      // Return 200 OK, but indicate failure in the body
+      return NextResponse.json({ success: false, message: `You cannot move to "${targetLocationId}" from here.` }, { status: 200 });
     }
-    // console.log('>>> Exit check passed <<<'); // Remove this
 
     // 5. Requirements Check using DB data
-    // console.log('>>> Checking requirements... <<<'); // Remove this
     if (destinationLocation.requirements) {
         // Item requirement
         if (destinationLocation.requirements.item && !player.inventory.includes(destinationLocation.requirements.item)) {
-             // console.log(`>>> Requirement failed: Player lacks item ${destinationLocation.requirements.item} <<<`); // Remove this
+             // Return 200 OK, but indicate failure in the body
              return NextResponse.json({
                 success: false,
-                error: `You cannot enter the ${destinationLocation.name} yet.`,
+                message: `You cannot enter the ${destinationLocation.name} yet.`,
                 hint: `You might need the ${destinationLocation.requirements.item}.`
-            }, { status: 403 });
+            }, { status: 200 }); // Changed status from 403
         }
         // Condition requirement (e.g., puzzle solved)
         if (destinationLocation.requirements.condition && destinationLocation.requirements.condition !== 'none') {
             // Assuming puzzle ID convention for now
             const requiredPuzzle = `puzzle_for_${destinationLocation.requirements.condition}`; 
             if (!player.gameProgress.puzzlesSolved.includes(requiredPuzzle)) {
-                // console.log(`>>> Requirement failed: Player hasn't solved condition ${destinationLocation.requirements.condition} <<<`); // Remove this
+                 // Return 200 OK, but indicate failure in the body
                  return NextResponse.json({
                     success: false,
-                    error: `You sense a mechanism preventing entry to the ${destinationLocation.name}.`,
+                    message: `You sense a mechanism preventing entry to the ${destinationLocation.name}.`,
                     hint: `Perhaps something needs to be solved or activated first.`
-                }, { status: 403 });
+                }, { status: 200 }); // Changed status from 403
             }
         }
     }
-    // console.log('>>> Requirements passed <<<'); // Remove this
 
     // 6. Update Player State in DB
      // console.log(`>>> Updating player ${player._id} location to ${targetLocationId} in DB <<<`); // Remove this

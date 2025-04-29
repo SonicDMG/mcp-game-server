@@ -26,6 +26,16 @@ const GAME_API_BASE_URL = 'http://localhost:3000/api/game';
 
 let openapiManifest = null;
 
+// --- Global Error Handlers ---
+process.on('uncaughtException', (err, origin) => {
+  console.error(`[Tool Server] FATAL: Uncaught Exception at: ${origin}, error: ${err.stack || err}`);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Tool Server] FATAL: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+// --- End Global Error Handlers ---
+
 // --- Helper Function to find API details by operationId ---
 function findOperationDetails(operationId) {
   if (!openapiManifest || !openapiManifest.paths) {
@@ -50,23 +60,20 @@ function findOperationDetails(operationId) {
 // --- Load Manifest ---
 try {
   openapiManifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
-  console.error(`[Tool Server] Successfully loaded OpenAPI manifest from ${MANIFEST_PATH}`);
+  // console.error(`[Tool Server] Successfully loaded OpenAPI manifest from ${MANIFEST_PATH}`); // Commented out
 } catch (error) {
   console.error(`[Tool Server] Failed to load OpenAPI manifest: ${error.message}`);
   process.exit(1);
 }
 
 // --- SDK Execute Function --- 
-// This function handles the core logic of calling the game API
 async function executeGameApi(operationId, parameters) {
-   console.error(`[Tool Server] executeGameApi called for: ${operationId}`);
+   // console.error(`[Tool Server] executeGameApi called for: ${operationId}`); // Commented out
    const operationDetails = findOperationDetails(operationId);
-
-    if (!operationDetails) {
-      console.error(`[Tool Server] Operation ID not found: ${operationId}`);
-      // Throw an error that the SDK can catch and format as JSON-RPC error
+   if (!operationDetails) {
+      console.error(`[Tool Server] Operation ID not found: ${operationId}`); // Keep error
       throw { code: -32601, message: `Method not found: Operation ID '${operationId}' not found in manifest` };
-    }
+   }
 
     const targetPath = operationDetails.path; // e.g., /stories/{storyId}
     const targetMethod = operationDetails.method; // e.g., DELETE
@@ -88,11 +95,11 @@ async function executeGameApi(operationId, parameters) {
         method: targetMethod,
         headers: { /*'Content-Type': 'application/json'*/ }, // Content-Type often not needed for DELETE/GET
     };
-    console.error(`[Tool Server] Found operation: ${targetMethod} ${targetPath} -> ${finalTargetPath}`);
-    console.error(`[Tool Server] Parameters received:`, parameters);
+    // console.error(`[Tool Server] Found operation: ${targetMethod} ${targetPath} -> ${finalTargetPath}`); // Commented out
+    // console.error(`[Tool Server] Parameters received:`, parameters); // Commented out
 
     // --- Add specific logging for targetMethod value and type ---
-    console.error(`[Tool Server] DEBUG: Checking targetMethod. Value: "${targetMethod}", Type: ${typeof targetMethod}`);
+    // console.error(`[Tool Server] DEBUG: Checking targetMethod. Value: "${targetMethod}", Type: ${typeof targetMethod}`); // Commented out
     // --- End specific logging ---
 
     if (targetMethod === 'GET') {
@@ -121,9 +128,9 @@ async function executeGameApi(operationId, parameters) {
        throw { code: -32601, message: `Method not found: HTTP method '${targetMethod}' not implemented` };
     }
 
-    console.error(`[Tool Server] Calling Game API: ${targetMethod} ${targetUrl}`);
+    // console.error(`[Tool Server] Calling Game API: ${targetMethod} ${targetUrl}`); // Commented out
     if (fetchOptions.body) {
-      console.error(`[Tool Server] Request Body: ${fetchOptions.body}`);
+      // console.error(`[Tool Server] Request Body: ${fetchOptions.body}`); // Commented out
     }
 
     try {
@@ -152,22 +159,20 @@ async function executeGameApi(operationId, parameters) {
       }
 
       if (!apiResponse.ok) {
-          console.error(`[Tool Server] Game API returned error status: ${apiResponse.status}`);
-          // Log the body (prefer JSON if parsed, otherwise text)
+          console.error(`[Tool Server] Game API Error Status: ${apiResponse.status} for ${operationId}`); // Keep error + context
           if (responseBodyJson !== null) {
-              console.error('[Tool Server] Game API Error Body (JSON):', responseBodyJson);
+              // console.error('[Tool Server] Game API Error Body (JSON):', responseBodyJson); // Commented out maybe?
           } else {
-              console.error('[Tool Server] Game API Error Body (text):', responseBodyText);
+              // console.error('[Tool Server] Game API Error Body (text):', responseBodyText); // Commented out maybe?
           }
-          // Throw an error using the parsed JSON or the raw text as data
           throw { code: -32000, message: `Game API Error: ${apiResponse.status}`, data: responseBodyJson ?? responseBodyText };
       }
       
       // Handle successful response
       if (responseBodyJson !== null) {
           // Successfully parsed JSON
-          console.error(`[Tool Server] Game API Response Status: ${apiResponse.status}`);
-          console.error(`[Tool Server] Game API Response Body (JSON):`, responseBodyJson);
+          // console.error(`[Tool Server] Game API Response Status: ${apiResponse.status}`); // Commented out
+          // console.error(`[Tool Server] Game API Response Body (JSON):`, responseBodyJson); // Commented out
           return responseBodyJson; // Return the parsed JSON result
       } else if (contentType && contentType.includes("application/json")) {
          // Content-Type was JSON but parsing failed
@@ -181,9 +186,8 @@ async function executeGameApi(operationId, parameters) {
           throw { code: -32000, message: "Received non-JSON response from game API on success", data: responseBodyText };
       }
     } catch (fetchError) {
-       console.error(`[Tool Server] Error during fetch or processing (${targetUrl}):`, fetchError);
-       // Re-throw fetch/parsing errors for the SDK to handle
-       if (fetchError.code) throw fetchError; // Propagate our custom errors
+       console.error(`[Tool Server] Fetch/Processing Error for ${operationId}:`, fetchError); // Keep error + context
+       if (fetchError.code) throw fetchError; 
        throw { code: -32000, message: 'Failed to communicate with or parse response from the game API', data: fetchError.message };
     }
 }
@@ -191,6 +195,7 @@ async function executeGameApi(operationId, parameters) {
 
 // --- Main Function to Setup and Run SDK Server ---
 async function main() {
+  // console.error('[Tool Server] Initializing...'); // Commented out
   console.error('[Tool Server] Initializing MCP Low-Level SDK Server...');
 
   const server = new Server(
@@ -209,39 +214,65 @@ async function main() {
 
   // --- Handler for tools/execute ---
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    console.error('[Tool Server] Received execute request via SDK handler');
-    const operationId = request.params.name; 
-    const parameters = request.params.arguments; 
-    if (!operationId || !parameters) {
-       throw { code: -32602, message: "Invalid params: Missing tool name (operationId) or arguments (parameters)" };
+    let responsePayload;
+    try { 
+      // console.error('[Tool Server] Received execute request...'); // Commented out
+      const operationId = request.params.name; 
+      const parameters = request.params.arguments; 
+      if (!operationId || !parameters) {
+         throw { code: -32602, message: "Invalid params: Missing tool name (operationId) or arguments (parameters)" };
+      }
+      
+      // Call the backend API (this might throw a formatted error)
+      const result = await executeGameApi(operationId, parameters);
+      
+      // --- Format SUCCESS result ---
+      let resultText;
+      if (typeof result === 'object' && result !== null) {
+          try {
+              resultText = JSON.stringify(result, null, 2); 
+              // console.log('[Tool Server] Formatting success object...'); // Commented out
+          } catch (stringifyError) {
+              console.error('[Tool Server] Error stringifying success result object:', stringifyError);
+              resultText = '[Error: Could not serialize success result object]';
+          }
+      } else {
+          resultText = String(result);
+          console.warn(`[Tool Server] Success result is not an object (type: ${typeof result}). Formatting as text.`);
+      }
+      responsePayload = { content: [{ type: 'text', text: resultText }] };
+
+    } catch (error) {
+      // console.error('[Tool Server] Formatting caught error...'); // Commented out
+      // --- Format ERROR result ---
+      console.error('[Tool Server] Formatting caught error as text block:', error);
+      let errorText = '[Tool Server] Unknown error occurred.';
+      try {
+        if (typeof error === 'object' && error !== null && error.message) {
+            // Include code and data if available
+            errorText = `Error Code: ${error.code || 'N/A'}\nMessage: ${error.message}`;
+            if (error.data) {
+                errorText += `\nData: ${JSON.stringify(error.data)}`;
+            }
+        } else if (error instanceof Error) {
+            errorText = `Error: ${error.message}`;
+        } else {
+            errorText = `Error: ${String(error)}`;
+        }
+      } catch (formatError) {
+          console.error('[Tool Server] Error formatting the error object itself:', formatError);
+          errorText = '[Tool Server] Critical error during error formatting.';
+      }
+      // Always return errors wrapped in the standard content structure as well
+      responsePayload = { content: [{ type: 'text', text: errorText }] };
     }
-    const result = await executeGameApi(operationId, parameters);
-    
-    // Format the result based on expected MCP content structure
-    // For listStories, return as a text block containing the JSON string
-    // For other endpoints, we might need different formatting later
-    if (operationId === 'listStories' && typeof result === 'object') {
-        return { 
-            content: [{ 
-                type: 'text', 
-                text: JSON.stringify(result, null, 2) // Stringify the JSON result
-            }] 
-        };
-    } 
-    
-    // Default/Fallback: Attempt to return raw result wrapped in a basic structure
-    // This might still fail validation for complex objects if not expected
-    console.error(`[Tool Server] Warning: Returning raw result for ${operationId}. Validation might fail if structure is unexpected.`);
-    return { 
-        content: [{ 
-            type: 'text', // Assume text as a fallback
-            text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) 
-        }] 
-    }; 
+    // Send the prepared payload (either success or error formatted as text content)
+    return responsePayload;
   });
 
   // --- Handler for tools/list ---
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+      // console.error('[Tool Server] Received listTools request...'); // Commented out
       console.error('[Tool Server] Received listTools request via SDK handler');
       const toolsList = [];
       if (openapiManifest && openapiManifest.paths) {
@@ -249,58 +280,31 @@ async function main() {
               for (const method in openapiManifest.paths[path]) {
                    const op = openapiManifest.paths[path][method];
                    if (op.operationId) { 
-                      // Ensure inputSchema always has type: 'object'
                       let finalInputSchema = { 
-                          type: 'object',
-                          description: `Input schema for ${op.operationId}. Refer to tool definition for details.`,
-                          properties: {},
-                          required: []
+                          type: 'object', 
+                          description: `Input schema for ${op.operationId}.`, 
+                          properties: {}, 
+                          required: [] 
                       };
                       
-                      let originalSchemaSource = null;
+                      let requestBodySchema = null;
                       if (method.toUpperCase() === 'POST' && op.requestBody?.content?.['application/json']?.schema) {
-                         originalSchemaSource = op.requestBody.content['application/json'].schema;
-                      } else if (method.toUpperCase() === 'GET' && op.parameters) {
-                         // Build properties from query parameters if needed (for simpler cases)
-                         const queryParamsSchema = { type: 'object', properties: {}, required: [] };
-                         op.parameters.forEach(param => {
-                             if (param.in === 'query') {
-                                 queryParamsSchema.properties[param.name] = { 
-                                     type: param.schema.type, 
-                                     description: param.description 
-                                 };
-                                 if (param.required) {
-                                     queryParamsSchema.required.push(param.name);
-                                 }
-                             }
-                         });
-                         originalSchemaSource = queryParamsSchema;
-                      }
+                         requestBodySchema = op.requestBody.content['application/json'].schema;
+                      } // Add handling for PUT, PATCH if necessary
                       
-                      // --- Resolve $ref and Merge --- 
-                      let resolvedSchema = null;
-                      if (originalSchemaSource && originalSchemaSource['$ref']) {
-                           finalInputSchema.description += ` Defined by $ref: ${originalSchemaSource['$ref']}`;
-                           const refPath = originalSchemaSource['$ref'].split('/');
+                      // Process requestBody schema (could be $ref or inline)
+                      let resolvedBodySchema = null;
+                      if (requestBodySchema && requestBodySchema['$ref']) {
+                           // Resolve $ref for body
+                           const refPath = requestBodySchema['$ref'].split('/');
                            if (refPath.length === 4 && refPath[0] === '#' && refPath[1] === 'components' && refPath[2] === 'schemas') {
                                const schemaName = refPath[3];
-                               if (openapiManifest.components?.schemas?.[schemaName]) {
-                                   resolvedSchema = openapiManifest.components.schemas[schemaName];
-                                   console.error(`[Tool Server] Resolved $ref ${originalSchemaSource['$ref']} to schema ${schemaName}`);
-                               } else {
-                                   console.error(`[Tool Server] Warning: Could not resolve $ref ${originalSchemaSource['$ref']}. Schema ${schemaName} not found.`);
-                               }
-                           } else {
-                               console.error(`[Tool Server] Warning: Could not parse $ref format: ${originalSchemaSource['$ref']}`);
-                           }
+                               resolvedBodySchema = openapiManifest.components?.schemas?.[schemaName];
+                           } 
+                           // Add logging for unresolved refs if needed
                       } else {
-                          // If not a $ref, the schema is inline (or built from query params)
-                          resolvedSchema = originalSchemaSource;
+                          resolvedBodySchema = requestBodySchema; // Inline body schema
                       }
-
-                      // Reset properties and required for merging
-                      finalInputSchema.properties = {};
-                      finalInputSchema.required = [];
 
                       // Function to process and merge a single schema (inline or resolved $ref)
                       const processAndMergeSchema = (schemaToProcess) => {
@@ -323,38 +327,52 @@ async function main() {
                                 finalInputSchema.description = schemaToProcess.description;
                            }
                       };
-                      
-                      // --- Handle allOf --- 
-                      if (resolvedSchema && Array.isArray(resolvedSchema.allOf)) {
-                          console.error(`[Tool Server] Processing allOf for ${op.operationId}`);
-                          resolvedSchema.allOf.forEach(subSchema => {
-                              let schemaPartToProcess = subSchema; // Assume inline initially
-                              // Check if this part of allOf is a $ref
-                              if (subSchema && subSchema['$ref']) {
-                                  const refPath = subSchema['$ref'].split('/');
-                                  if (refPath.length === 4 && refPath[0] === '#' && refPath[1] === 'components' && refPath[2] === 'schemas') {
-                                      const schemaName = refPath[3];
-                                      if (openapiManifest.components?.schemas?.[schemaName]) {
-                                          console.error(`[Tool Server] Resolving nested $ref ${subSchema['$ref']} within allOf`);
-                                          schemaPartToProcess = openapiManifest.components.schemas[schemaName];
-                                      } else {
-                                           console.error(`[Tool Server] Warning: Could not resolve nested $ref ${subSchema['$ref']} within allOf.`);
-                                           schemaPartToProcess = null; // Skip if ref cannot be resolved
-                                      }
-                                  } else {
-                                      console.error(`[Tool Server] Warning: Could not parse nested $ref format: ${subSchema['$ref']}`);
-                                      schemaPartToProcess = null; // Skip if ref format is wrong
-                                  }
-                              }
-                              // Process and merge the resolved part (either inline or from resolved $ref)
-                              processAndMergeSchema(schemaPartToProcess);
-                          });
-                      } else {
-                          // --- Handle simple schema (no allOf) --- 
-                          // Process the single resolved schema (inline or from direct $ref)
-                          processAndMergeSchema(resolvedSchema);
+
+                      // Merge properties/required from body schema (handles allOf internally if present)
+                      if (resolvedBodySchema) {
+                           if (Array.isArray(resolvedBodySchema.allOf)) {
+                               resolvedBodySchema.allOf.forEach(subSchema => {
+                                   let schemaPartToProcess = subSchema;
+                                   if (subSchema['$ref']) {
+                                       const refPath = subSchema['$ref'].split('/');
+                                       if (refPath.length === 4 && refPath[0] === '#' && refPath[1] === 'components' && refPath[2] === 'schemas') {
+                                            schemaPartToProcess = openapiManifest.components?.schemas?.[refPath[3]] ?? null;
+                                       }
+                                   }
+                                   processAndMergeSchema(schemaPartToProcess);
+                               });
+                           } else {
+                               processAndMergeSchema(resolvedBodySchema);
+                           }
                       }
-                      // --- End Schema Processing Logic ---
+
+                      // --- Process Path and Query Parameters --- 
+                      if (Array.isArray(op.parameters)) {
+                          console.error(`[Tool Server] Processing ${op.parameters.length} parameters for ${op.operationId}`);
+                          op.parameters.forEach(param => {
+                              if ((param.in === 'path' || param.in === 'query') && param.schema) {
+                                  console.error(`[Tool Server] Adding ${param.in} parameter: ${param.name}`);
+                                  finalInputSchema.properties[param.name] = {
+                                      type: param.schema.type,
+                                      description: param.description || 'No description'
+                                      // Add other schema details like format, enum etc. if available
+                                  };
+                                  if (param.required) {
+                                      if (!finalInputSchema.required.includes(param.name)) {
+                                          finalInputSchema.required.push(param.name);
+                                      }
+                                  }
+                              } else {
+                                   console.error(`[Tool Server] Skipping parameter ${param.name} (in: ${param.in}, schema exists: ${!!param.schema})`);
+                              }
+                          });
+                      }
+                      // --- End Parameter Processing ---
+
+                      // Use operation summary/description if schema description is generic/missing
+                      if (!finalInputSchema.description || finalInputSchema.description.startsWith('Input schema for')) {
+                           finalInputSchema.description = op.summary || op.description || `Input for ${op.operationId}`;
+                      }
 
                       toolsList.push({
                           name: op.operationId,
@@ -365,18 +383,21 @@ async function main() {
               }
           }
       }
+      // console.error(`[Tool Server] Responding to listTools with ${toolsList.length} tools.`); // Commented out
       console.error(`[Tool Server] Responding to listTools with ${toolsList.length} tools.`);
       return { tools: toolsList };
   });
 
   // --- Handler for resources/list ---
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
+     // console.error('[Tool Server] Received listResources request...'); // Commented out
      console.error('[Tool Server] Received listResources request via SDK handler - returning empty list.');
      return { resources: [] }; // We don't offer separate MCP resources
   });
 
   // --- Handler for prompts/list ---
    server.setRequestHandler(ListPromptsRequestSchema, async () => {
+     // console.error('[Tool Server] Received listPrompts request...'); // Commented out
      console.error('[Tool Server] Received listPrompts request via SDK handler - returning empty list.');
      return { prompts: [] }; // We don't offer separate MCP prompts
   });
@@ -392,6 +413,4 @@ async function main() {
 main().catch((error) => {
   console.error("[Tool Server] Fatal error during server startup or operation:", error);
   process.exit(1);
-});
-
-// Remove all the previous manual stdin/stdout handling code 
+}); 
