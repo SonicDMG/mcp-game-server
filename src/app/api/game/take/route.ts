@@ -139,8 +139,15 @@ export async function POST(request: NextRequest) {
         if (artifactsOwned.length >= story.requiredArtifacts.length) {
              console.log(`>>> WIN CONDITION MET for ${playerDocId} in story ${storyId}! <<<`);
              playerWon = true;
-            // Optionally set player status to 'winner'
-            await playersCollection.updateOne({ _id: playerDocId }, { $set: { status: 'winner' } });
+            // Update status and progress upon winning
+            await playersCollection.updateOne(
+                { _id: playerDocId }, 
+                { $set: { 
+                    status: 'winner',
+                    'gameProgress.storyProgress': 100
+                  }
+                }
+            );
         }
     }
     // ---------------------------------------------

@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
       inventory: player.inventory,
       // Goal condition is now correctly handled by the take handler setting progress to 100
       reachedGoal: player.gameProgress.storyProgress >= 100, 
-      score: player.gameProgress.storyProgress 
+      score: player.gameProgress.storyProgress,
+      isWinner: player.status === 'winner' // Change 'status' to 'isWinner' and check the value
     }));
 
     return NextResponse.json(leaderboardData);
