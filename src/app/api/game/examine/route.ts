@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Check if target is a valid Exit from the current location
-    if (location.exits.includes(target)) {
+    if (location.exits.some(exit => exit.targetLocationId === target)) {
       console.log(`>>> Target ${target} identified as exit. Fetching destination details... <<<`);
       const destinationLocation = await locationsCollection.findOne({ id: target, storyId: storyId });
       if (destinationLocation) {

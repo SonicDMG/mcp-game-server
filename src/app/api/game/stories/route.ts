@@ -214,7 +214,9 @@ export async function POST(request: NextRequest) {
     // +++ End Debug Logging +++
 
     // --- Select Required Artifacts --- 
-    const takableItems = generatedWorld.items.filter((item: any) => item.canTake === true);
+    const takableItems = generatedWorld.items.filter(
+        (item: Omit<ItemRecord, 'storyId' | '_id'> & { canTake?: boolean }) => item.canTake === true
+    );
     if (takableItems.length < 5) {
         console.warn(`Warning: Story '${storyId}' generated only ${takableItems.length} takable items, fewer than the required 5.`);
         // Decide how to handle this - proceed with fewer, or throw error? 
@@ -250,6 +252,8 @@ export async function POST(request: NextRequest) {
         storyId: currentStoryIdForLocations
     }));
     console.log(`Attempting locationsCollection.insertMany() for ${locationsToInsert.length} locations...`);
+    // Log the exact data being sent to insertMany
+    // console.log('>>> DEBUG: Locations prepared for insertion:', JSON.stringify(locationsToInsert, null, 2)); 
     const locationInsertResult = await locationsCollection.insertMany(locationsToInsert);
     console.log(`Inserted ${locationInsertResult.insertedCount} locations.`);
     if (locationInsertResult.insertedCount !== locationsToInsert.length) {
