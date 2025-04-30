@@ -129,6 +129,11 @@ export async function POST(request: NextRequest) {
 
     // 4. Fetch the player's current location details (either existing or starting)
     const currentLocation = await locationsCollection.findOne({ id: player.currentLocation, storyId: storyId });
+    
+    // +++ Add Debug Logging Here +++
+    console.log('>>> DEBUG: Raw currentLocation fetched from DB:', JSON.stringify(currentLocation, null, 2));
+    // +++ End Debug Logging +++
+
     if (!currentLocation) {
       console.error(`>>> Critical Error: Location ${player.currentLocation} for story ${storyId} not found for player ${playerDocId}. <<<`);
       // This shouldn't happen if data is consistent, but handle it just in case.

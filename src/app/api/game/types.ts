@@ -24,7 +24,7 @@ export interface Location {
   name: string;
   description: string;
   items: string[];
-  exits: string[];
+  exits: { direction: string; targetLocationId: string; description?: string }[];
   requirements?: {
     item?: string;
     condition?: string;

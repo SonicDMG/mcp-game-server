@@ -82,11 +82,15 @@ export async function POST(request: NextRequest) {
     // console.log(`>>> Found destination location: ${destinationLocation.id} <<<`); // Remove this
 
     // 4. Validate Exit Check using DB data
-    if (!currentLocation.exits || !currentLocation.exits.includes(targetLocationId)) {
-      console.error(`Exit check failed: Cannot move from ${currentLocation.id} to ${targetLocationId}. Available exits: ${currentLocation.exits?.join(', ') || 'None'}`);
+    // Use .some() to check if any exit object has the matching targetLocationId
+    const isValidExit = currentLocation.exits?.some(exit => exit.targetLocationId === targetLocationId);
+
+    if (!isValidExit) { 
+      console.error(`Exit check failed: Cannot move from ${currentLocation.id} to ${targetLocationId}. Available exits: ${currentLocation.exits?.map(e => e.targetLocationId).join(', ') || 'None'}`);
       // Return 200 OK, but indicate failure in the body
       return NextResponse.json({ success: false, message: `You cannot move to "${targetLocationId}" from here.` }, { status: 200 });
     }
+    console.log('>>> Exit check passed <<<'); // Add success log
 
     // 5. Requirements Check using DB data
     if (destinationLocation.requirements) {

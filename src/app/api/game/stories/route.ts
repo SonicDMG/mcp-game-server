@@ -208,17 +208,34 @@ export async function POST(request: NextRequest) {
     const startingLocationId = generatedWorld.startingLocationId;
     console.log(`Parsed world data: ${generatedWorld.locations.length} locations, ${generatedWorld.items.length} items. Starting: ${startingLocationId}`);
 
+    // +++ Add Debug Logging for Starting Location Items +++
+    const startingLocData = generatedWorld.locations.find(loc => loc.id === startingLocationId);
+    console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
+    // +++ End Debug Logging +++
+
+    // --- Select Required Artifacts --- 
+    const takableItems = generatedWorld.items.filter((item: any) => item.canTake === true);
+    if (takableItems.length < 5) {
+        console.warn(`Warning: Story '${storyId}' generated only ${takableItems.length} takable items, fewer than the required 5.`);
+        // Decide how to handle this - proceed with fewer, or throw error? 
+        // For now, use all available takable items.
+    }
+    const requiredArtifacts = takableItems.slice(0, 5).map(item => item.id);
+    console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
+    // --- End Selection ---
+
     // --- 6. Create Story Record (Initial Insert) ---
-    // Insert story WITHOUT image URL first
-    const storyRecordInitial: Omit<StoryRecord, '_id' | 'image'> = {
+    // Insert story WITHOUT image URL first, but WITH requiredArtifacts
+    const storyRecordInitial: Omit<StoryRecord, '_id' | 'image'> & { requiredArtifacts?: string[] } = {
         id: storyId,
         title: title,
         description: description,
         startingLocation: startingLocationId, 
         version: version,
-        theme: theme
+        theme: theme,
+        requiredArtifacts: requiredArtifacts // Add the selected artifacts
     };
-    console.log('Attempting initial storiesCollection.insertOne() without image...');
+    console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
     console.log('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
 
