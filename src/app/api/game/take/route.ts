@@ -118,17 +118,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: `You already have the ${itemResponse.name}.` }, { status: 200 });
     }
 
-    // 6. Update Player State & Location State (atomicity is tricky here without transactions)
+    // 6. Update Player State ONLY (Location items remain)
     const updatedInventory = [...player.inventory, itemId];
-    const updatedLocationItems = location.items.filter((id) => id !== itemId);
 
     // Update player: Add item to inventory
-    // Update location: Remove item from items array
     const playerUpdatePromise = playersCollection.updateOne({ _id: playerDocId }, { $set: { inventory: updatedInventory } });
-    const locationUpdatePromise = locationsCollection.updateOne({ id: location.id, storyId: storyId }, { $set: { items: updatedLocationItems } });
 
-    await Promise.all([playerUpdatePromise, locationUpdatePromise]);
-    console.log(`>>> Player inventory and location items updated for ${itemId} <<<`);
+    // Remove location update
+    // const updatedLocationItems = location.items.filter((id) => id !== itemId);
+    // const locationUpdatePromise = locationsCollection.updateOne({ id: location.id, storyId: storyId }, { $set: { items: updatedLocationItems } });
+
+    // await Promise.all([playerUpdatePromise, locationUpdatePromise]);
+    await playerUpdatePromise; // Only wait for player update
+
+    console.log(`>>> Player inventory updated for ${itemId}. Location items remain unchanged. <<<`);
     
     // --- Post-take Checks (e.g., Win Condition) ---
     // Re-fetch player state to check win condition based on *new* inventory
