@@ -41,11 +41,6 @@ export async function GET(request: NextRequest) {
   const storyId = searchParams.get('id');
 
   if (!storyId) {
-    // Return default story if no ID is provided, or handle as an error
-    // For now, defaulting to mystic_library for compatibility with current frontend
-    console.warn('No story ID provided to /api/story-metadata, defaulting to mystic_library');
-    // You might want to return an error instead: 
-    // return NextResponse.json({ error: 'Story ID is required' }, { status: 400 });
     const defaultStoryId = 'mystic_library';
     return await fetchAndFormatMetadata(defaultStoryId);
   }

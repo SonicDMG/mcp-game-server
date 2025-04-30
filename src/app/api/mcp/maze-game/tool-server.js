@@ -60,7 +60,6 @@ function findOperationDetails(operationId) {
 // --- Load Manifest ---
 try {
   openapiManifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
-  // console.error(`[Tool Server] Successfully loaded OpenAPI manifest from ${MANIFEST_PATH}`); // Commented out
 } catch (error) {
   console.error(`[Tool Server] Failed to load OpenAPI manifest: ${error.message}`);
   process.exit(1);
@@ -68,7 +67,6 @@ try {
 
 // --- SDK Execute Function --- 
 async function executeGameApi(operationId, parameters) {
-   // console.error(`[Tool Server] executeGameApi called for: ${operationId}`); // Commented out
    const operationDetails = findOperationDetails(operationId);
    if (!operationDetails) {
       console.error(`[Tool Server] Operation ID not found: ${operationId}`); // Keep error
@@ -93,14 +91,8 @@ async function executeGameApi(operationId, parameters) {
     let targetUrl = GAME_API_BASE_URL + finalTargetPath; // Use the path with substitutions
     let fetchOptions = {
         method: targetMethod,
-        headers: { /*'Content-Type': 'application/json'*/ }, // Content-Type often not needed for DELETE/GET
+        headers: {}, // Content-Type often not needed for DELETE/GET
     };
-    // console.error(`[Tool Server] Found operation: ${targetMethod} ${targetPath} -> ${finalTargetPath}`); // Commented out
-    // console.error(`[Tool Server] Parameters received:`, parameters); // Commented out
-
-    // --- Add specific logging for targetMethod value and type ---
-    // console.error(`[Tool Server] DEBUG: Checking targetMethod. Value: "${targetMethod}", Type: ${typeof targetMethod}`); // Commented out
-    // --- End specific logging ---
 
     if (targetMethod === 'GET') {
       const queryParams = new URLSearchParams();
@@ -126,11 +118,6 @@ async function executeGameApi(operationId, parameters) {
     } else {
        console.error(`[Tool Server] Unsupported HTTP method: ${targetMethod}`);
        throw { code: -32601, message: `Method not found: HTTP method '${targetMethod}' not implemented` };
-    }
-
-    // console.error(`[Tool Server] Calling Game API: ${targetMethod} ${targetUrl}`); // Commented out
-    if (fetchOptions.body) {
-      // console.error(`[Tool Server] Request Body: ${fetchOptions.body}`); // Commented out
     }
 
     try {
@@ -160,19 +147,12 @@ async function executeGameApi(operationId, parameters) {
 
       if (!apiResponse.ok) {
           console.error(`[Tool Server] Game API Error Status: ${apiResponse.status} for ${operationId}`); // Keep error + context
-          if (responseBodyJson !== null) {
-              // console.error('[Tool Server] Game API Error Body (JSON):', responseBodyJson); // Commented out maybe?
-          } else {
-              // console.error('[Tool Server] Game API Error Body (text):', responseBodyText); // Commented out maybe?
-          }
           throw { code: -32000, message: `Game API Error: ${apiResponse.status}`, data: responseBodyJson ?? responseBodyText };
       }
       
       // Handle successful response
       if (responseBodyJson !== null) {
           // Successfully parsed JSON
-          // console.error(`[Tool Server] Game API Response Status: ${apiResponse.status}`); // Commented out
-          // console.error(`[Tool Server] Game API Response Body (JSON):`, responseBodyJson); // Commented out
           return responseBodyJson; // Return the parsed JSON result
       } else if (contentType && contentType.includes("application/json")) {
          // Content-Type was JSON but parsing failed
@@ -195,7 +175,6 @@ async function executeGameApi(operationId, parameters) {
 
 // --- Main Function to Setup and Run SDK Server ---
 async function main() {
-  // console.error('[Tool Server] Initializing...'); // Commented out
   console.error('[Tool Server] Initializing MCP Low-Level SDK Server...');
 
   const server = new Server(
@@ -216,7 +195,6 @@ async function main() {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     let responsePayload;
     try { 
-      // console.error('[Tool Server] Received execute request...'); // Commented out
       const operationId = request.params.name; 
       const parameters = request.params.arguments; 
       if (!operationId || !parameters) {
@@ -231,7 +209,6 @@ async function main() {
       if (typeof result === 'object' && result !== null) {
           try {
               resultText = JSON.stringify(result, null, 2); 
-              // console.log('[Tool Server] Formatting success object...'); // Commented out
           } catch (stringifyError) {
               console.error('[Tool Server] Error stringifying success result object:', stringifyError);
               resultText = '[Error: Could not serialize success result object]';
@@ -243,7 +220,6 @@ async function main() {
       responsePayload = { content: [{ type: 'text', text: resultText }] };
 
     } catch (error) {
-      // console.error('[Tool Server] Formatting caught error...'); // Commented out
       // --- Format ERROR result ---
       console.error('[Tool Server] Formatting caught error as text block:', error);
       let errorText = '[Tool Server] Unknown error occurred.';
@@ -272,7 +248,6 @@ async function main() {
 
   // --- Handler for tools/list ---
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-      // console.error('[Tool Server] Received listTools request...'); // Commented out
       console.error('[Tool Server] Received listTools request via SDK handler');
       const toolsList = [];
       if (openapiManifest && openapiManifest.paths) {
@@ -301,7 +276,6 @@ async function main() {
                                const schemaName = refPath[3];
                                resolvedBodySchema = openapiManifest.components?.schemas?.[schemaName];
                            } 
-                           // Add logging for unresolved refs if needed
                       } else {
                           resolvedBodySchema = requestBodySchema; // Inline body schema
                       }
@@ -383,21 +357,18 @@ async function main() {
               }
           }
       }
-      // console.error(`[Tool Server] Responding to listTools with ${toolsList.length} tools.`); // Commented out
       console.error(`[Tool Server] Responding to listTools with ${toolsList.length} tools.`);
       return { tools: toolsList };
   });
 
   // --- Handler for resources/list ---
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
-     // console.error('[Tool Server] Received listResources request...'); // Commented out
      console.error('[Tool Server] Received listResources request via SDK handler - returning empty list.');
      return { resources: [] }; // We don't offer separate MCP resources
   });
 
   // --- Handler for prompts/list ---
    server.setRequestHandler(ListPromptsRequestSchema, async () => {
-     // console.error('[Tool Server] Received listPrompts request...'); // Commented out
      console.error('[Tool Server] Received listPrompts request via SDK handler - returning empty list.');
      return { prompts: [] }; // We don't offer separate MCP prompts
   });

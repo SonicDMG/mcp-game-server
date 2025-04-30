@@ -3,7 +3,7 @@ import db from '@/lib/astradb'; // Import the initialized Db instance
 import { PlayerState, Location as GameLocation } from '../types'; // Import types
 
 // Define interfaces for DB records adding _id 
-interface PlayerRecord extends PlayerState { _id: string; userId: string; } // Added userId based on leaderboard fix
+interface PlayerRecord extends PlayerState { _id: string; userId: string; }
 interface LocationRecord extends GameLocation { _id: string; }
 
 // Get typed collection instances

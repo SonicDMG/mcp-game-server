@@ -41,7 +41,6 @@ interface CreateStoryInput {
   title?: string;
   description?: string;
   version?: string;
-  // startingLocation is no longer expected as input, it comes from Langflow
 }
 
 // Interface for the expected structure of the Langflow response
