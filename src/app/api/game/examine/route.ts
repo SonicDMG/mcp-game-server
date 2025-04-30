@@ -12,6 +12,12 @@ const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
 
+/**
+ * POST /api/game/examine
+ * Examines a specific item or feature in the player's current location.
+ * Required for MCP tool operation (MCP 'examineTarget' operation).
+ * May also be used by the frontend for direct API calls.
+ */
 // POST /api/game/examine
 export async function POST(request: NextRequest) {
   console.log('>>> ENTERING /api/game/examine handler <<<');

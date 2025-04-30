@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb';
 import { PlayerState, Location as GameLocation, Story } from '../types'; // Import necessary types
 
+/**
+ * POST /api/game/start
+ * Starts a new game session for a user in a specific story or retrieves the existing state if already started.
+ * Required for MCP tool operation (MCP 'startGame' operation).
+ * May also be used by the frontend for direct API calls.
+ */
+
 // --- Fun Username Generation ---
 const adjectives = [
   'Adventurous', 'Brave', 'Clever', 'Daring', 'Eager', 'Fearless', 'Gallant', 'Heroic',

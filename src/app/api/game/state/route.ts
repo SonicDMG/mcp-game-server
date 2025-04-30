@@ -10,6 +10,12 @@ interface LocationRecord extends GameLocation { _id: string; }
 const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
 
+/**
+ * POST /api/game/state
+ * Retrieves the current state of the game (player and location) for a specific user and story.
+ * Required for MCP tool operation (MCP 'getGameState' operation).
+ * May also be used by the frontend for direct API calls.
+ */
 export async function POST(request: NextRequest) {
   console.log('>>> ENTERING /api/game/state handler <<<');
   interface StateRequestBody {

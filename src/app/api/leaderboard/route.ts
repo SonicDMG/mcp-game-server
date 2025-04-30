@@ -11,6 +11,12 @@ interface PlayerRecord extends PlayerState {
 // Get typed collection instance
 const playersCollection = db.collection<PlayerRecord>('game_players');
 
+/**
+ * GET /api/leaderboard
+ * Retrieves the leaderboard data (player progress) for a specific story.
+ * Required for MCP tool operation (MCP 'getLeaderboard' operation).
+ * Also used by the frontend for leaderboard display.
+ */
 // GET /api/leaderboard?storyId=...
 export async function GET(request: NextRequest) {
   try {

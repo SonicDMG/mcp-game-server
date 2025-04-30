@@ -15,6 +15,12 @@ const playersCollection = db.collection<PlayerRecord>('game_players');
 // const locationsCollection = db.collection<LocationRecord>('game_locations'); // No longer needed here
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 
+/**
+ * POST /api/reset
+ * Resets a player's state for a given story (database-driven).
+ * Not required for MCP tool operation.
+ * May be used for development, admin, or testing purposes.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

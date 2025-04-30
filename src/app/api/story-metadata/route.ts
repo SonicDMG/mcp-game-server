@@ -36,6 +36,12 @@ interface StoryMetadataResponse {
   requiredArtifacts: string[];
 }
 
+/**
+ * GET /api/story-metadata
+ * Returns detailed metadata about a story, including room order, artifacts, and more.
+ * Not required for MCP tool operation.
+ * Used by the frontend for story/maze display, stats, or admin tools.
+ */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const storyId = searchParams.get('id');

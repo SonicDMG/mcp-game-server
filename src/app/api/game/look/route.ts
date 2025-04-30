@@ -12,6 +12,12 @@ const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
 
+/**
+ * POST /api/game/look
+ * Returns details about the player's current location (description, items, exits).
+ * Required for MCP tool operation (MCP 'lookAround' operation).
+ * May also be used by the frontend for direct API calls.
+ */
 // POST /api/game/look
 export async function POST(request: NextRequest) {
   console.log('>>> ENTERING /api/game/look handler <<< ');

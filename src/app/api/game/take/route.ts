@@ -17,6 +17,12 @@ const storiesCollection = db.collection<StoryRecord>('game_stories');
 // Comment out unused collection for now
 // const storiesCollection = db.collection('game_stories');
 
+/**
+ * POST /api/game/take
+ * Allows the player to pick up a specified item from their current location.
+ * Required for MCP tool operation (MCP 'takeItem' operation).
+ * May also be used by the frontend for direct API calls.
+ */
 // POST /api/game/take
 export async function POST(request: NextRequest) {
   console.log('>>> ENTERING /api/game/take handler <<<');

@@ -3,6 +3,14 @@ import db from '@/lib/astradb'; // Import the initialized Db instance
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 import { generateImageWithPolling } from '@/lib/everartUtils'; // Import the new utility function
 
+/**
+ * GET/POST /api/game/stories
+ * GET: Lists all stories or fetches a specific story by ID.
+ * POST: Creates a new story using a theme and AI world generation.
+ * Required for MCP tool operation (MCP 'listStories', 'getStoryById', 'createGame' operations).
+ * Also used by the frontend for story management and display.
+ */
+
 // Define interface for the story record based on observed structure
 interface StoryRecord {
   _id?: string; // Make _id optional for insertion consistency

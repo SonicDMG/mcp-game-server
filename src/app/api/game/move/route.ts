@@ -12,6 +12,12 @@ const locationsCollection = db.collection<LocationRecord>('game_locations');
 // Comment out unused collection for now
 // const storiesCollection = db.collection('game_stories'); 
 
+/**
+ * POST /api/game/move
+ * Moves the player to a new location if the exit and requirements are valid.
+ * Required for MCP tool operation (MCP 'movePlayer' operation).
+ * May also be used by the frontend for direct API calls.
+ */
 export async function POST(request: NextRequest) {
   console.log('>>> ENTERING /api/game/move handler <<<'); 
   interface MoveRequestBody {

@@ -14,6 +14,13 @@ const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
 const playersCollection = db.collection<PlayerRecord>('game_players');
 
+/**
+ * GET/DELETE /api/game/stories/[storyId]
+ * GET: Retrieves the details of a specific story by its logical ID.
+ * DELETE: Deletes a specific story and all associated data from the database.
+ * Required for MCP tool operation (MCP 'getStoryById', 'deleteStory' operations).
+ * Also used by the frontend for story management and display.
+ */
 // Use inline type for params
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(request: NextRequest, context: any) { // Use 'any' and disable eslint rule

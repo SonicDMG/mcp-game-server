@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerState, updatePlayerState, getLocation, getItem } from '../dataService';
 
+/**
+ * POST /api/game/action
+ * Handles generic game actions (move, examine, take, use, inventory, look) for a player.
+ * Not used by the MCP tool (MCP uses more specific endpoints).
+ * May be used by the frontend or for legacy/custom integrations.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
