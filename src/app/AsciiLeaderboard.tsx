@@ -16,6 +16,7 @@ export interface LeaderboardUser {
   reachedGoal: boolean;
   room: string;
   isWinner?: boolean;
+  killed?: boolean;
 }
 
 interface StoryMetadata {
@@ -68,11 +69,13 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
 
   // Find winners (users who have reached the goal)
   const winners = users.filter(u => u.reachedGoal);
-  if (winners.length > 0) {
-    asciiRows.push(
-      <WinnerBanner key="winners" winners={winners} onUserClick={handleUserClick} />
-    );
-  }
+  // Find killed users (assuming a killed property; if not, use an empty array for now)
+  const killed = users.filter(u => u.killed);
+  const winnerBanner = (
+    <div key="winner-banner" className="winner-banner-container">
+      <WinnerBanner winners={winners} killed={killed} onUserClick={handleUserClick} />
+    </div>
+  );
 
   // --- Collage and Stats Data ---
   const items = (story.items || []).map(item => ({
@@ -93,7 +96,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
 
   // --- Main Layout Update ---
   asciiRows.push(
-    <div key="main-layout" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', minHeight: '70vh', margin: '2rem 0 2rem 0' }}>
+    <div key="main-layout" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', minHeight: '70vh', margin: '3rem 0 2rem 0' }}>
       {/* Left: Story Image, StatsPanel, and ItemCollage */}
       <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: 340 }}>
         <Image
@@ -121,11 +124,11 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         </div>
       </div>
       {/* Right: Info and Map */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div style={{ color: color.heading, fontWeight: 700, fontSize: '1.5rem', textAlign: 'left', marginBottom: 0 }}>{story.title}</div>
-        <div style={{ color: '#b3b3d1', fontSize: '1.08rem', marginBottom: 8 }}>{story.description}</div>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', marginLeft: 64 }}>
+        <div style={{ color: color.heading, fontWeight: 900, fontSize: '2.1rem', textAlign: 'left', marginBottom: 10, letterSpacing: 1 }}>{story.title}</div>
+        <div style={{ color: '#b3b3d1', fontSize: '1.15rem', marginBottom: 14 }}>{story.description}</div>
         {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
-          <div style={{ color: '#a7a7ff', fontSize: '1.02rem', marginBottom: 16 }}>
+          <div style={{ color: '#a7a7ff', fontSize: '1.08rem', marginBottom: 22 }}>
             <b>Goal:</b> Collect all artifacts and reach the final room.
           </div>
         )}
@@ -143,10 +146,9 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   );
 
   return (
-    <>
-      <div style={{ fontFamily: 'monospace', background: 'none', color: '#fff', width: '100%', maxWidth: 900, margin: '0 auto', padding: 12 }}>
-        {asciiRows}
-      </div>
+    <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
+      {winnerBanner}
+      {asciiRows}
       {selectedUser && (
         <UserDetailCard
           user={selectedUser}
@@ -179,6 +181,6 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
           onClose={() => setUserListModal(null)}
         />
       )}
-    </>
+    </div>
   );
 } 
