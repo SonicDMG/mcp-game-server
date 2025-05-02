@@ -7,6 +7,7 @@ import { WinnerSection, KilledSection } from '../../components/WinnerBanner';
 import UserDetailCard from '../../UserDetailCard';
 import { LeaderboardUser } from '../../AsciiLeaderboard';
 import { Location as GameLocation } from '@/app/api/game/types';
+import AppFooter from '../../components/AppFooter';
 
 interface StoryMetadata {
   title: string;
@@ -81,9 +82,7 @@ export default function StoryLeaderboardPage() {
           />
         )}
       </main>
-      <footer className="app-footer">
-        <span>© {new Date().getFullYear()} Maze Adventure</span>
-      </footer>
+      <AppFooter />
     </div>
   );
 } 

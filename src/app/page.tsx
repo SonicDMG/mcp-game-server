@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import db from '@/lib/astradb'; // Import DB instance
 import { Story, PlayerState, getProxiedImageUrl } from '@/app/api/game/types'; // Import types
+import AppFooter from './components/AppFooter';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -164,9 +165,7 @@ export default async function LandingPage() {
           ))}
         </div>
       </main>
-      <footer className="app-footer">
-        <span>© {new Date().getFullYear()} Maze Adventure</span>
-      </footer>
+      <AppFooter />
     </div>
   );
 }
