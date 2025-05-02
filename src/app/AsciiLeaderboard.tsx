@@ -140,8 +140,8 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         <div style={{ color: color.winner, fontWeight: 700, fontSize: '1.2rem', marginBottom: 8 }}>
           <WinnerSparkles /> WINNER{winners.length > 1 ? 'S' : ''} <WinnerSparkles />
         </div>
-        {winners.map((winner) => (
-          <div key={winner.id} style={{ 
+        {winners.map((winner, _i) => (
+          <div key={winner.id + '-' + _i} style={{ 
             display: 'inline-flex', 
             alignItems: 'center',
             margin: '4px 12px',
@@ -238,67 +238,75 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         {svgLines}
       </svg>
       <div style={{ display: 'grid', gridTemplateRows: `repeat(${gridRows}, ${CELL_SIZE}px)`, gridTemplateColumns: `repeat(${gridCols}, ${CELL_SIZE}px)`, gap: '16px', justifyItems: 'center', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-        {grid.flat().map((loc, idx) => loc ? (
-          <div key={loc.id} style={{ border: '2px solid #333', borderRadius: 8, padding: 8, background: '#181c2a', minWidth: 120, minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <img 
-              src={getProxiedImageUrl(loc.image || ROOM_IMAGE_PLACEHOLDER)} 
-              alt={loc.name} 
-              style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in' }} 
-              onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER)}
-            />
-            <div style={{ color: '#a7a7ff', fontWeight: 600, marginBottom: 4 }}>{loc.name}</div>
-            {/* Render users in this room, if any */}
-            <div style={{ fontSize: 12, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              {(() => {
-                const roomUsers = users.filter(u => u.room === loc.id);
-                if (roomUsers.length === 0) return <span style={{ color: '#888' }}>(no users)</span>;
-                const maxToShow = 3;
-                const shown = roomUsers.slice(0, maxToShow);
-                const overflow = roomUsers.length - maxToShow;
-                return <>
-                  {shown.map((user, i) => (
-                    <span key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-                      <img
-                        src={getProxiedImageUrl(avatarUrl(user.id))}
-                        alt="avatar"
-                        width={20}
-                        height={20}
-                        style={{ borderRadius: 4, marginRight: 4, background: '#222', cursor: 'pointer' }}
-                        onClick={() => setSelectedUser(user)}
-                      />
+        {grid.flat().map((loc, idx) => {
+          const rowIdx = Math.floor(idx / gridCols);
+          const colIdx = idx % gridCols;
+          return loc ? (
+            <div key={loc.id} style={{ border: '2px solid #333', borderRadius: 8, padding: 8, background: '#181c2a', minWidth: 120, minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Image
+                src={getProxiedImageUrl(loc.image || ROOM_IMAGE_PLACEHOLDER)}
+                alt={loc.name}
+                width={64}
+                height={64}
+                style={{ objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in' }}
+                onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER)}
+                unoptimized
+              />
+              <div style={{ color: '#a7a7ff', fontWeight: 600, marginBottom: 4 }}>{loc.name}</div>
+              {/* Render users in this room, if any */}
+              <div style={{ fontSize: 12, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                {(() => {
+                  const roomUsers = users.filter(u => u.room === loc.id);
+                  if (roomUsers.length === 0) return <span style={{ color: '#888' }}>(no users)</span>;
+                  const maxToShow = 3;
+                  const shown = roomUsers.slice(0, maxToShow);
+                  const overflow = roomUsers.length - maxToShow;
+                  return <>
+                    {shown.map((user, _i) => (
+                      <span key={user.id + '-' + _i} style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+                        <Image
+                          src={getProxiedImageUrl(avatarUrl(user.id))}
+                          alt="avatar"
+                          width={20}
+                          height={20}
+                          style={{ borderRadius: 4, marginRight: 4, background: '#222', cursor: 'pointer' }}
+                          onClick={() => setSelectedUser(user)}
+                          unoptimized
+                        />
+                        <span
+                          style={{
+                            color: color.user,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            textDecorationStyle: 'dotted',
+                            textDecorationColor: 'rgba(59, 130, 246, 0.4)',
+                            marginRight: 4,
+                          }}
+                          onClick={() => setSelectedUser(user)}
+                        >
+                          {user.id}
+                        </span>
+                        <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400 }}>
+                          ({user.inventory.length} Artifact{user.inventory.length === 1 ? '' : 's'})
+                        </span>
+                      </span>
+                    ))}
+                    {overflow > 0 && (
                       <span
-                        style={{
-                          color: color.user,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textDecoration: 'underline',
-                          textDecorationStyle: 'dotted',
-                          textDecorationColor: 'rgba(59, 130, 246, 0.4)',
-                          marginRight: 4,
-                        }}
-                        onClick={() => setSelectedUser(user)}
+                        key={`overflow-${loc.id}`}
+                        style={{ color: '#a7a7ff', cursor: 'pointer', fontWeight: 600, marginTop: 2 }}
+                        onClick={() => setUserListModal({ room: loc.name, users: roomUsers })}
                       >
-                        {user.id}
+                        +{overflow} more
                       </span>
-                      <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400 }}>
-                        ({user.inventory.length} Artifact{user.inventory.length === 1 ? '' : 's'})
-                      </span>
-                    </span>
-                  ))}
-                  {overflow > 0 && (
-                    <span
-                      key={`overflow-${loc.id}`}
-                      style={{ color: '#a7a7ff', cursor: 'pointer', fontWeight: 600, marginTop: 2 }}
-                      onClick={() => setUserListModal({ room: loc.name, users: roomUsers })}
-                    >
-                      +{overflow} more
-                    </span>
-                  )}
-                </>;
-              })()}
+                    )}
+                  </>;
+                })()}
+              </div>
             </div>
-          </div>
-        ) : <div key={`empty-${idx}`} />)}
+          ) : <div key={`empty-${rowIdx}-${colIdx}`} />;
+        })}
       </div>
     </div>
   );
@@ -391,15 +399,16 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             onClick={e => e.stopPropagation()}
           >
             <h3 style={{ color: color.heading, marginBottom: 12, textAlign: 'center' }}>Users in {userListModal.room}</h3>
-            {userListModal.users.map((user, i) => (
-              <div key={user.id + '-' + i} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <img
+            {userListModal.users.map((user, _i) => (
+              <div key={user.id + '-' + _i} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <Image
                   src={getProxiedImageUrl(avatarUrl(user.id))}
                   alt="avatar"
                   width={24}
                   height={24}
                   style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer' }}
                   onClick={() => setSelectedUser(user)}
+                  unoptimized
                 />
                 <span
                   style={{
