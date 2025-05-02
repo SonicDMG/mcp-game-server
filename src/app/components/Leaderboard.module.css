@@ -1,0 +1,293 @@
+/* Leaderboard.module.css - Layout and visual styles for AsciiLeaderboard */
+
+.headerRow {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 32px;
+  width: 100%;
+  margin-left: 0;
+}
+
+.statsPanel {
+  width: 320px;
+  max-width: 320px;
+  flex-shrink: 0;
+}
+
+.bannerContainer {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.mainLayout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2.5rem;
+  width: 100%;
+  min-height: 70vh;
+  margin: 1rem 0 2rem 0;
+  margin-left: 0;
+}
+
+.leftColumn {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 340px;
+}
+
+.storyImage {
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px #000a;
+  cursor: zoom-in;
+  margin-bottom: 12px;
+  background: #222;
+  width: 320px;
+  max-width: 320px;
+}
+
+.itemCollage {
+  width: 320px;
+  max-width: 320px;
+}
+
+.rightContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* margin-left: 64px; */
+}
+
+/* Leaderboard Timeline Modern Styles */
+.leaderboard-bg-gradient {
+  background: linear-gradient(135deg, #181a23 0%, #23244a 100%);
+}
+.leaderboard-timeline-container {
+  position: relative;
+  width: 100vw;
+  max-width: 1200px;
+  margin: 48px auto 0 auto;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+.leaderboard-timeline-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  height: 0;
+  width: 100%;
+  z-index: 1;
+}
+.leaderboard-timeline-progress-bar {
+  position: absolute;
+  left: 4vw;
+  right: 4vw;
+  bottom: 32px;
+  height: 16px;
+  background: linear-gradient(90deg, #3b82f6 0%, #a78bfa 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 16px 0 #3b82f655;
+  border: 1.5px solid #3b82f6;
+  z-index: 0;
+}
+.leaderboard-user-card {
+  width: 100%;
+  max-width: 1100px;
+  background: #23244aee;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px 0 #3b82f633, 0 1.5px 8px 0 #0004;
+  border: 2.5px solid #3b82f6;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  z-index: 2;
+  transition: box-shadow 0.2s, border 0.2s;
+  color: #f5f6fa;
+  margin-bottom: 4px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+.leaderboard-user-card:hover {
+  box-shadow: 0 8px 32px 0 #a78bfa55, 0 2px 12px 0 #0006;
+  border-color: #a78bfa;
+}
+.leaderboard-user-name {
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f5f6fa;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.leaderboard-user-artifacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+.leaderboard-artifact-pill {
+  background: #3b82f622;
+  color: #a78bfa;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border: 1.5px solid #a78bfa;
+  margin: 1px 0;
+  box-shadow: 0 1px 4px #3b82f622;
+  transition: background 0.2s, color 0.2s;
+}
+.leaderboard-artifact-pill:hover {
+  background: #a78bfa33;
+  color: #fff;
+}
+@media (max-width: 700px) {
+  .leaderboard-timeline-container {
+    height: 240px;
+  }
+  .leaderboard-user-card {
+    padding: 10px 4px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Leaderboard User Row Modern Styles */
+.leaderboard-user-list {
+  width: 100vw;
+  max-width: 1100px;
+  margin: 48px auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  align-items: center;
+  padding-left: 2vw;
+  padding-right: 2vw;
+}
+.leaderboard-user-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-height: 110px;
+  margin-bottom: 0;
+  gap: 32px;
+  position: static;
+}
+.leaderboard-user-card {
+  position: static;
+  width: 180px;
+  height: 110px;
+  background: #23244aee;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 #3b82f633, 0 1.5px 8px 0 #0004;
+  border: 2.5px solid #3b82f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: box-shadow 0.2s, border 0.2s;
+  color: #f5f6fa;
+  padding: 18px 12px 12px 12px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.leaderboard-user-card:hover {
+  box-shadow: 0 8px 32px 0 #a78bfa55, 0 2px 12px 0 #0006;
+  border-color: #a78bfa;
+}
+.leaderboard-user-name {
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f5f6fa;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.leaderboard-user-artifacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.leaderboard-artifact-pill {
+  background: #3b82f622;
+  color: #a78bfa;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 0.98rem;
+  font-weight: 500;
+  border: 1.5px solid #a78bfa;
+  margin: 1px 0;
+  box-shadow: 0 1px 4px #3b82f622;
+  transition: background 0.2s, color 0.2s;
+}
+.leaderboard-artifact-pill:hover {
+  background: #a78bfa33;
+  color: #fff;
+}
+.leaderboard-user-progress-bar {
+  flex: 1 1 0;
+  height: 18px;
+  background: #232428;
+  border-radius: 9px;
+  box-shadow: 0 2px 16px 0 #3b82f655;
+  border: 1.5px solid #3b82f6;
+  overflow: hidden;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+  position: static;
+  display: flex;
+  align-items: center;
+}
+.leaderboard-user-progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #a78bfa 100%);
+  border-radius: 9px 0 0 9px;
+  box-shadow: none;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+@media (max-width: 700px) {
+  .leaderboard-user-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-height: 140px;
+  }
+  .leaderboard-user-card {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 0 auto;
+    font-size: 0.95rem;
+    padding: 10px 4px;
+  }
+  .leaderboard-user-progress-bar {
+    height: 12px;
+    border-radius: 6px;
+  }
+  .leaderboard-user-progress-bar-inner {
+    border-radius: 6px 0 0 6px;
+  }
+} 

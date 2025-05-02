@@ -1,0 +1,122 @@
+/* WinnerBanner.module.css - Styles for WinnerBanner component */
+
+.root {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 0;
+  height: 100%;
+  padding: 0;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 10px;
+  border: 1.5px solid rgba(251, 191, 36, 0.18);
+  box-shadow: 0 2px 16px #fbbf2433;
+  max-width: 900px;
+  /* margin-left: auto; */
+  margin-right: auto;
+  overflow: hidden;
+}
+
+.section {
+  flex: 1;
+  padding: 18px 12px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.winnerSection {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.killedSection {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.divider {
+  width: 1px;
+  background: linear-gradient(to bottom, #fbbf24 0%, #ef4444 100%);
+  margin: 0 0;
+  opacity: 0.5;
+  min-height: 64px;
+  align-self: center;
+}
+
+.winnerLabel {
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.killedLabel {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.userList {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.userCard {
+  display: inline-flex;
+  align-items: center;
+  margin: 4px 8px;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.winnerUserCard {
+  background: rgba(251, 191, 36, 0.15);
+  border: 2px solid #fbbf24;
+}
+
+.killedUserCard {
+  background: rgba(239, 68, 68, 0.13);
+  border: 2px solid #ef4444;
+}
+
+.userName {
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.winnerName {
+  color: #fbbf24;
+  text-decoration-color: rgba(251, 191, 36, 0.4);
+}
+
+.killedName {
+  color: #ef4444;
+  text-decoration-color: rgba(239, 68, 68, 0.4);
+}
+
+.avatar {
+  border-radius: 4px;
+  margin-right: 8px;
+  background: #222;
+}
+
+.killedAvatar {
+  border: 2px solid #ef4444;
+}
+
+.placeholder {
+  color: #b3b3b3;
+  font-style: italic;
+  opacity: 0.7;
+} 

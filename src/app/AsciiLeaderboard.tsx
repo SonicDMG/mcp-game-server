@@ -9,6 +9,7 @@ import WinnerBanner from './components/WinnerBanner';
 import RoomGrid from './components/RoomGrid';
 import UserListModal from './components/UserListModal';
 import ZoomedItemModal from './components/ZoomedItemModal';
+import styles from './components/Leaderboard.module.css';
 
 export interface LeaderboardUser {
   id: string;
@@ -72,7 +73,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   // Find killed users (assuming a killed property; if not, use an empty array for now)
   const killed = users.filter(u => u.killed);
   const winnerBanner = (
-    <div key="winner-banner" className="winner-banner-container">
+    <div key="winner-banner" className={styles.bannerContainer}>
       <WinnerBanner winners={winners} killed={killed} onUserClick={handleUserClick} />
     </div>
   );
@@ -96,35 +97,24 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
 
   // --- Main Layout Update ---
   asciiRows.push(
-    <div key="main-layout" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', minHeight: '70vh', margin: '3rem 0 2rem 0' }}>
-      {/* Left: Story Image, StatsPanel, and ItemCollage */}
-      <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: 340 }}>
+    <div key="main-layout" className={styles.mainLayout}>
+      {/* Left: Story Image and ItemCollage */}
+      <div className={styles.leftColumn}>
         <Image
           src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
           alt={story.title}
           width={320}
           height={220}
-          style={{ objectFit: 'cover', borderRadius: 16, boxShadow: '0 4px 32px #000a', cursor: 'zoom-in', marginBottom: 12, background: '#222', width: 320, maxWidth: 320 }}
+          className={styles.storyImage}
           onClick={() => setZoomedImage(story.image || ROOM_IMAGE_PLACEHOLDER)}
           unoptimized
         />
-        <div style={{ width: 320, maxWidth: 320, marginBottom: 8 }}>
-          <StatsPanel
-            totalPlayers={totalPlayers}
-            collectedArtifacts={collectedArtifacts}
-            totalArtifacts={totalArtifacts}
-            exploredRooms={exploredRooms}
-            totalRooms={totalRooms}
-            winnersCount={winnersCount}
-            killedCount={0}
-          />
-        </div>
-        <div style={{ width: 320, maxWidth: 320 }}>
+        <div className={styles.itemCollage}>
           <ItemCollage items={items} collectedItemIds={collectedItemIds} setZoomedItem={setZoomedItem} />
         </div>
       </div>
       {/* Right: Info and Map */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', marginLeft: 64 }}>
+      <div className={styles.rightContent}>
         <div style={{ color: color.heading, fontWeight: 900, fontSize: '2.1rem', textAlign: 'left', marginBottom: 10, letterSpacing: 1 }}>{story.title}</div>
         <div style={{ color: '#b3b3d1', fontSize: '1.15rem', marginBottom: 14 }}>{story.description}</div>
         {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
@@ -147,7 +137,23 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
 
   return (
     <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
-      {winnerBanner}
+      {/* Header Row: StatsPanel (left) + WinnerBanner (right) */}
+      <div className={styles.headerRow}>
+        <div className={styles.statsPanel}>
+          <StatsPanel
+            totalPlayers={totalPlayers}
+            collectedArtifacts={collectedArtifacts}
+            totalArtifacts={totalArtifacts}
+            exploredRooms={exploredRooms}
+            totalRooms={totalRooms}
+            winnersCount={winnersCount}
+            killedCount={0}
+          />
+        </div>
+        <div className={styles.bannerContainer}>
+          {winnerBanner}
+        </div>
+      </div>
       {asciiRows}
       {selectedUser && (
         <UserDetailCard
