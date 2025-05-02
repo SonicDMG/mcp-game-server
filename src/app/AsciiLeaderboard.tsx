@@ -74,85 +74,6 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
     );
   }
 
-  // --- Hybrid Map Wrapping Logic ---
-  const MAX_MAP_COLS = 3;
-  // Step 1: Infer logical coordinates as before
-  // const logicalCoords = inferRoomCoordinates(story.rooms);
-  // Step 2: Remap coordinates to fit within MAX_MAP_COLS columns
-  // Build a list of rooms in BFS order from the root
-  const rootId = story.rooms[0]?.id;
-  const visited = new Set();
-  const bfsOrder: string[] = [];
-  if (rootId) {
-    const queue = [rootId];
-    while (queue.length) {
-      const id = queue.shift();
-      if (!id || visited.has(id)) continue;
-      visited.add(id);
-      bfsOrder.push(id);
-      const loc = story.rooms.find(r => r.id === id);
-      if (loc && loc.exits) {
-        for (const exit of loc.exits) {
-          if (!visited.has(exit.targetLocationId)) {
-            queue.push(exit.targetLocationId);
-          }
-        }
-      }
-    }
-  }
-  // Now, assign new (x, y) so that no x > 2
-  let curX = 0, curY = 0;
-  const wrappedCoords: Record<string, { x: number; y: number }> = {};
-  for (const id of bfsOrder) {
-    wrappedCoords[id] = { x: curX, y: curY };
-    curX++;
-    if (curX >= MAX_MAP_COLS) {
-      curX = 0;
-      curY++;
-    }
-  }
-  // Build grid for rendering
-  const totalRooms = bfsOrder.length;
-  const mapRows = Math.ceil(totalRooms / MAX_MAP_COLS);
-  const grid = Array.from({ length: mapRows }, () => Array(MAX_MAP_COLS).fill(null));
-  bfsOrder.forEach((id) => {
-    const { x, y } = wrappedCoords[id];
-    const loc = story.rooms.find(r => r.id === id);
-    if (loc) grid[y][x] = loc;
-  });
-  // Map roomId to grid cell pixel center
-  const CELL_SIZE = 180;
-  const roomCenters: Record<string, { cx: number; cy: number }> = {};
-  Object.entries(wrappedCoords).forEach(([id, { x, y }]) => {
-    roomCenters[id] = {
-      cx: x * CELL_SIZE + CELL_SIZE / 2,
-      cy: y * CELL_SIZE + CELL_SIZE / 2,
-    };
-  });
-  // Build SVG lines for each exit
-  const svgLines: React.ReactNode[] = [];
-  story.rooms.forEach(room => {
-    if (!wrappedCoords[room.id] || !room.exits) return;
-    room.exits.forEach(exit => {
-      const target = exit.targetLocationId;
-      if (roomCenters[room.id] && roomCenters[target]) {
-        svgLines.push(
-          <line
-            key={`${room.id}->${target}`}
-            x1={roomCenters[room.id].cx}
-            y1={roomCenters[room.id].cy}
-            x2={roomCenters[target].cx}
-            y2={roomCenters[target].cy}
-            stroke="#4f46e5"
-            strokeWidth={4}
-            strokeLinecap="round"
-            opacity={0.5}
-          />
-        );
-      }
-    });
-  });
-
   // --- Collage and Stats Data ---
   const items = (story.items || []).map(item => ({
     ...item,
@@ -168,12 +89,13 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   const collectedArtifacts = Array.from(collectedItemIds).length;
   const exploredRooms = new Set(users.flatMap(u => u.room)).size;
   const winnersCount = users.filter(u => u.reachedGoal).length;
+  const totalRooms = story.rooms.length;
 
   // --- Main Layout Update ---
   asciiRows.push(
-    <div key="main-layout" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', maxWidth: 1400, margin: '2rem auto', minHeight: '70vh' }}>
+    <div key="main-layout" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', minHeight: '70vh', margin: '2rem 0 2rem 0' }}>
       {/* Left: Story Image, StatsPanel, and ItemCollage */}
-      <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
+      <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: 340 }}>
         <Image
           src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
           alt={story.title}
@@ -207,7 +129,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             <b>Goal:</b> Collect all artifacts and reach the final room.
           </div>
         )}
-        <div style={{ flex: 1, height: '100%' }}>
+        <div style={{ flex: 1, height: '100%', width: '100%' }}>
           <RoomGrid
             rooms={story.rooms}
             users={users}
