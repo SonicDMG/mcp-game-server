@@ -98,7 +98,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   // --- Main Layout Update ---
   asciiRows.push(
     <div key="main-layout" className={styles.mainLayout}>
-      {/* Left: Story Image and ItemCollage */}
+      {/* Left: Story Image, StatsPanel, and ItemCollage */}
       <div className={styles.leftColumn}>
         <Image
           src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
@@ -109,6 +109,17 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
           onClick={() => setZoomedImage(story.image || ROOM_IMAGE_PLACEHOLDER)}
           unoptimized
         />
+        <div className={styles.statsPanel}>
+          <StatsPanel
+            totalPlayers={totalPlayers}
+            collectedArtifacts={collectedArtifacts}
+            totalArtifacts={totalArtifacts}
+            exploredRooms={exploredRooms}
+            totalRooms={totalRooms}
+            winnersCount={winnersCount}
+            killedCount={0}
+          />
+        </div>
         <div className={styles.itemCollage}>
           <ItemCollage items={items} collectedItemIds={collectedItemIds} setZoomedItem={setZoomedItem} />
         </div>
@@ -136,57 +147,48 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   );
 
   return (
-    <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
-      {/* Header Row: StatsPanel (left) + WinnerBanner (right) */}
-      <div className={styles.headerRow}>
-        <div className={styles.statsPanel}>
-          <StatsPanel
-            totalPlayers={totalPlayers}
-            collectedArtifacts={collectedArtifacts}
-            totalArtifacts={totalArtifacts}
-            exploredRooms={exploredRooms}
-            totalRooms={totalRooms}
-            winnersCount={winnersCount}
-            killedCount={0}
+    <div className={styles.leaderboardContainer}>
+      <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
+        {/* Header Row: WinnerBanner only */}
+        <div className={styles.headerRow}>
+          <div className={styles.bannerContainer}>
+            {winnerBanner}
+          </div>
+        </div>
+        {asciiRows}
+        {selectedUser && (
+          <UserDetailCard
+            user={selectedUser}
+            story={story}
+            items={items}
+            onClose={handleCloseCard}
           />
-        </div>
-        <div className={styles.bannerContainer}>
-          {winnerBanner}
-        </div>
+        )}
+        {zoomedImage && (
+          <ZoomedItemModal
+            image={zoomedImage}
+            name={story.title}
+            description={story.description}
+            onClose={() => setZoomedImage(null)}
+          />
+        )}
+        {zoomedItem && (
+          <ZoomedItemModal
+            image={zoomedItem.image}
+            name={zoomedItem.name}
+            description={zoomedItem.description}
+            onClose={() => setZoomedItem(null)}
+          />
+        )}
+        {userListModal && (
+          <UserListModal
+            room={userListModal.room}
+            users={userListModal.users}
+            setSelectedUser={setSelectedUser}
+            onClose={() => setUserListModal(null)}
+          />
+        )}
       </div>
-      {asciiRows}
-      {selectedUser && (
-        <UserDetailCard
-          user={selectedUser}
-          story={story}
-          items={items}
-          onClose={handleCloseCard}
-        />
-      )}
-      {zoomedImage && (
-        <ZoomedItemModal
-          image={zoomedImage}
-          name={story.title}
-          description={story.description}
-          onClose={() => setZoomedImage(null)}
-        />
-      )}
-      {zoomedItem && (
-        <ZoomedItemModal
-          image={zoomedItem.image}
-          name={zoomedItem.name}
-          description={zoomedItem.description}
-          onClose={() => setZoomedItem(null)}
-        />
-      )}
-      {userListModal && (
-        <UserListModal
-          room={userListModal.room}
-          users={userListModal.users}
-          setSelectedUser={setSelectedUser}
-          onClose={() => setUserListModal(null)}
-        />
-      )}
     </div>
   );
 } 

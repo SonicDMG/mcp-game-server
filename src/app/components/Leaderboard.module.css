@@ -4,15 +4,18 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: 32px;
+  gap: 1.0rem;
   width: 100%;
   margin-left: 0;
+  padding-left: 12px;
+  height: 110px;
 }
 
 .statsPanel {
   width: 320px;
   max-width: 320px;
   flex-shrink: 0;
+  margin-bottom: 12px;
 }
 
 .bannerContainer {
@@ -30,7 +33,7 @@
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 2.5rem;
+  gap: 1.0rem;
   width: 100%;
   min-height: 70vh;
   margin: 1rem 0 2rem 0;
@@ -290,4 +293,12 @@
   .leaderboard-user-progress-bar-inner {
     border-radius: 6px 0 0 6px;
   }
+}
+
+.leaderboardContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
 } 
