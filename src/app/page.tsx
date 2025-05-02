@@ -93,7 +93,7 @@ export default async function LandingPage() {
       <header className="app-header">
         <Image src="/images/logo.png" alt="App Logo" width={56} height={56} className="app-logo" />
       </header>
-      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', minWidth: 0, padding: '16px 0 32px 0' }}>
+      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
         <div className="hud-header">
           <span className="hud-reserved">[Choose a Story]</span>
         </div>

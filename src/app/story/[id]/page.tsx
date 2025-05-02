@@ -56,17 +56,17 @@ export default function StoryLeaderboardPage() {
           <span>/</span>
           <span style={{ color: '#a78bfa' }}>Story</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, width: '100%', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 1, minWidth: 0 }}>
             {leaderboardData && <WinnerSection winners={leaderboardData.winners} onUserClick={handleUserClick} />}
           </div>
           <Image src="/images/logo.png" alt="MCP Logo" width={160} height={160} className="app-logo" style={{ objectFit: 'contain', display: 'block', margin: '0 auto' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingRight: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 1, minWidth: 0 }}>
             {leaderboardData && <KilledSection killed={leaderboardData.killed} onUserClick={handleUserClick} />}
           </div>
         </div>
       </header>
-      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', minWidth: 0, padding: '16px 0 32px 0' }}>
+      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
         <LeaderboardHUD setLeaderboardData={setLeaderboardData} />
         {selectedUser && leaderboardData && (
           <UserDetailCard

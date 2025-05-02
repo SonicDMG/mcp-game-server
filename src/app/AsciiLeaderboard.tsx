@@ -36,15 +36,6 @@ interface AsciiLeaderboardProps {
   users: LeaderboardUser[];
 }
 
-const color = {
-  heading: '#3b82f6',
-  room: '#a78bfa',
-  user: '#06b6d4',
-  artifact: '#fff',
-  winner: '#fbbf24',
-  sparkle: '#fef08a',
-};
-
 const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png"; // Place this image in your public/images/ directory or use a remote URL
 
 export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps) {
@@ -105,13 +96,15 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
       </div>
       {/* Right: Info and Map */}
       <div className={styles.rightContent}>
-        <div style={{ color: color.heading, fontWeight: 900, fontSize: '2.1rem', textAlign: 'left', marginBottom: 10, letterSpacing: 1 }}>{story.title}</div>
-        <div style={{ color: '#b3b3d1', fontSize: '1.15rem', marginBottom: 14 }}>{story.description}</div>
-        {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
-          <div style={{ color: '#a7a7ff', fontSize: '1.08rem', marginBottom: 22 }}>
-            <b>Goal:</b> Collect all artifacts and reach the final room.
-          </div>
-        )}
+        <div className={styles.titleDescriptionContainer}>
+          <div className={styles.storyTitle}>{story.title}</div>
+          <div className={styles.storyDescription}>{story.description}</div>
+          {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
+            <div style={{ color: '#a7a7ff', fontSize: '1.08rem', marginBottom: 22 }}>
+              <b>Goal:</b> Collect all artifacts and reach the final room.
+            </div>
+          )}
+        </div>
         <div style={{ flex: 1, height: '100%', width: '100%' }}>
           <RoomGrid
             rooms={story.rooms}
