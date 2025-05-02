@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import DB instance
-import { PlayerState, Location as GameLocation, GameItem } from '../types'; // Correct path: ../types
+import { PlayerState, Location as GameLocation, GameItem, getAbsoluteProxiedImageUrl } from '../types'; // Correct path: ../types
 
 // Define interfaces for DB records
 interface PlayerRecord extends PlayerState { _id: string; }
@@ -82,10 +82,10 @@ export async function POST(request: NextRequest) {
     // 4. Prepare Response
     console.log(`Preparing response for location db id: ${location._id}`); 
     const { _id, ...locationResponseData } = location; 
-    // Ensure image field is present
-    if (!locationResponseData.image) locationResponseData.image = ROOM_IMAGE_PLACEHOLDER;
-    // Ensure all items have image field
-    visibleItems = visibleItems.map(item => ({ ...item, image: item.image || ITEM_IMAGE_PLACEHOLDER }));
+    // Ensure image field is present and proxied
+    locationResponseData.image = getAbsoluteProxiedImageUrl(request, locationResponseData.image || ROOM_IMAGE_PLACEHOLDER);
+    // Ensure all items have image field and are proxied
+    visibleItems = visibleItems.map(item => ({ ...item, image: getAbsoluteProxiedImageUrl(request, item.image || ITEM_IMAGE_PLACEHOLDER) }));
 
     console.log(`>>> Look successful for userId: ${userId} in location: ${location.id} <<<`);
     return NextResponse.json({

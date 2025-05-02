@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import DB instance
-import { PlayerState, Location as GameLocation, GameItem } from '../types'; // Import types
+import { PlayerState, Location as GameLocation, GameItem, getAbsoluteProxiedImageUrl } from '../types'; // Import types
 
 // Define interfaces for DB records
 interface PlayerRecord extends PlayerState { _id: string; }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       if (item) {
         const { _id, ...itemData } = item;
         // Ensure image field is present
-        if (!itemData.image) itemData.image = ITEM_IMAGE_PLACEHOLDER;
+        itemData.image = getAbsoluteProxiedImageUrl(request, itemData.image || ITEM_IMAGE_PLACEHOLDER);
         console.log(`>>> Examine item successful: ${item.id} <<<`);
         return NextResponse.json({
           success: true,
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       if (destinationLocation) {
         const { _id, ...locationData } = destinationLocation;
         // Ensure image field is present
-        if (!locationData.image) locationData.image = ROOM_IMAGE_PLACEHOLDER;
+        locationData.image = getAbsoluteProxiedImageUrl(request, locationData.image || ROOM_IMAGE_PLACEHOLDER);
         console.log(`>>> Examine exit successful: ${destinationLocation.id} <<<`);
         return NextResponse.json({
           success: true,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
 // Import types needed for DB interaction and response
-import { PlayerState, Location as GameLocation, Story } from '../types'; 
+import { PlayerState, Location as GameLocation, Story, GameItem, getAbsoluteProxiedImageUrl } from '../types'; 
 
 // Define interfaces for DB records adding _id (matching the actual DB structure)
 interface PlayerRecord extends PlayerState { _id: string; }
@@ -12,10 +12,15 @@ interface StoryRecord extends Story { _id: string; }
 // Get typed collection instances
 const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
-// const itemsCollection = db.collection<ItemRecord>('game_items');
+const itemsCollection = db.collection('game_items');
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 // Comment out unused collection for now
 // const storiesCollection = db.collection('game_stories');
+
+const ITEM_IMAGE_PLACEHOLDER = "/images/item-placeholder.png";
+
+// Local type for inventory items from DB
+type InventoryItemRecord = GameItem & { _id: string };
 
 /**
  * POST /api/game/take
@@ -95,7 +100,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: `You don't see ${itemId} here.` }, { status: 200 });
     }
 
-    // ... rest of the function ...
+    // --- RESTORE: Update inventory and return full inventory ---
+    // Remove item from location
+    location.items.splice(itemIndex, 1);
+    await locationsCollection.updateOne({ _id: location._id }, { $set: { items: location.items } });
+
+    // Add item to player inventory
+    player.inventory = player.inventory || [];
+    if (!player.inventory.includes(itemId)) {
+      player.inventory.push(itemId);
+      await playersCollection.updateOne({ _id: player._id }, { $set: { inventory: player.inventory } });
+    }
+
+    // Fetch updated inventory items
+    const inventoryItems = (await itemsCollection.find({ _id: { $in: player.inventory } }).toArray()) as InventoryItemRecord[];
+    const inventoryWithImages = inventoryItems.map((item) => {
+      const { _id, ...itemData } = item;
+      return { ...itemData, image: getAbsoluteProxiedImageUrl(request, itemData.image || ITEM_IMAGE_PLACEHOLDER) };
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `You took the item!`,
+      inventory: inventoryWithImages,
+    });
   } catch (error) {
     console.error('Error in POST /api/game/take:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
