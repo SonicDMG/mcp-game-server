@@ -45,6 +45,16 @@ export async function POST(request: NextRequest) {
     }
     console.log(`>>> Processing move for userId: ${userId}, target: ${targetLocationId}, story: ${storyId} (Database) <<<`); // Keep this
 
+    // --- Max Users Per Room Check ---
+    const maxUsersPerRoom = parseInt(process.env.MAX_USERS_PER_ROOM || '5', 10);
+    const usersInTargetRoomArr = await playersCollection.find({ storyId, currentLocation: targetLocationId }).toArray();
+    if (usersInTargetRoomArr.length >= maxUsersPerRoom) {
+      return NextResponse.json({
+        success: false,
+        message: `This room is full. Try another location.`
+      }, { status: 200 });
+    }
+
     // --- Database Operations ---
     
     // Construct playerDocId using the provided storyId
