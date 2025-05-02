@@ -7,6 +7,7 @@ interface StatsPanelProps {
   exploredRooms: number;
   totalRooms: number;
   winnersCount: number;
+  killedCount: number;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -16,6 +17,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   exploredRooms,
   totalRooms,
   winnersCount,
+  killedCount,
 }) => (
   <div style={{
     background: '#23244a',
@@ -34,6 +36,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     <div><b>Artifacts:</b> {collectedArtifacts} / {totalArtifacts}</div>
     <div><b>Rooms:</b> {exploredRooms} / {totalRooms}</div>
     <div><b>Winners:</b> {winnersCount}</div>
+    <div><b>Killed:</b> {killedCount}</div>
   </div>
 );
 

@@ -90,27 +90,27 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, setZoomedImage, setSe
   return (
     <div style={{
       position: 'relative',
-      width: 'fit-content',
-      minWidth: '100%',
+      width: '100%',
+      height: '100%',
       margin: '0 auto',
-      overflowX: 'hidden',
-      overflowY: 'hidden',
       background: 'none',
     }}>
       <div style={{
         position: 'relative',
-        width: MAX_MAP_COLS * CELL_SIZE,
-        height: mapRows * CELL_SIZE,
+        width: '100%',
+        maxWidth: MAX_MAP_COLS * CELL_SIZE,
+        height: '100%',
         margin: '0 auto',
+        boxSizing: 'border-box',
       }}>
-        <svg width={MAX_MAP_COLS * CELL_SIZE} height={mapRows * CELL_SIZE} style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, pointerEvents: 'none' }}>
+        <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, pointerEvents: 'none', width: '100%', height: '100%' }}>
           {svgLines}
         </svg>
-        <div style={{ display: 'grid', gridTemplateRows: `repeat(${mapRows}, ${CELL_SIZE}px)`, gridTemplateColumns: `repeat(${MAX_MAP_COLS}, ${CELL_SIZE}px)`, gap: '16px', justifyItems: 'center', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-          {grid.flat().map((loc) => {
-            if (!loc) return <div key={`empty-${loc}`} />;
+        <div style={{ display: 'grid', gridTemplateRows: `repeat(${mapRows}, 1fr)`, gridTemplateColumns: `repeat(${MAX_MAP_COLS}, 1fr)`, gridAutoRows: '1fr', gap: '16px', justifyItems: 'center', alignItems: 'stretch', position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
+          {grid.flat().map((loc, idx) => {
+            if (!loc) return <div key={`empty-${idx}`} style={{ height: '100%' }} />;
             return (
-              <div key={loc.id} style={{ border: '2px solid #333', borderRadius: 8, padding: 10, background: '#181c2a', minWidth: 140, minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <div key={loc.id} style={{ border: '2px solid #333', borderRadius: 8, padding: 10, background: '#181c2a', minWidth: 140, minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: '100%', height: '100%', boxSizing: 'border-box', alignSelf: 'stretch' }}>
                 <Image
                   src={getProxiedImageUrl(loc.image || ROOM_IMAGE_PLACEHOLDER)}
                   alt={loc.name}

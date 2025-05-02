@@ -49,14 +49,15 @@ const RoomUserList: React.FC<RoomUserListProps> = ({ users, loc, setSelectedUser
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              maxWidth: 70,
+              flex: 1,
             }}
+            title={user.id}
             onClick={() => setSelectedUser(user)}
           >
             {user.id}
           </span>
-          <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400, whiteSpace: 'nowrap' }}>
-            ({user.inventory.length} Artifact{user.inventory.length === 1 ? '' : 's'})
+          <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span role="img" aria-label="items">🎒</span> {user.inventory.length}
           </span>
         </span>
       ))}

@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { getProxiedImageUrl } from './api/game/types';
+import { getProxiedImageUrl, GameItem } from './api/game/types';
 
 interface UserDetailCardProps {
   user: {
@@ -14,12 +14,14 @@ interface UserDetailCardProps {
     title: string;
     requiredArtifacts?: string[];
   };
+  items: GameItem[];
+  setZoomedItem?: (item: { image: string; name: string; description: string }) => void;
 }
 
 const avatarUrl = (userId: string) =>
   `https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(userId)}`;
 
-export default function UserDetailCard({ user, onClose, story }: UserDetailCardProps) {
+export default function UserDetailCard({ user, onClose, story, items, setZoomedItem }: UserDetailCardProps) {
   // Close on background click, but not card click
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -74,8 +76,14 @@ export default function UserDetailCard({ user, onClose, story }: UserDetailCardP
               border: '2px solid #3b82f6',
             }}
           />
-          <div style={{ marginLeft: '16px', flex: 1 }}>
-            <h2 style={{ color: '#3b82f6', margin: '0 0 4px 0', fontSize: '1.5rem' }}>
+          <div style={{ marginLeft: '16px', flex: 1, minWidth: 0 }}>
+            <h2 style={{ color: '#3b82f6', margin: '0 0 4px 0', fontSize: '1.5rem',
+              maxWidth: '100%',
+              display: 'block',
+              wordBreak: 'break-all',
+            }}
+            title={user.id}
+            >
               {user.id}
             </h2>
             <div style={{ color: '#a78bfa', fontSize: '1.1rem' }}>
@@ -99,24 +107,37 @@ export default function UserDetailCard({ user, onClose, story }: UserDetailCardP
 
         <div style={{ marginTop: '20px' }}>
           <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Inventory</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
             {user.inventory.length === 0 ? (
               <div style={{ color: '#666' }}>No artifacts collected yet</div>
             ) : (
-              user.inventory.map((item) => (
-                <div
-                  key={item}
-                  style={{
-                    background: '#2a2a2a',
-                    padding: '6px 12px',
-                    borderRadius: '4px',
-                    color: '#fff',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  {item}
-                </div>
-              ))
+              user.inventory.map((itemId, idx) => {
+                const itemObj = items.find(i => i.id === itemId);
+                return (
+                  <div
+                    key={itemId + '-' + idx}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', cursor: setZoomedItem && itemObj ? 'pointer' : 'default' }}
+                    onClick={() => setZoomedItem && itemObj && setZoomedItem({
+                      image: itemObj.image || '/images/item-placeholder.png',
+                      name: itemObj.name || itemId,
+                      description: itemObj.description || ''
+                    })}
+                  >
+                    <Image
+                      src={getProxiedImageUrl(itemObj?.image || '/images/item-placeholder.png')}
+                      alt={itemObj?.name || itemId}
+                      width={40}
+                      height={40}
+                      style={{ borderRadius: 6, background: '#222', marginBottom: 2, border: '2px solid #3b82f6' }}
+                      title={itemObj?.name || itemId}
+                      unoptimized
+                    />
+                    <span style={{ color: '#a7a7ff', fontSize: 11, maxWidth: 80, textAlign: 'center', wordBreak: 'break-word' }} title={itemObj?.name || itemId}>
+                      {itemObj?.name || itemId}
+                    </span>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

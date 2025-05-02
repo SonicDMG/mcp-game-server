@@ -154,7 +154,12 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   });
 
   // --- Collage and Stats Data ---
-  const items = story.items || [];
+  const items = (story.items || []).map(item => ({
+    ...item,
+    storyId: '',
+    canTake: true,
+    canUse: false,
+  }));
   // All item IDs collected by any player
   const collectedItemIds = new Set(users.flatMap(u => u.inventory));
   // Stats
@@ -166,7 +171,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
 
   // --- Main Layout Update ---
   asciiRows.push(
-    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', maxWidth: 1400, margin: '2rem auto' }}>
+    <div key="main-layout" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', maxWidth: 1400, margin: '2rem auto', minHeight: '70vh' }}>
       {/* Left: Story Image, StatsPanel, and ItemCollage */}
       <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
         <Image
@@ -186,6 +191,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             exploredRooms={exploredRooms}
             totalRooms={totalRooms}
             winnersCount={winnersCount}
+            killedCount={0}
           />
         </div>
         <div style={{ width: 320, maxWidth: 320 }}>
@@ -193,7 +199,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         </div>
       </div>
       {/* Right: Info and Map */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div style={{ color: color.heading, fontWeight: 700, fontSize: '1.5rem', textAlign: 'left', marginBottom: 0 }}>{story.title}</div>
         <div style={{ color: '#b3b3d1', fontSize: '1.08rem', marginBottom: 8 }}>{story.description}</div>
         {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
@@ -201,13 +207,15 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             <b>Goal:</b> Collect all artifacts and reach the final room.
           </div>
         )}
-        <RoomGrid
-          rooms={story.rooms}
-          users={users}
-          setZoomedImage={setZoomedImage}
-          setSelectedUser={setSelectedUser}
-          setUserListModal={setUserListModal}
-        />
+        <div style={{ flex: 1, height: '100%' }}>
+          <RoomGrid
+            rooms={story.rooms}
+            users={users}
+            setZoomedImage={setZoomedImage}
+            setSelectedUser={setSelectedUser}
+            setUserListModal={setUserListModal}
+          />
+        </div>
       </div>
     </div>
   );
@@ -221,6 +229,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
         <UserDetailCard
           user={selectedUser}
           story={story}
+          items={items}
           onClose={handleCloseCard}
         />
       )}

@@ -20,7 +20,6 @@ const ItemCollage: React.FC<ItemCollageProps> = ({ items, collectedItemIds, setZ
     background: '#181c2a',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 16,
     boxShadow: '0 2px 12px #0006',
     minWidth: 240,
     maxWidth: 320,
@@ -28,6 +27,8 @@ const ItemCollage: React.FC<ItemCollageProps> = ({ items, collectedItemIds, setZ
     gridTemplateColumns: 'repeat(4, 1fr)',
     gap: 8,
     justifyItems: 'center',
+    height: '100%',
+    flex: 1,
   }}>
     {items.map(item => (
       <div key={item.id} style={{ position: 'relative', textAlign: 'center', cursor: 'pointer' }} title={item.name + ': ' + item.description}>
