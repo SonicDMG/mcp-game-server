@@ -172,7 +172,6 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, setZoomedImage, setSe
                 left: node.x - CARD_WIDTH / 2 - minX + PADDING + LEFT_MARGIN,
                 top: node.y - CARD_HEIGHT / 2 - minY + PADDING,
                 width: CARD_WIDTH,
-                height: CARD_HEIGHT,
                 border: '2px solid #333',
                 borderRadius: 8,
                 padding: 10,
