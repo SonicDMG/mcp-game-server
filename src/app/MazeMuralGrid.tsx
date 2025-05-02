@@ -11,6 +11,7 @@ interface LeaderboardUser {
   reachedGoal: boolean;
   room: string;
   isWinner?: boolean;
+  killed?: boolean;
 }
 
 interface StoryMetadata {
@@ -22,10 +23,22 @@ interface StoryMetadata {
   rooms: GameLocation[];
   requiredArtifacts: string[];
   image?: string;
+  items?: Array<{ id: string; name: string; description: string; image?: string }>;
 }
 
-export function LeaderboardHUD() {
-  const params = useParams<{ id?: string }>();
+interface Stats {
+  players: number;
+  artifacts: string;
+  rooms: string;
+  winners: number;
+}
+
+interface LeaderboardHUDProps {
+  setLeaderboardData?: (data: { story: StoryMetadata; users: LeaderboardUser[]; winners: LeaderboardUser[]; killed: LeaderboardUser[]; stats: Stats }) => void;
+}
+
+export function LeaderboardHUD({ setLeaderboardData }: LeaderboardHUDProps) {
+  const params = useParams<Record<string, string | undefined>>();
   const storyId = params.id;
   // console.log('[LeaderboardHUD Render] params:', params, 'storyId:', storyId);
 
@@ -115,6 +128,33 @@ export function LeaderboardHUD() {
       }
     };
   }, [storyId]);
+
+  useEffect(() => {
+    if (story && users.length > 0 && setLeaderboardData) {
+      const winners = users.filter(u => u.reachedGoal);
+      const killed = users.filter(u => u.killed);
+      const items = (story.items || []).map(item => ({ ...item, storyId: '', canTake: true, canUse: false }));
+      const collectedItemIds = new Set(users.flatMap(u => u.inventory));
+      const totalPlayers = users.length;
+      const totalArtifacts = items.length;
+      const collectedArtifacts = Array.from(collectedItemIds).length;
+      const exploredRooms = new Set(users.flatMap(u => u.room)).size;
+      const winnersCount = winners.length;
+      const totalRooms = story.rooms.length;
+      setLeaderboardData({
+        story,
+        users,
+        winners,
+        killed,
+        stats: {
+          players: totalPlayers,
+          artifacts: `${collectedArtifacts} / ${totalArtifacts}`,
+          rooms: `${exploredRooms} / ${totalRooms}`,
+          winners: winnersCount,
+        }
+      });
+    }
+  }, [story, users, setLeaderboardData]);
 
   // console.log('[LeaderboardHUD Render] Checking loading state:', { storyId, loading, storyExists: !!story });
   if (!storyId || storyId === 'undefined' || loading || !story) {

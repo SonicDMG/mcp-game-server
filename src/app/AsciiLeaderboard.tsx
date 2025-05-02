@@ -5,7 +5,6 @@ import UserDetailCard from './UserDetailCard';
 import { Location as GameLocation } from '@/app/api/game/types';
 import ItemCollage from './components/ItemCollage';
 import StatsPanel from './components/StatsPanel';
-import WinnerBanner from './components/WinnerBanner';
 import RoomGrid from './components/RoomGrid';
 import UserListModal from './components/UserListModal';
 import ZoomedItemModal from './components/ZoomedItemModal';
@@ -55,28 +54,8 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   const [userListModal, setUserListModal] = useState<{ room: string; users: LeaderboardUser[] } | null>(null);
   // console.log('[AsciiLeaderboard Render] selectedUser:', selectedUser);
 
-  const handleUserClick = (user: LeaderboardUser) => {
-    // console.log('[AsciiLeaderboard] handleUserClick called for user:', user);
-    setSelectedUser(user);
-  };
-
-  const handleCloseCard = () => {
-    // console.log('[AsciiLeaderboard] handleCloseCard called.');
-    setSelectedUser(null);
-  };
-
   // Build ASCII art string and avatar map
   const asciiRows: React.ReactNode[] = [];
-
-  // Find winners (users who have reached the goal)
-  const winners = users.filter(u => u.reachedGoal);
-  // Find killed users (assuming a killed property; if not, use an empty array for now)
-  const killed = users.filter(u => u.killed);
-  const winnerBanner = (
-    <div key="winner-banner" className={styles.bannerContainer}>
-      <WinnerBanner winners={winners} killed={killed} onUserClick={handleUserClick} />
-    </div>
-  );
 
   // --- Collage and Stats Data ---
   const items = (story.items || []).map(item => ({
@@ -149,19 +128,13 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   return (
     <div className={styles.leaderboardContainer}>
       <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
-        {/* Header Row: WinnerBanner only */}
-        <div className={styles.headerRow}>
-          <div className={styles.bannerContainer}>
-            {winnerBanner}
-          </div>
-        </div>
         {asciiRows}
         {selectedUser && (
           <UserDetailCard
             user={selectedUser}
             story={story}
             items={items}
-            onClose={handleCloseCard}
+            onClose={() => setSelectedUser(null)}
           />
         )}
         {zoomedImage && (

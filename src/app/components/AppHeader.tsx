@@ -1,6 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { WinnerSection, KilledSection } from './WinnerBanner';
+import { LeaderboardUser } from '../AsciiLeaderboard';
 
 interface Breadcrumb {
   label: string;
@@ -13,9 +15,12 @@ interface AppHeaderProps {
   storyTitle: string;
   storyTag?: string;
   stats: { players: number; artifacts: string; rooms: string; winners: number; };
+  winners?: LeaderboardUser[];
+  killed?: LeaderboardUser[];
+  onUserClick?: (user: LeaderboardUser) => void;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, storyTitle, stats }) => (
+const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, storyTitle, winners = [], killed = [], onUserClick = () => {} }) => (
   <header
     className="app-header"
     style={{
@@ -41,15 +46,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, storyTitle,
       ))}
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: 24, width: '100%', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <WinnerSection winners={winners} onUserClick={onUserClick} />
+      </div>
       <Image src={logoUrl} alt="MCP Logo" width={120} height={48} style={{ objectFit: 'contain' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <KilledSection killed={killed} onUserClick={onUserClick} />
+      </div>
       <div style={{ textAlign: 'left' }}>
         <div style={{ color: '#3b82f6', fontWeight: 700, fontSize: '1.5rem', letterSpacing: 1 }}>{storyTitle}</div>
-      </div>
-      <div style={{ marginLeft: 32, display: 'flex', gap: 18, fontSize: '1.08rem', color: '#b3b3d1', fontWeight: 500 }}>
-        <span>Players: {stats.players}</span>
-        <span>Artifacts: {stats.artifacts}</span>
-        <span>Rooms: {stats.rooms}</span>
-        <span>Winners: {stats.winners}</span>
       </div>
     </div>
   </header>
