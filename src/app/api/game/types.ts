@@ -56,4 +56,13 @@ export interface GameResponse {
   items?: GameItem[];
   inventory?: GameItem[];
   effects?: string[];
+}
+
+// Utility to proxy external images through the Next.js API
+export function getProxiedImageUrl(src: string): string {
+  if (!src) return '';
+  // If src starts with /, it's local
+  if (src.startsWith('/')) return src;
+  // Otherwise, proxy it
+  return `/api/image-proxy?url=${encodeURIComponent(src)}`;
 } 

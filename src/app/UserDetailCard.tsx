@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { getProxiedImageUrl } from './api/game/types';
 
 interface UserDetailCardProps {
   user: {
@@ -63,7 +64,7 @@ export default function UserDetailCard({ user, onClose, story }: UserDetailCardP
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '20px' }}>
           <Image
-            src={avatarUrl(user.id)}
+            src={getProxiedImageUrl(avatarUrl(user.id))}
             alt={`${user.id}'s avatar`}
             width={80}
             height={80}

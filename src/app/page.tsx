@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import db from '@/lib/astradb'; // Import DB instance
-import { Story, PlayerState } from '@/app/api/game/types'; // Import types
+import { Story, PlayerState, getProxiedImageUrl } from '@/app/api/game/types'; // Import types
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -132,7 +132,7 @@ export default async function LandingPage() {
                 height: '100%'
               }}>
                 <Image 
-                  src={story.image || placeholderImage} 
+                  src={getProxiedImageUrl(story.image || placeholderImage)} 
                   alt={story.title} 
                   width={160} 
                   height={100} 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { getProxiedImageUrl } from './api/game/types';
 import UserDetailCard from './UserDetailCard';
 import { Location as GameLocation } from '@/app/api/game/types';
 
@@ -114,7 +115,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
           }}>
             <WinnerCrown />
             <Image 
-              src={avatarUrl(winner.id)} 
+              src={getProxiedImageUrl(avatarUrl(winner.id))} 
               alt="avatar" 
               width={32} 
               height={32} 
@@ -146,7 +147,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
     asciiRows.push(
       <div key={room} style={{ margin: '16px 0 0 0', fontFamily: 'monospace', fontSize: '1.08rem' }}>
         <Image
-          src={roomObj?.image || ROOM_IMAGE_PLACEHOLDER}
+          src={getProxiedImageUrl(roomObj?.image || ROOM_IMAGE_PLACEHOLDER)}
           alt={roomObj?.name || room}
           width={80}
           height={50}
@@ -161,7 +162,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             usersInRoom.map((user, i) => (
               <span key={user.id} style={{ display: 'flex', alignItems: 'center', marginRight: 18, marginBottom: 4 }}>
                 <Image 
-                  src={avatarUrl(user.id)} 
+                  src={getProxiedImageUrl(avatarUrl(user.id))} 
                   alt="avatar" 
                   width={24} 
                   height={24} 
@@ -225,7 +226,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             onClick={e => e.stopPropagation()}
           >
             <Image
-              src={zoomedImage}
+              src={getProxiedImageUrl(zoomedImage)}
               alt="Zoomed Room"
               width={600}
               height={400}
