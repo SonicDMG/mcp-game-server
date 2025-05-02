@@ -167,30 +167,34 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   // --- Main Layout Update ---
   asciiRows.push(
     <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '2.5rem', width: '100%', maxWidth: 1400, margin: '2rem auto' }}>
-      {/* Left: Story Image, Collage, Stats */}
-      <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
+      {/* Left: Story Image, StatsPanel, and ItemCollage */}
+      <div style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
         <Image
           src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
           alt={story.title}
           width={320}
           height={220}
-          style={{ objectFit: 'cover', borderRadius: 16, boxShadow: '0 4px 32px #000a', cursor: 'zoom-in', marginBottom: 18, background: '#222' }}
+          style={{ objectFit: 'cover', borderRadius: 16, boxShadow: '0 4px 32px #000a', cursor: 'zoom-in', marginBottom: 12, background: '#222', width: 320, maxWidth: 320 }}
           onClick={() => setZoomedImage(story.image || ROOM_IMAGE_PLACEHOLDER)}
           unoptimized
         />
-        <ItemCollage items={items} collectedItemIds={collectedItemIds} setZoomedItem={setZoomedItem} />
-        <StatsPanel
-          totalPlayers={totalPlayers}
-          collectedArtifacts={collectedArtifacts}
-          totalArtifacts={totalArtifacts}
-          exploredRooms={exploredRooms}
-          totalRooms={totalRooms}
-          winnersCount={winnersCount}
-        />
+        <div style={{ width: 320, maxWidth: 320, marginBottom: 8 }}>
+          <StatsPanel
+            totalPlayers={totalPlayers}
+            collectedArtifacts={collectedArtifacts}
+            totalArtifacts={totalArtifacts}
+            exploredRooms={exploredRooms}
+            totalRooms={totalRooms}
+            winnersCount={winnersCount}
+          />
+        </div>
+        <div style={{ width: 320, maxWidth: 320 }}>
+          <ItemCollage items={items} collectedItemIds={collectedItemIds} setZoomedItem={setZoomedItem} />
+        </div>
       </div>
       {/* Right: Info and Map */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ color: color.heading, fontWeight: 700, fontSize: '1.5rem', marginBottom: 4, textAlign: 'left' }}>{story.title} <span style={{ color: color.room, fontSize: '1.1rem' }}>[Adventure]</span></div>
+        <div style={{ color: color.heading, fontWeight: 700, fontSize: '1.5rem', textAlign: 'left', marginBottom: 0 }}>{story.title}</div>
         <div style={{ color: '#b3b3d1', fontSize: '1.08rem', marginBottom: 8 }}>{story.description}</div>
         {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
           <div style={{ color: '#a7a7ff', fontSize: '1.02rem', marginBottom: 16 }}>
