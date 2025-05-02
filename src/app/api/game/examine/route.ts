@@ -12,6 +12,9 @@ const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
 
+const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png";
+const ITEM_IMAGE_PLACEHOLDER = "/images/item-placeholder.png";
+
 /**
  * POST /api/game/examine
  * Examines a specific item or feature in the player's current location.
@@ -70,6 +73,8 @@ export async function POST(request: NextRequest) {
       const item = await itemsCollection.findOne({ id: target, storyId: storyId });
       if (item) {
         const { _id, ...itemData } = item;
+        // Ensure image field is present
+        if (!itemData.image) itemData.image = ITEM_IMAGE_PLACEHOLDER;
         console.log(`>>> Examine item successful: ${item.id} <<<`);
         return NextResponse.json({
           success: true,
@@ -90,6 +95,8 @@ export async function POST(request: NextRequest) {
       const destinationLocation = await locationsCollection.findOne({ id: target, storyId: storyId });
       if (destinationLocation) {
         const { _id, ...locationData } = destinationLocation;
+        // Ensure image field is present
+        if (!locationData.image) locationData.image = ROOM_IMAGE_PLACEHOLDER;
         console.log(`>>> Examine exit successful: ${destinationLocation.id} <<<`);
         return NextResponse.json({
           success: true,

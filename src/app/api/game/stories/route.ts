@@ -233,6 +233,23 @@ export async function POST(request: NextRequest) {
     console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
     // --- End Selection ---
 
+    // --- 5b. Generate Images for Locations and Items ---
+    // Generate images for each location
+    const locationImagePromises = generatedWorld.locations.map(async (loc) => {
+        const prompt = `Pixel art scene of ${loc.name}: ${loc.description} (retro, pixel art, model 5000)`;
+        const imageUrl = await generateImageWithPolling(prompt, '5000');
+        return { ...loc, image: imageUrl };
+    });
+    const locationsWithImages = await Promise.all(locationImagePromises);
+
+    // Generate images for each item
+    const itemImagePromises = generatedWorld.items.map(async (item) => {
+        const prompt = `Pixel art of ${item.name}: ${item.description} (retro, pixel art, model 5000)`;
+        const imageUrl = await generateImageWithPolling(prompt, '5000');
+        return { ...item, image: imageUrl };
+    });
+    const itemsWithImages = await Promise.all(itemImagePromises);
+
     // --- 6. Create Story Record (Initial Insert) ---
     // Insert story WITHOUT image URL first, but WITH requiredArtifacts
     const storyRecordInitial: Omit<StoryRecord, '_id' | 'image'> & { requiredArtifacts?: string[] } = {
@@ -248,14 +265,14 @@ export async function POST(request: NextRequest) {
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
     console.log('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
 
-    // --- 7. Prepare and Insert Locations ---
+    // --- 7. Prepare and Insert Locations (with images) ---
     if (typeof storyId !== 'string') {
         console.error('Critical Error: storyId is not defined before location insertion.');
         throw new Error('Internal error: Story identifier missing during data preparation.');
     }
     const currentStoryIdForLocations = storyId;
-    const locationsToInsert: LocationRecord[] = generatedWorld.locations.map(loc => ({
-        ...loc, 
+    const locationsToInsert: LocationRecord[] = locationsWithImages.map(loc => ({
+        ...loc,
         storyId: currentStoryIdForLocations
     }));
     console.log(`Attempting locationsCollection.insertMany() for ${locationsToInsert.length} locations...`);
@@ -268,14 +285,14 @@ export async function POST(request: NextRequest) {
          // Consider adding more robust error handling or cleanup here if partial insertion is critical
     }
 
-    // --- 8. Prepare and Insert Items ---
+    // --- 8. Prepare and Insert Items (with images) ---
     if (typeof storyId !== 'string') {
         console.error('Critical Error: storyId is not defined before item insertion.');
         throw new Error('Internal error: Story identifier missing during data preparation.');
     }
     const currentStoryIdForItems = storyId;
-    const itemsToInsert: ItemRecord[] = generatedWorld.items.map(item => ({
-        ...item, 
+    const itemsToInsert: ItemRecord[] = itemsWithImages.map(item => ({
+        ...item,
         storyId: currentStoryIdForItems
     }));
     console.log(`Attempting itemsCollection.insertMany() for ${itemsToInsert.length} items...`);

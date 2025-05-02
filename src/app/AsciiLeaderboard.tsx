@@ -38,6 +38,8 @@ const color = {
   sparkle: '#fef08a',
 };
 
+const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png"; // Place this image in your public/images/ directory or use a remote URL
+
 const WinnerCrown = () => (
   <span style={{ color: color.winner, marginRight: 4, fontSize: '1.2em' }}>👑</span>
 );
@@ -65,6 +67,7 @@ const WinnerSparkles = () => (
 
 export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps) {
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   // console.log('[AsciiLeaderboard Render] selectedUser:', selectedUser);
 
   const handleUserClick = (user: LeaderboardUser) => {
@@ -139,8 +142,17 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   // Reverse the room order for display
   [...story.roomOrder].reverse().forEach((room) => {
     const usersInRoom = users.filter(u => u.room === room && !u.reachedGoal); // Don't show winners in room list
+    const roomObj = story.rooms.find(r => r.id === room);
     asciiRows.push(
       <div key={room} style={{ margin: '16px 0 0 0', fontFamily: 'monospace', fontSize: '1.08rem' }}>
+        <Image
+          src={roomObj?.image || ROOM_IMAGE_PLACEHOLDER}
+          alt={roomObj?.name || room}
+          width={80}
+          height={50}
+          style={{ borderRadius: 8, marginBottom: 4, objectFit: 'cover', background: '#222', cursor: 'zoom-in' }}
+          onClick={() => setZoomedImage(roomObj?.image || ROOM_IMAGE_PLACEHOLDER)}
+        />
         <div style={{ color: color.room, fontWeight: 600, marginBottom: 2 }}>{room}</div>
         <pre style={{ background: 'none', color: color.user, margin: 0, padding: 0, lineHeight: 1.7, fontFamily: 'inherit', fontSize: 'inherit', display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
           {usersInRoom.length === 0 ? (
@@ -191,6 +203,61 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
           story={story}
           onClose={handleCloseCard}
         />
+      )}
+      {zoomedImage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setZoomedImage(null)}
+        >
+          <div
+            style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <Image
+              src={zoomedImage}
+              alt="Zoomed Room"
+              width={600}
+              height={400}
+              style={{
+                maxWidth: '90vw',
+                maxHeight: '80vh',
+                borderRadius: 12,
+                objectFit: 'contain',
+                boxShadow: '0 8px 32px #000a',
+                background: '#222',
+              }}
+            />
+            <button
+              onClick={() => setZoomedImage(null)}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                background: 'rgba(0,0,0,0.7)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                padding: '6px 12px',
+                fontSize: 18,
+                cursor: 'pointer',
+                zIndex: 1001,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
 // Import types needed for DB interaction and response
-import { GameItem, PlayerState, Location as GameLocation, Story } from '../types'; 
+import { PlayerState, Location as GameLocation, Story } from '../types'; 
 
 // Define interfaces for DB records adding _id (matching the actual DB structure)
 interface PlayerRecord extends PlayerState { _id: string; }
 interface LocationRecord extends GameLocation { _id: string; }
-interface ItemRecord extends GameItem { _id: string; }
+// const itemsCollection = db.collection<ItemRecord>('game_items');
 interface StoryRecord extends Story { _id: string; }
 
 // Get typed collection instances
 const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
-const itemsCollection = db.collection<ItemRecord>('game_items');
+// const itemsCollection = db.collection<ItemRecord>('game_items');
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 // Comment out unused collection for now
 // const storiesCollection = db.collection('game_stories');
@@ -92,97 +92,12 @@ export async function POST(request: NextRequest) {
     // 3. Check if item exists in the location's item list (from DB)
     const itemIndex = location.items.indexOf(itemId);
     if (itemIndex === -1) {
-      console.log(`>>> Item ${itemId} not found in location ${location.id}, returning 200 with success:false <<<`);
-      // Return 200 OK, but indicate failure in the body
       return NextResponse.json({ success: false, message: `You don't see ${itemId} here.` }, { status: 200 });
     }
 
-    // 4. Get Item Details from DB using item ID and story ID
-    console.log(`>>> Fetching item: id=${itemId}, storyId=${storyId} <<<`); 
-    const item = await itemsCollection.findOne({ id: itemId, storyId: storyId });
-    if (!item) {
-        // Keep this as 404 - Data inconsistency
-        console.error(`Inconsistency: Item ID ${itemId} listed in location ${location.id} but not found in game_items for story ${storyId}.`);
-        return NextResponse.json({ success: false, error: `Item '${itemId}' not found in this area of story '${storyId}'.` }, { status: 404 }); 
-    }
-
-    const { _id: item_id, ...itemResponse } = item;
-
-    // console.log(`>>> Examine successful for ${itemId} <<<`); // This log seems misplaced, commenting out
-
-    // 5. Check if item is takeable (from DB item data)
-    if (!itemResponse.canTake) {
-      console.log(`>>> Item ${itemId} cannot be taken, returning 200 with success:false <<<`);
-       // Return 200 OK, but indicate failure in the body
-      return NextResponse.json({ success: false, message: `You cannot take the ${itemResponse.name}.` }, { status: 200 });
-    }
-
-    // Check if item is already in inventory
-    if (player.inventory.includes(itemId)) {
-      console.log(`>>> Item ${itemId} already in inventory, returning 200 with success:false <<<`);
-       // Return 200 OK, but indicate failure in the body
-      return NextResponse.json({ success: false, message: `You already have the ${itemResponse.name}.` }, { status: 200 });
-    }
-
-    // 6. Update Player State ONLY (Location items remain)
-    const updatedInventory = [...player.inventory, itemId];
-
-    // Update player: Add item to inventory
-    const playerUpdatePromise = playersCollection.updateOne({ _id: playerDocId }, { $set: { inventory: updatedInventory } });
-
-    // Remove location update
-    // const updatedLocationItems = location.items.filter((id) => id !== itemId);
-    // const locationUpdatePromise = locationsCollection.updateOne({ id: location.id, storyId: storyId }, { $set: { items: updatedLocationItems } });
-
-    // await Promise.all([playerUpdatePromise, locationUpdatePromise]);
-    await playerUpdatePromise; // Only wait for player update
-
-    console.log(`>>> Player inventory updated for ${itemId}. Location items remain unchanged. <<<`);
-    
-    // --- Post-take Checks (e.g., Win Condition) ---
-    // Re-fetch player state to check win condition based on *new* inventory
-    const updatedPlayer = await playersCollection.findOne({_id: playerDocId});
-    let playerWon = false;
-    if (updatedPlayer && story && story.requiredArtifacts && story.requiredArtifacts.length > 0) {
-        const artifactsOwned = updatedPlayer.inventory.filter(invItem => story.requiredArtifacts!.includes(invItem));
-        if (artifactsOwned.length >= story.requiredArtifacts.length) {
-             console.log(`>>> WIN CONDITION MET for ${playerDocId} in story ${storyId}! <<<`);
-             playerWon = true;
-            // Update status and progress upon winning
-            await playersCollection.updateOne(
-                { _id: playerDocId }, 
-                { $set: { 
-                    status: 'winner',
-                    'gameProgress.storyProgress': 100
-                  }
-                }
-            );
-        }
-    }
-    // ---------------------------------------------
-    
-    // 7. Prepare and return success response
-    const { _id: player_id, ...finalPlayerState } = updatedPlayer ?? player; // Use updated state if fetched
-    
-    let message = `You took the ${itemResponse.name}.`;
-    if (playerWon) {
-        message += `\n\n*** Congratulations! You have collected all the required artifacts for ${story.title}! You WIN! ***`;
-    }
-
-    console.log(`>>> Take successful, returning inventory count: ${finalPlayerState.inventory.length} <<<`);
-    // 8. Return success response
-    return NextResponse.json({
-      success: true,
-      message: message,
-      inventory: finalPlayerState.inventory, // Return full item details (without _id)
-      win: playerWon // Add a win flag to the response
-    });
-
+    // ... rest of the function ...
   } catch (error) {
-    console.error('Error in take handler (Database):', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to process take command due to an internal server error.'
-    }, { status: 500 });
+    console.error('Error in POST /api/game/take:', error);
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

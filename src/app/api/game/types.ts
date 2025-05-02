@@ -16,6 +16,7 @@ export interface GameItem {
   canTake: boolean;
   canUse: boolean;
   useWith?: string[];
+  image?: string;
 }
 
 export interface Location {
@@ -29,6 +30,7 @@ export interface Location {
     item?: string;
     condition?: string;
   };
+  image?: string;
 }
 
 export interface PlayerState {

@@ -12,6 +12,9 @@ const playersCollection = db.collection<PlayerRecord>('game_players');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
 
+const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png";
+const ITEM_IMAGE_PLACEHOLDER = "/images/item-placeholder.png";
+
 /**
  * POST /api/game/look
  * Returns details about the player's current location (description, items, exits).
@@ -79,6 +82,10 @@ export async function POST(request: NextRequest) {
     // 4. Prepare Response
     console.log(`Preparing response for location db id: ${location._id}`); 
     const { _id, ...locationResponseData } = location; 
+    // Ensure image field is present
+    if (!locationResponseData.image) locationResponseData.image = ROOM_IMAGE_PLACEHOLDER;
+    // Ensure all items have image field
+    visibleItems = visibleItems.map(item => ({ ...item, image: item.image || ITEM_IMAGE_PLACEHOLDER }));
 
     console.log(`>>> Look successful for userId: ${userId} in location: ${location.id} <<<`);
     return NextResponse.json({
