@@ -21,6 +21,7 @@ interface StoryMetadata {
   goalRoom: string;
   rooms: GameLocation[];
   requiredArtifacts: string[];
+  image?: string;
 }
 
 export function LeaderboardHUD() {

@@ -11,14 +11,14 @@ interface StoryRecord extends Story {
   artifacts?: string[];
   goalRoom?: string;
   requiredArtifacts?: string[];
+  image?: string;
 }
 interface LocationRecord extends GameLocation { _id: string; }
 
 // Collections
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
-// Potentially need itemsCollection if artifacts aren't stored directly in story
-// const itemsCollection = db.collection('game_items');
+const itemsCollection = db.collection('game_items');
 
 // Define a specific type for the Room data returned in the response
 // (Omitting _id and storyId from the DB record type)
@@ -34,6 +34,8 @@ interface StoryMetadataResponse {
   goalRoom: string;
   rooms: ResponseRoom[]; // Use the specific ResponseRoom type
   requiredArtifacts: string[];
+  image?: string;
+  items: Array<{ id: string; name: string; description: string; image?: string }>;
 }
 
 /**
@@ -70,6 +72,10 @@ async function fetchAndFormatMetadata(storyId: string) {
       // Return partial metadata or error? Returning partial for now.
     }
 
+    // 2b. Fetch all items for this story
+    const itemsRaw = await itemsCollection.find({ storyId: storyId }).toArray();
+    const items = itemsRaw.map(({ id, name, description, image }) => ({ id, name, description, image })); // Only include required fields
+
     // 3. Assemble Metadata Response
     // Use defaults if fields are missing from the story document
     const roomOrder = story.roomOrder || locations.map(loc => loc.id); // Default to location IDs if no order specified
@@ -94,6 +100,8 @@ async function fetchAndFormatMetadata(storyId: string) {
       goalRoom: goalRoom,
       rooms: rooms, // Use the correctly typed mapped rooms
       requiredArtifacts: requiredArtifacts,
+      image: story.image,
+      items: items,
     };
 
     return NextResponse.json(metadata);
@@ -101,8 +109,8 @@ async function fetchAndFormatMetadata(storyId: string) {
   } catch (error) {
     console.error(`Error fetching metadata for story ${storyId}:`, error);
     return NextResponse.json(
-      { error: `Failed to fetch metadata for story ${storyId}` }, 
-      { status: 500 } 
+      { error: `Failed to fetch metadata for story ${storyId}` },
+      { status: 500 }
     );
   }
-} 
+}
