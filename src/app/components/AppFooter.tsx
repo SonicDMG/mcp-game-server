@@ -7,7 +7,7 @@ const AppFooter: React.FC = () => (
   <footer
     className="app-footer"
     style={{
-      width: '100vw',
+      width: '100%',
       padding: '20px 0 14px 0',
       textAlign: 'center',
       color: '#3b82f6',
