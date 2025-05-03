@@ -311,6 +311,40 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // --- Ensure all required artifacts are placed in rooms ---
+    const startingLocId = startingLocationId;
+    const eligibleRoomIds = generatedWorld.locations
+      .map(loc => loc.id)
+      .filter(id => id !== startingLocId && id !== goalRoomId);
+    let roomIdx = 0;
+    for (const artifactId of requiredArtifacts) {
+      // Check if artifact is already placed in a room
+      let placed = false;
+      for (const loc of generatedWorld.locations) {
+        if ((loc.items || []).includes(artifactId)) {
+          placed = true;
+          break;
+        }
+      }
+      if (!placed && eligibleRoomIds.length > 0) {
+        // Place artifact in a non-start/goal room, round-robin
+        const targetRoomId = eligibleRoomIds[roomIdx % eligibleRoomIds.length];
+        const targetLoc = generatedWorld.locations.find(l => l.id === targetRoomId);
+        if (targetLoc) {
+          if (!targetLoc.items) targetLoc.items = [];
+          targetLoc.items.push(artifactId);
+        }
+        roomIdx++;
+      } else if (!placed) {
+        // Fallback: place in any room if no eligible
+        const fallbackLoc = generatedWorld.locations.find(l => l.id !== goalRoomId) || generatedWorld.locations[0];
+        if (fallbackLoc) {
+          if (!fallbackLoc.items) fallbackLoc.items = [];
+          fallbackLoc.items.push(artifactId);
+        }
+      }
+    }
+
     // --- Win Path Validation ---
     // Ensure all required artifacts are present in the world
     const allItemIds = generatedWorld.items.map(item => item.id);
