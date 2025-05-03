@@ -12,7 +12,6 @@ interface Breadcrumb {
 interface AppHeaderProps {
   logoUrl: string;
   breadcrumbs: Breadcrumb[];
-  storyTitle: string;
   storyTag?: string;
   stats: { players: number; artifacts: string; rooms: string; winners: number; };
   winners?: LeaderboardUser[];
@@ -20,7 +19,7 @@ interface AppHeaderProps {
   onUserClick?: (user: LeaderboardUser) => void;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, storyTitle, winners = [], killed = [], onUserClick = () => {} }) => (
+const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, winners, killed, onUserClick = () => {} }) => (
   <header
     className="app-header"
     style={{
@@ -45,16 +44,23 @@ const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, storyTitle,
         </span>
       ))}
     </div>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 24, width: '100%', justifyContent: 'center' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <WinnerSection winners={winners} onUserClick={onUserClick} />
+    <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flex: 1 }}>
+        {typeof winners !== 'undefined' ? (
+          <WinnerSection winners={winners} onUserClick={onUserClick} />
+        ) : (
+          <div style={{ width: 160 }} />
+        )}
       </div>
-      <Image src={logoUrl} alt="MCP Logo" width={120} height={48} style={{ objectFit: 'contain' }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <KilledSection killed={killed} onUserClick={onUserClick} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+        <Image src={logoUrl} alt="MCP Logo" width={160} height={160} className="app-logo" style={{ objectFit: 'contain' }} />
       </div>
-      <div style={{ textAlign: 'left' }}>
-        <div style={{ color: '#3b82f6', fontWeight: 700, fontSize: '1.5rem', letterSpacing: 1 }}>{storyTitle}</div>
+      <div style={{ minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
+        {typeof killed !== 'undefined' ? (
+          <KilledSection killed={killed} onUserClick={onUserClick} />
+        ) : (
+          <div style={{ width: 160 }} />
+        )}
       </div>
     </div>
   </header>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import db from '@/lib/astradb'; // Import DB instance
 import { Story, PlayerState, getProxiedImageUrl } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
+import AppHeader from './components/AppHeader';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -90,9 +91,11 @@ export default async function LandingPage() {
 
   return (
     <div className="app-root">
-      <header className="app-header">
-        <Image src="/images/logo.png" alt="App Logo" width={56} height={56} className="app-logo" />
-      </header>
+      <AppHeader
+        logoUrl="/images/logo.png"
+        breadcrumbs={[]}
+        stats={{ players: 0, artifacts: '', rooms: '', winners: 0 }}
+      />
       <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
         <div className="hud-header">
           {/* Removed [Choose a Story] text */}
