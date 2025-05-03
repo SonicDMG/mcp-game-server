@@ -26,5 +26,5 @@
 - [ ] Move any remaining utility functions out of main components and into a shared utils file if not already done.
 
 ## 8. Header & Footer Components with Useful Links
-- [ ] Ensure the header and footer are in their own component files.
-- [ ] Add useful navigation or external links to both header and footer. 
+- [x] Ensure the header and footer are in their own component files.
+- [x] Add useful navigation or external links to both header and footer. 

@@ -44,7 +44,7 @@ export interface PlayerState {
     puzzlesSolved: string[];
     storyProgress: number;
   };
-  status?: 'playing' | 'winner';
+  status?: 'playing' | 'winner' | 'killed';
 }
 
 export interface GameResponse {

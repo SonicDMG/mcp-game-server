@@ -3,7 +3,7 @@ import db from '@/lib/astradb'; // Import the initialized Db instance
 
 // Define interfaces for DB records adding _id 
 // Ensure these align with the actual data structures and types.ts
-interface ItemRecord extends GameItem { _id: string; }
+export interface ItemRecord extends GameItem { _id: string; }
 interface LocationRecord extends GameLocation { _id: string; }
 interface PlayerRecord extends PlayerState { _id: string; }
 interface StoryRecord extends Story { _id: string; }

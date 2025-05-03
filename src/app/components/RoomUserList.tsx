@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { getProxiedImageUrl } from '../api/game/types';
 import { LeaderboardUser } from '../AsciiLeaderboard';
 import type { Location as GameLocation } from '../api/game/types';
+import styles from './WinnerBanner.module.css';
 
 const avatarUrl = (userId: string) =>
   `https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(userId)}`;
@@ -28,15 +29,20 @@ const RoomUserList: React.FC<RoomUserListProps> = ({ users, loc, setSelectedUser
     <>
       {shown.map((user) => (
         <span key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 2, width: '100%' }}>
-          <Image
-            src={getProxiedImageUrl(avatarUrl(user.id))}
-            alt="avatar"
-            width={20}
-            height={20}
-            style={{ borderRadius: 4, marginRight: 4, background: '#222', cursor: 'pointer' }}
-            onClick={() => setSelectedUser(user)}
-            unoptimized
-          />
+          <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
+            <Image
+              src={getProxiedImageUrl(avatarUrl(user.id))}
+              alt="avatar"
+              width={20}
+              height={20}
+              style={{ borderRadius: 4, marginRight: 4, background: '#222', cursor: 'pointer' }}
+              onClick={() => setSelectedUser(user)}
+              unoptimized
+            />
+            {user.status === 'killed' && (
+              <span className={styles.killedSkullOverlay} style={{ fontSize: '1.2rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
+            )}
+          </span>
           <span
             style={{
               color: color.user,

@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl, GameItem } from './api/game/types';
+import styles from './components/WinnerBanner.module.css';
 
 interface UserDetailCardProps {
   user: {
@@ -8,6 +9,7 @@ interface UserDetailCardProps {
     inventory: string[];
     reachedGoal: boolean;
     room: string;
+    status?: 'playing' | 'winner' | 'killed';
   };
   onClose: () => void;
   story: {
@@ -65,17 +67,22 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '20px' }}>
-          <Image
-            src={getProxiedImageUrl(avatarUrl(user.id))}
-            alt={`${user.id}'s avatar`}
-            width={80}
-            height={80}
-            style={{
-              borderRadius: '8px',
-              background: '#222',
-              border: '2px solid #3b82f6',
-            }}
-          />
+          <div className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined}>
+            <Image
+              src={getProxiedImageUrl(avatarUrl(user.id))}
+              alt={`${user.id}'s avatar`}
+              width={80}
+              height={80}
+              style={{
+                borderRadius: '8px',
+                background: '#222',
+                border: '2px solid #3b82f6',
+              }}
+            />
+            {user.status === 'killed' && (
+              <span className={styles.killedSkullOverlay} style={{ fontSize: '5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
+            )}
+          </div>
           <div style={{ marginLeft: '16px', flex: 1, minWidth: 0 }}>
             <h2 style={{ color: '#3b82f6', margin: '0 0 4px 0', fontSize: '1.5rem',
               maxWidth: '100%',
@@ -86,6 +93,11 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
             >
               {user.id}
             </h2>
+            {user.status === 'killed' && (
+              <div style={{ color: '#ff0000', fontWeight: 900, fontSize: '1.1rem', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
+                DEAD
+              </div>
+            )}
             <div style={{ color: '#a78bfa', fontSize: '1.1rem' }}>
               Current Room: {user.room}
             </div>

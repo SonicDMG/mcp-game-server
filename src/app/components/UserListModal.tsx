@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl } from '../api/game/types';
 import { LeaderboardUser } from '../AsciiLeaderboard';
+import styles from './WinnerBanner.module.css';
 
 const color = {
   heading: '#3b82f6',
@@ -42,15 +43,20 @@ const UserListModal: React.FC<UserListModalProps> = ({ room, users, setSelectedU
       <h3 style={{ color: color.heading, marginBottom: 12, textAlign: 'center' }}>Users in {room}</h3>
       {users.map((user) => (
         <div key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-          <Image
-            src={getProxiedImageUrl(avatarUrl(user.id))}
-            alt="avatar"
-            width={24}
-            height={24}
-            style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer' }}
-            onClick={() => setSelectedUser(user)}
-            unoptimized
-          />
+          <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
+            <Image
+              src={getProxiedImageUrl(avatarUrl(user.id))}
+              alt="avatar"
+              width={24}
+              height={24}
+              style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer' }}
+              onClick={() => setSelectedUser(user)}
+              unoptimized
+            />
+            {user.status === 'killed' && (
+              <span className={styles.killedSkullOverlay} style={{ fontSize: '1.5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
+            )}
+          </span>
           <span
             style={{
               color: color.user,

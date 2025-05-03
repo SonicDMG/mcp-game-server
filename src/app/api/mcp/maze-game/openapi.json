@@ -426,6 +426,113 @@
            "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
+    },
+    "/kill": {
+      "post": {
+        "summary": "Kill Player",
+        "description": "Attempts to 'kill' another player in the same room. Sets the target's status to 'killed'. Returns lootable items.",
+        "operationId": "killPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, and story ID.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kill action result. Outcome can be: 'success' (attacker kills target), 'fail' (attack misses), or 'counter' (target kills attacker). If a player is killed, their lootable items are returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PlayerActionResponse" },
+                    { "type": "object", "properties": {
+                        "lootableItems": { "type": "array", "items": { "type": "string" } },
+                        "outcome": { "type": "string", "enum": ["success", "fail", "counter"], "description": "Result of the kill attempt." },
+                        "context": { "$ref": "#/components/schemas/ContextDetails" }
+                    } }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/loot": {
+      "post": {
+        "summary": "Loot Items from Killed Player",
+        "description": "Allows a player to loot items from a killed player in the same room.",
+        "operationId": "lootPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, story ID, and items to loot.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LootActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loot action result.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LootActionResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/help": {
+      "post": {
+        "summary": "Help Player",
+        "description": "Attempts to 'help' (revive) another player in the same room. If the target is 'killed', sets their status to 'playing'.",
+        "operationId": "helpPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, and story ID.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Help action result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerActionResponse"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
     }
   },
   "components": {
@@ -674,6 +781,93 @@
           }
         },
         "required": ["message", "storyId", "title", "theme", "storyDbId", "locationsGenerated", "itemsGenerated", "startingLocationId"]
+      },
+      "PlayerActionInput": {
+        "type": "object",
+        "properties": {
+          "playerId": { "type": "string", "description": "The acting player's ID." },
+          "targetId": { "type": "string", "description": "The target player's ID." },
+          "storyId": { "type": "string", "description": "The story ID." }
+        },
+        "required": ["playerId", "targetId", "storyId"]
+      },
+      "PlayerActionResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "targetStatus": { "type": "string", "description": "The updated status of the target player.", "enum": ["playing", "winner", "killed"] }
+        },
+        "required": ["success", "message", "targetStatus"]
+      },
+      "LootActionInput": {
+        "type": "object",
+        "properties": {
+          "playerId": { "type": "string", "description": "The acting player's ID." },
+          "targetId": { "type": "string", "description": "The target (killed) player's ID." },
+          "storyId": { "type": "string", "description": "The story ID." },
+          "items": { "type": "array", "items": { "type": "string" }, "description": "Array of item IDs to loot." }
+        },
+        "required": ["playerId", "targetId", "storyId", "items"]
+      },
+      "LootActionResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "actorInventory": { "type": "array", "items": { "type": "string" }, "description": "Updated inventory of the looter." },
+          "targetInventory": { "type": "array", "items": { "type": "string" }, "description": "Updated inventory of the killed player." }
+        },
+        "required": ["success", "message", "actorInventory", "targetInventory"]
+      },
+      "ContextDetails": {
+        "type": "object",
+        "description": "Structured context for a kill action, for use by agents or UI.",
+        "properties": {
+          "theme": { "type": "string", "description": "The story's description or title." },
+          "room": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          },
+          "actor": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "description": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "description": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "responses": {

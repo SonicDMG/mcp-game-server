@@ -87,11 +87,20 @@ export async function POST(request: NextRequest) {
     // Ensure all items have image field and are proxied
     visibleItems = visibleItems.map(item => ({ ...item, image: getAbsoluteProxiedImageUrl(request, item.image || ITEM_IMAGE_PLACEHOLDER) }));
 
+    // Find other players in the same room
+    const otherPlayers = await playersCollection.find({
+      storyId: storyId,
+      currentLocation: player.currentLocation,
+      id: { $ne: userId }
+    }).toArray();
+    const players = otherPlayers.map(p => ({ id: p.id, status: p.status || 'playing' }));
+
     console.log(`>>> Look successful for userId: ${userId} in location: ${location.id} <<<`);
     return NextResponse.json({
       success: true,
       location: locationResponseData, // Return location details (without _id)
       items: visibleItems, // Return details of items in the location (without _id)
+      players, // List of other players in the same room
       message: location.description,
       hint: 'You can examine specific things you see for more details'
     });

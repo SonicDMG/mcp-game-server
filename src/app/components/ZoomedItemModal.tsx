@@ -1,13 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl } from '../../lib/utils';
+import styles from './WinnerBanner.module.css';
 
 interface ZoomedItemModalProps {
   image: string;
   name: string;
   description: string;
   onClose: () => void;
-  users?: { id: string }[];
+  users?: { id: string; status?: 'playing' | 'winner' | 'killed' }[];
 }
 
 const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, description, onClose, users }) => (
@@ -50,13 +51,18 @@ const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, descript
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: 24, gap: 12, marginTop: 8 }}>
             {users.map(user => (
               <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <img
-                  src={`https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(user.id)}`}
-                  alt={user.id}
-                  width={32}
-                  height={32}
-                  style={{ borderRadius: 6, background: '#222', border: '2px solid #3b82f6' }}
-                />
+                <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
+                  <img
+                    src={`https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(user.id)}`}
+                    alt={user.id}
+                    width={32}
+                    height={32}
+                    style={{ borderRadius: 6, background: '#222', border: '2px solid #3b82f6' }}
+                  />
+                  {user.status === 'killed' && (
+                    <span className={styles.killedSkullOverlay} style={{ fontSize: '3.5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
+                  )}
+                </span>
                 <span style={{ color: '#a7a7ff', fontSize: 16, textAlign: 'left', wordBreak: 'break-word' }} title={user.id}>
                   {user.id}
                 </span>

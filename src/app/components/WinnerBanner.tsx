@@ -78,14 +78,16 @@ export const KilledSection: React.FC<{
     <div className={styles.userList}>
       {killed.length > 0 ? killed.map((user, _i) => (
         <div key={user.id + '-' + _i} className={`${styles.userCard} ${styles.killedUserCard}`}>
-          <span role="img" aria-label="skull" style={{ color: '#ef4444', marginRight: 4, fontSize: '1.2em' }}>💀</span>
-          <Image
-            src={avatarUrl(user.id)}
-            alt="avatar"
-            width={32}
-            height={32}
-            className={`${styles.avatar} ${styles.killedAvatar}`}
-          />
+          <div className={styles.killedAvatarWrapper}>
+            <Image
+              src={avatarUrl(user.id)}
+              alt="avatar"
+              width={32}
+              height={32}
+              className={`${styles.avatar} ${styles.killedAvatar}`}
+            />
+            <span className={styles.killedSkullOverlay} role="img" aria-label="eliminated">&times;</span>
+          </div>
           <span className={`${styles.userName} ${styles.killedName}`} onClick={() => onUserClick(user)}>
             {user.id}
           </span>
@@ -96,20 +98,3 @@ export const KilledSection: React.FC<{
     </div>
   </div>
 );
-
-// Keep WinnerBanner for legacy use (can be removed later)
-interface WinnerBannerProps {
-  winners: LeaderboardUser[];
-  killed: LeaderboardUser[];
-  onUserClick: (user: LeaderboardUser) => void;
-}
-
-const WinnerBanner: React.FC<WinnerBannerProps> = ({ winners, killed, onUserClick }) => (
-  <div className={styles.root}>
-    <WinnerSection winners={winners} onUserClick={onUserClick} />
-    <div className={styles.divider} />
-    <KilledSection killed={killed} onUserClick={onUserClick} />
-  </div>
-);
-
-export default WinnerBanner; 

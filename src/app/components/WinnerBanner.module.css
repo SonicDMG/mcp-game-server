@@ -115,6 +115,30 @@
   border: 2px solid #ef4444;
 }
 
+.killedAvatarWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.killedSkullOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: 2.2em;
+  color: #ff0000;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 2;
+  opacity: 1;
+  text-shadow: 0 0 6px #fff, 0 0 2px #ff0000;
+}
+
 .placeholder {
   color: #b3b3b3;
   font-style: italic;

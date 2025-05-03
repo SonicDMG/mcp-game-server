@@ -16,7 +16,7 @@ export interface LeaderboardUser {
   reachedGoal: boolean;
   room: string;
   isWinner?: boolean;
-  killed?: boolean;
+  status?: 'playing' | 'winner' | 'killed';
 }
 
 interface StoryMetadata {

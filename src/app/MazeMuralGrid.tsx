@@ -11,7 +11,7 @@ interface LeaderboardUser {
   reachedGoal: boolean;
   room: string;
   isWinner?: boolean;
-  killed?: boolean;
+  status?: 'playing' | 'winner' | 'killed';
 }
 
 interface StoryMetadata {
@@ -132,7 +132,7 @@ export function LeaderboardHUD({ setLeaderboardData }: LeaderboardHUDProps) {
   useEffect(() => {
     if (story && users.length > 0 && setLeaderboardData) {
       const winners = users.filter(u => u.reachedGoal);
-      const killed = users.filter(u => u.killed);
+      const killed = users.filter(u => u.status === 'killed');
       const items = (story.items || []).map(item => ({ ...item, storyId: '', canTake: true, canUse: false }));
       const collectedItemIds = new Set(users.flatMap(u => u.inventory));
       const totalPlayers = users.length;
