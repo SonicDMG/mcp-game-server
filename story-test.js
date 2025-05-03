@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const fetch = require('node-fetch');
 const delay = ms => new Promise(res => setTimeout(res, ms));
 // Keep game API for game actions
 const GAME_API = 'http://localhost:3000/api/game';
@@ -82,97 +83,276 @@ async function resetGame(userIdToReset, storyIdToReset) {
   }
 }
 
-async function run() {
-  let selectedStory = null;
-  let storyIdToUse = null;
-  // Define the user ID we want to reset/test primarily
-  const testUserId = 'neo';
+// Helper: Fetch player state (location, inventory)
+async function getPlayerState(userId, storyId) {
+  // Use POST /api/game/state with JSON body
+  const res = await post('/state', { userId, storyId }, GAME_API);
+  return res;
+}
 
+// Helper: Retry wrapper for async functions
+async function retry(fn, retries = 3, delayMs = 500) {
+  let lastErr;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      console.error(`Retry ${i + 1} failed:`, err.message || err);
+      if (i < retries - 1) await delay(delayMs);
+    }
+  }
+  throw lastErr;
+}
+
+// Helper: Fetch all locations for a story with retry and error handling
+let testStoryLogicalId = null;
+async function getLocations() {
+  if (!testStoryLogicalId) throw new Error('testStoryLogicalId not set');
+  return await retry(async () => {
+    try {
+      const res = await get(`/story-metadata?id=${testStoryLogicalId}`, BASE_API);
+      return res.rooms || [];
+    } catch (err) {
+      console.error('Error fetching locations:', err.message || err);
+      throw err;
+    }
+  });
+}
+
+// Helper: Print all stories and metadata for debug
+async function debugStoriesAndMetadata(storyId) {
   try {
-    console.log("--- Fetching Available Stories ---");
-    const storiesResult = await get('/stories'); // Fetch all stories
-    // Ensure the response is in the expected format (array or object with data)
-    const availableStories = storiesResult?.data || storiesResult; // Adapt based on actual API response structure
+    const stories = await get('/stories', BASE_API);
+    console.log('DEBUG: All stories:', stories.map(s => s.id));
+    const meta = await get(`/story-metadata?id=${storyId}`, BASE_API);
+    console.log('DEBUG: Metadata for story:', storyId, meta);
+  } catch (err) {
+    console.error('DEBUG: Error fetching stories/metadata:', err.message || err);
+  }
+}
 
-    if (!Array.isArray(availableStories) || availableStories.length === 0) {
-        throw new Error("No stories found in the database or invalid response format.");
+// Wrap API calls with error handling
+async function safeApiCall(fn, label) {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error(`ERROR in ${label}:`, err.message || err);
+    return null;
+  }
+}
+
+// Helper: BFS pathfinding from start to goal
+function findPath(locations, startId, goalId) {
+  const queue = [[startId]];
+  const visited = new Set();
+  while (queue.length) {
+    const path = queue.shift();
+    const current = path[path.length - 1];
+    if (current === goalId) return path;
+    if (visited.has(current)) continue;
+    visited.add(current);
+    const loc = locations.find(l => l.id === current);
+    if (loc && loc.exits) {
+      for (const exit of loc.exits) {
+        // Use targetLocationId if present, else fallback to target
+        const targetId = exit.targetLocationId || exit.target;
+        if (targetId && !visited.has(targetId)) {
+          queue.push([...path, targetId]);
+        }
+      }
     }
+  }
+  return null;
+}
 
-    // Select the first story for the test
-    selectedStory = availableStories[0];
-    // Use the story's logical ID for reset/gameplay identification
-    // Assuming the fetched stories include the 'id' field now
-    storyIdToUse = selectedStory.id;
+// Helper: Move user step-by-step to goal
+async function moveUserToGoal(userId, storyId, goalRoomId) {
+  const locations = await getLocations();
+  const state = await getPlayerState(userId, storyId);
+  const startId = state.location.id;
+  const path = findPath(locations, startId, goalRoomId);
+  if (!path) throw new Error(`No path from ${startId} to ${goalRoomId}`);
+  for (let i = 1; i < path.length; i++) {
+    const target = path[i];
+    console.log(`Moving ${userId} to ${target}...`);
+    await post('/move', { userId, target, storyId }, GAME_API);
+    await delay(100); // Small delay for realism
+  }
+}
 
-    if (!storyIdToUse) {
-        throw new Error("Selected story is missing an id."); // Check for 'id'
+// Helper: Pick up required artifacts in current room
+async function pickupArtifacts(userId, storyId, requiredArtifacts) {
+  const state = await getPlayerState(userId, storyId);
+  const itemsHere = state.location.items || [];
+  const inventory = state.player.inventory || [];
+  console.log(`\n[Pickup Debug] User: ${userId}, Room: ${state.location.id}`);
+  console.log(`[Pickup Debug] Room items:`, itemsHere);
+  console.log(`[Pickup Debug] Required artifacts:`, requiredArtifacts);
+  console.log(`[Pickup Debug] Inventory:`, inventory);
+  for (const artifact of requiredArtifacts) {
+    if (itemsHere.includes(artifact) && !inventory.includes(artifact)) {
+      console.log(`Picking up ${artifact} for ${userId}...`);
+      try {
+        const response = await post('/take', { userId, target: artifact, storyId }, GAME_API);
+        console.log(`RESPONSE from /take for ${artifact}:`, response);
+        if (!response.success) {
+          console.error(`ERROR picking up ${artifact} for ${userId}:`, response);
+        }
+      } catch (err) {
+        console.error(`EXCEPTION picking up ${artifact} for ${userId}:`, err.message || err);
+      }
+      await delay(100);
+    } else if (!itemsHere.includes(artifact)) {
+      console.log(`[Pickup Debug] Artifact ${artifact} not present in room ${state.location.id}.`);
+    } else if (inventory.includes(artifact)) {
+      console.log(`[Pickup Debug] Artifact ${artifact} already in inventory for ${userId}.`);
     }
+  }
+}
 
-    console.log(`--- Using Story: \"${selectedStory.title}\" (ID: ${storyIdToUse}) ---`);
+async function run() {
+  const errors = [];
+  // 1. Create a new test story
+  const testTheme = 'Test Adventure (simple win path)';
+  console.log('--- Creating Test Story ---');
+  const createRes = await safeApiCall(() => post('/stories', { theme: testTheme }, GAME_API), 'create story');
+  if (!createRes) { errors.push('Failed to create story'); return; }
+  const storyId = createRes.storyId;
+  console.log(`Created test story with id: ${storyId}`);
+  await debugStoriesAndMetadata(storyId);
 
-  } catch (error) {
-    console.error("Failed to fetch or select a story:", error);
-    console.log("Exiting test due to story fetch failure.");
-    return; // Stop the test if we can't get a story
+  // 2. Start game for test users to ensure they are initialized
+  const users = ['neo', 'trinity', 'case', 'molly'];
+  for (const user of users) {
+    await safeApiCall(() => post('/start', { userId: user, storyId }, GAME_API), `startGame for ${user}`);
   }
 
-  console.log("--- Resetting Game State ---");
-  // Call reset for all players involved in the test
-  await resetGame('neo', storyIdToUse);
-  await resetGame('trinity', storyIdToUse);
-  await resetGame('case', storyIdToUse);
-  await resetGame('molly', storyIdToUse);
+  // 3. Reset game state for test users (optional, but keeps test logic consistent)
+  for (const user of users) {
+    await safeApiCall(() => resetGame(user, storyId), `resetGame for ${user}`);
+  }
+  await debugStoriesAndMetadata(storyId);
 
-  console.log("--- Running Player Simulations (Mystic Library Path) ---");
+  // 4. Fetch story details
+  const story = await safeApiCall(() => get(`/stories/${storyId}`), 'fetch story details');
+  if (!story) { errors.push('Failed to fetch story details'); return; }
+  const requiredArtifacts = story.requiredArtifacts;
+  const goalRoomId = story.goalRoomId;
+  testStoryLogicalId = story.id; // Set the logical id for metadata endpoint
+  await debugStoriesAndMetadata(storyId);
 
-  // Updated path based on library definition
-  // Starting in 'library'
+  // 5. Scenario A: User collects all artifacts and enters goal room step-by-step
+  console.log('\n--- Scenario A: Win Path (step-by-step) ---');
+  let neoState = await safeApiCall(() => getPlayerState('neo', storyId), 'getPlayerState neo');
+  if (!neoState) { errors.push('Failed to get neo state'); return; }
+  const locations = await safeApiCall(() => getLocations(), 'getLocations');
+  if (!locations) { errors.push('Failed to get locations'); return; }
+  console.log('DEBUG: Starting location ID:', neoState.location.id);
+  console.log('DEBUG: Goal room ID:', goalRoomId);
+  console.log('DEBUG: All room IDs:', locations.map(l => l.id));
+  for (const room of locations) {
+    console.log(`DEBUG: Room ${room.id} items:`, room.items);
+  }
+  console.log('DEBUG: Required Artifacts:', requiredArtifacts);
 
-  // neo's path
-  console.log("Neo attempting moves...");
-  // 1. Take silver_key from library (Use GAME_API)
-  await post('/take', { userId: 'neo', target: 'silver_key', storyId: storyIdToUse }, GAME_API); 
-  // 2. Move to hallway (Use GAME_API)
-  await post('/move', { userId: 'neo', target: 'hallway', storyId: storyIdToUse }, GAME_API);
-  // TODO: Check hallway definition for next steps (items/exits)
-  // Assuming hallway has treasure_room exit and nothing to take for now
-  // 3. Move to treasure_room (requires silver_key, Use GAME_API)
-  await post('/move', { userId: 'neo', target: 'treasure_room', storyId: storyIdToUse }, GAME_API);
-  // TODO: Check treasure_room definition
-  // Assuming treasure_room has golden_goblet
-  // 4. Take golden_goblet (Use GAME_API)
-  await post('/take', { userId: 'neo', target: 'golden_goblet', storyId: storyIdToUse }, GAME_API);
-  // Assuming treasure_room is the goal/win condition? Adjust if needed.
+  // Map artifact -> room
+  const artifactRoomMap = {};
+  for (const artifact of requiredArtifacts) {
+    for (const room of locations) {
+      if ((room.items || []).includes(artifact)) {
+        artifactRoomMap[artifact] = room.id;
+        break;
+      }
+    }
+  }
+  console.log('DEBUG: Artifact to Room Map:', artifactRoomMap);
 
-  // trinity:
-  console.log("Trinity attempting moves...");
-  // 1. Take silver_key from library (Use GAME_API)
-  await post('/take', { userId: 'trinity', target: 'silver_key', storyId: storyIdToUse }, GAME_API);
-  // 2. Move to hallway (Use GAME_API)
-  await post('/move', { userId: 'trinity', target: 'hallway', storyId: storyIdToUse }, GAME_API);
+  // Build a path: start -> each artifact room (in any order, skipping repeats) -> goal
+  const visitedRooms = new Set();
+  let currentRoom = neoState.location.id;
+  let fullPath = [currentRoom];
+  for (const artifact of requiredArtifacts) {
+    const artifactRoom = artifactRoomMap[artifact];
+    if (artifactRoom && !visitedRooms.has(artifactRoom)) {
+      // Find path from currentRoom to artifactRoom
+      const subPath = findPath(locations, currentRoom, artifactRoom);
+      if (subPath) {
+        // Skip the first room (already in fullPath)
+        for (let i = 1; i < subPath.length; i++) {
+          fullPath.push(subPath[i]);
+        }
+        currentRoom = artifactRoom;
+        visitedRooms.add(artifactRoom);
+      } else {
+        errors.push(`No path from ${currentRoom} to artifact room ${artifactRoom}`);
+      }
+    }
+  }
+  // Finally, path from last artifact room to goal
+  if (currentRoom !== goalRoomId) {
+    const subPath = findPath(locations, currentRoom, goalRoomId);
+    if (subPath) {
+      for (let i = 1; i < subPath.length; i++) {
+        fullPath.push(subPath[i]);
+      }
+    } else {
+      errors.push(`No path from ${currentRoom} to goal room ${goalRoomId}`);
+    }
+  }
+  console.log('DEBUG: Full path for neo:', fullPath);
 
-  // case:
-  console.log("Case attempting moves...");
-  // 1. Move to hallway (Use GAME_API)
-  await post('/move', { userId: 'case', target: 'hallway', storyId: storyIdToUse }, GAME_API);
+  // Move neo through the full path, picking up artifacts in each room
+  for (let i = 1; i < fullPath.length; i++) {
+    const locId = fullPath[i];
+    await safeApiCall(() => moveUserToGoal('neo', storyId, locId), `moveUserToGoal neo to ${locId}`);
+    await safeApiCall(() => pickupArtifacts('neo', storyId, requiredArtifacts), `pickupArtifacts neo in ${locId}`);
+    // Optionally print inventory after each pickup
+    const state = await safeApiCall(() => getPlayerState('neo', storyId), 'getPlayerState neo after pickup');
+    if (state) {
+      console.log(`DEBUG: neo inventory after ${locId}:`, state.player.inventory);
+    }
+    await debugStoriesAndMetadata(storyId);
+  }
 
-  // molly:
-  console.log("Molly attempting moves...");
-  // 1. Move to hallway (Use GAME_API)
-  await post('/move', { userId: 'molly', target: 'hallway', storyId: storyIdToUse }, GAME_API);
+  // 6. Scenario B: User enters goal room without all artifacts
+  console.log('\n--- Scenario B: Incomplete Artifacts (step-by-step) ---');
+  await safeApiCall(() => moveUserToGoal('trinity', storyId, goalRoomId), 'moveUserToGoal trinity to goal');
 
+  // 7. Scenario C: User loots required artifact(s) in goal room (setup: case has artifact, molly is in goal)
+  console.log('\n--- Scenario C: Loot for Win (step-by-step) ---');
+  // Move case to artifact, pick up, then to goal
+  let caseState = await safeApiCall(() => getPlayerState('case', storyId), 'getPlayerState case');
+  if (!caseState) { errors.push('Failed to get case state'); return; }
+  for (const artifact of requiredArtifacts) {
+    await safeApiCall(() => moveUserToGoal('case', storyId, caseState.location.id), `moveUserToGoal case to ${caseState.location.id}`);
+    await safeApiCall(() => pickupArtifacts('case', storyId, [artifact]), `pickupArtifacts case in ${caseState.location.id}`);
+  }
+  await safeApiCall(() => moveUserToGoal('case', storyId, goalRoomId), 'moveUserToGoal case to goal');
+  await safeApiCall(() => moveUserToGoal('molly', storyId, goalRoomId), 'moveUserToGoal molly to goal');
+  // Molly kills case
+  await safeApiCall(() => post('/kill', { playerId: 'molly', targetId: 'case', storyId }, GAME_API), 'post kill');
+  // Molly loots all artifacts from case
+  await safeApiCall(() => post('/loot', { playerId: 'molly', targetId: 'case', storyId, items: requiredArtifacts }, GAME_API), 'post loot');
+  // Molly moves again to goal to trigger win
+  await safeApiCall(() => moveUserToGoal('molly', storyId, goalRoomId), 'moveUserToGoal molly to goal');
 
-  // Wait for all actions to process
-  await delay(500);
+  // 8. Fetch leaderboard and assert win states
+  const leaderboard = await safeApiCall(() => get(`/leaderboard?storyId=${storyId}`, BASE_API), 'fetch leaderboard');
+  if (!leaderboard) { errors.push('Failed to fetch leaderboard'); return; }
+  const getStatus = (id) => leaderboard.find(u => u.id === id)?.status;
+  console.log('\n--- Test Results ---');
+  console.log(`neo: ${getStatus('neo') === 'winner' ? '✅ WIN' : '❌ NOT WINNER'}`);
+  console.log(`trinity: ${getStatus('trinity') === 'winner' ? '❌ (should not win)' : '✅ NOT WINNER'}`);
+  console.log(`molly: ${getStatus('molly') === 'winner' ? '✅ WIN (via loot)' : '❌ NOT WINNER'}`);
+  console.log(`case: ${getStatus('case') === 'winner' ? '❌ (should not win)' : '✅ NOT WINNER'}`);
 
-  console.log("--- Fetching Leaderboard ---");
-  // Leaderboard is under BASE_API and now requires storyId query param
-  const leaderboard = await get(`/leaderboard?storyId=${storyIdToUse}`, BASE_API);
-  console.log('\nFinal Leaderboard:');
-  leaderboard.forEach(u => {
-    // Assuming response has id, inventory, room, reachedGoal
-    console.log(`- ${u.id}: ${u.inventory?.join(', ') || 'No artifacts'} | Room: ${u.room} | ${u.reachedGoal ? '🏁 Goal Reached!' : ''}`);
-  });
+  if (errors.length) {
+    console.error('\n--- ERRORS ENCOUNTERED ---');
+    for (const err of errors) console.error(err);
+  } else {
+    console.log('\n--- TEST COMPLETED WITHOUT ERRORS ---');
+  }
 }
 
 run(); 

@@ -49,8 +49,7 @@ export async function GET(request: NextRequest) {
   const storyId = searchParams.get('id');
 
   if (!storyId) {
-    const defaultStoryId = 'mystic_library';
-    return await fetchAndFormatMetadata(defaultStoryId);
+    return NextResponse.json({ error: 'Missing required id query parameter.' }, { status: 400 });
   }
 
   return await fetchAndFormatMetadata(storyId);
