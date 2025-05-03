@@ -95,7 +95,7 @@ export default async function LandingPage() {
       </header>
       <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
         <div className="hud-header">
-          <span className="hud-reserved">[Choose a Story]</span>
+          {/* Removed [Choose a Story] text */}
         </div>
         <div style={{
           width: '100%',
@@ -145,7 +145,25 @@ export default async function LandingPage() {
                   }} 
                 />
                 <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{story.title}</div>
-                <div style={{ fontSize: '1rem', color: '#a78bfa', marginBottom: 16, flexGrow: 1 }}>{story.description}</div>
+                <div
+                  style={{
+                    fontSize: '1rem',
+                    color: '#a78bfa',
+                    marginBottom: 16,
+                    flexGrow: 1,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxHeight: '2.6em', // ~2 lines
+                  }}
+                  title={story.description}
+                >
+                  {story.description.length > 100
+                    ? story.description.slice(0, 100) + '…'
+                    : story.description}
+                </div>
                 
                 <div style={{
                   fontSize: '0.9rem', 
