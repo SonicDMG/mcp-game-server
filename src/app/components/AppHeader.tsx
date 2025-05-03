@@ -36,13 +36,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, winners, ki
       width: '100%',
     }}
   >
-    <div className="breadcrumb" style={{ alignSelf: 'flex-start', marginLeft: 32, marginBottom: 4 }}>
-      {breadcrumbs.map((crumb, idx) => (
-        <span key={crumb.label + idx}>
-          {crumb.href ? <Link href={crumb.href} className="breadcrumb-link">{crumb.label}</Link> : <span style={{ color: '#a78bfa' }}>{crumb.label}</span>}
-          {idx < breadcrumbs.length - 1 && <span style={{ margin: '0 6px' }}>/</span>}
-        </span>
-      ))}
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', margin: '0 0 4px 0', padding: '0 32px' }}>
+      <div className="breadcrumb" style={{ flex: 1, justifyContent: 'flex-start' }}>
+        <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="breadcrumb-link">powered by <b>Langflow</b></a>
+      </div>
+      <div className="breadcrumb" style={{ flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
+        {breadcrumbs.map((crumb, idx) => (
+          <span key={crumb.label + idx}>
+            {crumb.href ? <Link href={crumb.href} className="breadcrumb-link">{crumb.label}</Link> : <span style={{ color: '#a78bfa' }}>{crumb.label}</span>}
+            {idx < breadcrumbs.length - 1 && <span style={{ margin: '0 6px' }}>/</span>}
+          </span>
+        ))}
+      </div>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between', maxWidth: 900, margin: '0 auto' }}>
       <div style={{ minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flex: 1 }}>

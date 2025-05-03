@@ -93,7 +93,7 @@ export default async function LandingPage() {
     <div className="app-root">
       <AppHeader
         logoUrl="/images/logo.png"
-        breadcrumbs={[]}
+        breadcrumbs={[{ label: 'Home', href: '/' }]}
         stats={{ players: 0, artifacts: '', rooms: '', winners: 0 }}
       />
       <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>

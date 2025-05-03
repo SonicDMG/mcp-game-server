@@ -417,9 +417,6 @@ html, body {
 }
 
 .breadcrumb {
-  position: absolute;
-  top: 16px;
-  right: 32px;
   display: flex;
   align-items: center;
   gap: 8px;

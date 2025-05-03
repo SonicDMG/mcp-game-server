@@ -1,5 +1,8 @@
 import React from 'react';
 
+const GITHUB_URL = "https://github.com/SonicDMG/mcp-game-server";
+const README_URL = "https://github.com/SonicDMG/mcp-game-server#readme";
+
 const AppFooter: React.FC = () => (
   <footer
     className="app-footer"
@@ -19,26 +22,13 @@ const AppFooter: React.FC = () => (
       boxShadow: '0 -2px 16px #000a',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'flex-end',
+      justifyContent: 'center',
     }}
   >
-    <a
-      href="https://langflow.org/"
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        position: 'absolute',
-        right: 24,
-        bottom: 10,
-        color: '#a78bfa',
-        fontSize: '1rem',
-        textDecoration: 'none',
-        opacity: 0.85,
-        fontWeight: 500,
-      }}
-    >
-      Powered by Langflow
-    </a>
+    <div style={{ display: 'flex', gap: 24, alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#a7a7ff', fontSize: '1rem', textDecoration: 'none', opacity: 0.85, fontWeight: 500 }}>GitHub</a>
+      <a href={README_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#a7a7ff', fontSize: '1rem', textDecoration: 'none', opacity: 0.85, fontWeight: 500 }}>Learn how this app was built</a>
+    </div>
   </footer>
 );
 
