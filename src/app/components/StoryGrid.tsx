@@ -74,17 +74,51 @@ const skeletonStyle = `
 }
 `;
 
+// Winner ribbon CSS
+const ribbonStyle = {
+  position: 'absolute' as const,
+  top: 12,
+  right: -32,
+  background: 'linear-gradient(90deg, #fbbf24 60%, #f59e42 100%)',
+  color: '#23244a',
+  fontWeight: 900,
+  fontSize: 16,
+  padding: '6px 32px',
+  borderRadius: '16px 0 0 16px',
+  boxShadow: '0 2px 8px #0003',
+  zIndex: 2,
+  letterSpacing: 1,
+  transform: 'rotate(18deg)',
+};
+
+// Bump animation CSS
+const bumpAnimStyle = `
+@keyframes statBump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.stat-bump {
+  animation: statBump 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+`;
+
 export default function StoryGrid({ initialStories }: StoryGridProps) {
   const [stories, setStories] = useState(initialStories);
   const [newStoryIds, setNewStoryIds] = useState<Set<string>>(new Set());
   const announcedStoryIds = useRef(new Set(initialStories.map(s => s.id)));
+
+  // Track previous stats for bump animation
+  const [prevStats, setPrevStats] = useState<{ [id: string]: { playerCount: number; totalArtifactsFound: number; killedCount: number } }>({});
+  const [bumpMap, setBumpMap] = useState<{ [id: string]: { player: boolean; artifact: boolean; killed: boolean } }>({});
 
   useEffect(() => {
     // Inject animation style if not present
     if (!document.getElementById('story-pop-in-style')) {
       const style = document.createElement('style');
       style.id = 'story-pop-in-style';
-      style.innerHTML = popInStyle + skeletonStyle;
+      style.innerHTML = popInStyle + skeletonStyle + bumpAnimStyle;
       document.head.appendChild(style);
     }
   }, []);
@@ -144,6 +178,41 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
     return () => clearTimeout(timeout);
   }, [newStoryIds]);
 
+  // Detect stat increases and trigger bump
+  useEffect(() => {
+    setStories(prev => {
+      const newBumpMap: typeof bumpMap = {};
+      const newPrevStats: typeof prevStats = { ...prevStats };
+      for (const story of prev) {
+        const prevStat = prevStats[story.id];
+        newBumpMap[story.id] = {
+          player:
+            prevStat === undefined
+              ? story.playerCount > 0
+              : story.playerCount > prevStat.playerCount,
+          artifact:
+            prevStat === undefined
+              ? story.totalArtifactsFound > 0
+              : story.totalArtifactsFound > prevStat.totalArtifactsFound,
+          killed:
+            prevStat === undefined
+              ? story.killedCount > 0
+              : story.killedCount > prevStat.killedCount,
+        };
+        newPrevStats[story.id] = {
+          playerCount: story.playerCount,
+          totalArtifactsFound: story.totalArtifactsFound,
+          killedCount: story.killedCount,
+        };
+      }
+      setBumpMap(newBumpMap);
+      setTimeout(() => setBumpMap({}), 500); // Remove bump after animation
+      setPrevStats(newPrevStats);
+      return prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stories]);
+
   return (
     <div
       style={{
@@ -202,11 +271,23 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                 alignItems: 'center',
                 transition: 'box-shadow 0.2s, border 0.2s',
                 cursor: 'pointer',
-                height: '100%',
+                height: 420,
                 minWidth: 320,
                 maxWidth: 320,
+                boxSizing: 'border-box',
+                position: 'relative',
               }}
             >
+              {/* Winner Ribbon */}
+              {(() => {
+                // Demo logic: if totalArtifactsFound >= playerCount and playerCount > 0, show ribbon
+                const winnerCount = story.totalArtifactsFound >= story.playerCount && story.playerCount > 0 ? 1 : 0;
+                return winnerCount > 0 ? (
+                  <div style={ribbonStyle} title="This story has a winner!">
+                    🏆 Winner!
+                  </div>
+                ) : null;
+              })()}
               {story.image && story.image.trim() ? (
                 <Image 
                   src={getProxiedImageUrl(story.image)}
@@ -251,6 +332,8 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   maxHeight: '2.6em', // ~2 lines
+                  width: '100%',
+                  minHeight: 48,
                 }}
                 title={story.description}
               >
@@ -268,9 +351,9 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                 display: 'flex',
                 justifyContent: 'space-around'
               }}>
-                <span>👤 {story.playerCount}</span>
-                <span>💎 {story.totalArtifactsFound}</span>
-                <span>💀 {story.killedCount}</span>
+                <span className={bumpMap[story.id]?.player ? 'stat-bump' : ''}>👤 {story.playerCount}</span>
+                <span className={bumpMap[story.id]?.artifact ? 'stat-bump' : ''}>💎 {story.totalArtifactsFound}</span>
+                <span className={bumpMap[story.id]?.killed ? 'stat-bump' : ''}>💀 {story.killedCount}</span>
               </div>
             </div>
           </Link>
