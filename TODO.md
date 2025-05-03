@@ -66,4 +66,6 @@ See assistant notes for more details and options.
 
 - [ ] Fix item layout in zoomed-in room card
 
-- [ ] If a user kills another player and gains all required items while looting them while in the correct room, they should trigger a win state 
+- [ ] If a user kills another player and gains all required items while looting them while in the correct room, they should trigger a win state
+
+- [ ] Implement polling for player list changes to show toasts for new players joining a story 

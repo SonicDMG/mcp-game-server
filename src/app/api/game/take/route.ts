@@ -116,6 +116,16 @@ export async function POST(request: NextRequest) {
     let specialMessage = '';
     if (story.requiredArtifacts && story.requiredArtifacts.includes(itemId)) {
       specialMessage = ' There is something special about this item...';
+      // Update gameProgress.itemsFound if not already present
+      player.gameProgress = player.gameProgress || {};
+      player.gameProgress.itemsFound = player.gameProgress.itemsFound || [];
+      if (!player.gameProgress.itemsFound.includes(itemId)) {
+        player.gameProgress.itemsFound.push(itemId);
+        await playersCollection.updateOne(
+          { _id: player._id },
+          { $set: { 'gameProgress.itemsFound': player.gameProgress.itemsFound } }
+        );
+      }
     }
 
     // Fetch updated inventory items

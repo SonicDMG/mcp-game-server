@@ -560,7 +560,9 @@ export async function GET(request: NextRequest) {
         if (!player.storyId) continue;
         const stats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
         stats.playerCount += 1;
-        stats.totalArtifactsFound += player.gameProgress?.itemsFound?.length || 0;
+        // Use the max number of artifacts found by any player
+        const foundCount = player.gameProgress?.itemsFound?.length || 0;
+        stats.totalArtifactsFound = Math.max(stats.totalArtifactsFound, foundCount);
         if (player.status === 'killed') stats.killedCount += 1;
         statsMap.set(player.storyId, stats);
       }
@@ -569,9 +571,9 @@ export async function GET(request: NextRequest) {
         const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
         return {
           ...story,
-          playerCount: stats.playerCount,
-          totalArtifactsFound: stats.totalArtifactsFound,
-          killedCount: stats.killedCount
+          playerCount: stats.playerCount ?? 0,
+          totalArtifactsFound: stats.totalArtifactsFound ?? 0,
+          killedCount: stats.killedCount ?? 0
         };
       });
       // Return stories with stats
@@ -587,7 +589,7 @@ export async function GET(request: NextRequest) {
       // Fetch players for this story
       const players = await db.collection('game_players').find({ storyId }).toArray();
       const playerCount = players.length;
-      const totalArtifactsFound = players.reduce((sum, p) => sum + (p.gameProgress?.itemsFound?.length || 0), 0);
+      const totalArtifactsFound = players.reduce((max, p) => Math.max(max, p.gameProgress?.itemsFound?.length || 0), 0);
       const killedCount = players.filter(p => p.status === 'killed').length;
       // Return the full story object with stats
       return NextResponse.json({ ...story, playerCount, totalArtifactsFound, killedCount });
