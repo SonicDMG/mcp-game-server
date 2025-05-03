@@ -1,9 +1,8 @@
-import Image from 'next/image';
-import Link from 'next/link';
 import db from '@/lib/astradb'; // Import DB instance
-import { Story, PlayerState, getProxiedImageUrl } from '@/app/api/game/types'; // Import types
+import { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
 import AppHeader from './components/AppHeader';
+import StoryGrid from './components/StoryGrid';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -26,17 +25,18 @@ interface PlayerRecordForStats extends PlayerState {
 interface PlayerStats {
   playerCount: number;
   totalArtifactsFound: number;
+  killedCount: number;
 }
 
 // Interface for the final story data including stats
 interface StoryWithStats extends StoryRecord {
   playerCount: number;
   totalArtifactsFound: number;
+  killedCount: number;
 }
 
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 const playersCollection = db.collection<PlayerRecordForStats>('game_players');
-const placeholderImage = 'https://placehold.co/320x200/23244a/3b82f6.png?text=Story+Image';
 
 // Removed mockStories array
 
@@ -64,20 +64,22 @@ export default async function LandingPage() {
       for (const player of allPlayers) {
         if (!player.storyId) continue; // Skip players without storyId
 
-        const currentStats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0 };
+        const currentStats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
         currentStats.playerCount += 1;
         currentStats.totalArtifactsFound += player.gameProgress?.itemsFound?.length || 0;
+        if (player.status === 'killed') currentStats.killedCount += 1;
         statsMap.set(player.storyId, currentStats);
       }
       console.log(`Calculated stats for ${statsMap.size} stories.`);
 
       // 4. Combine story data with calculated stats
       storiesWithStats = stories.map(story => {
-        const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0 };
+        const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
         return {
           ...story,
           playerCount: stats.playerCount,
-          totalArtifactsFound: stats.totalArtifactsFound
+          totalArtifactsFound: stats.totalArtifactsFound,
+          killedCount: stats.killedCount
         };
       });
     } else {
@@ -100,91 +102,12 @@ export default async function LandingPage() {
         <div className="hud-header">
           {/* Removed [Choose a Story] text */}
         </div>
-        <div style={{
-          width: '100%',
-          maxWidth: 900,
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 32,
-          marginTop: 32
-        }}>
-          {fetchError && (
-            <div style={{ color: 'red', textAlign: 'center', gridColumn: '1 / -1' }}>{fetchError}</div>
-          )}
-          {!fetchError && storiesWithStats.length === 0 && (
-            <div style={{ color: '#aaa', textAlign: 'center', gridColumn: '1 / -1' }}>No stories available yet.</div>
-          )}
-          {storiesWithStats.map((story, index) => (
-            <Link key={story.id} href={`/story/${story.id}`} style={{ textDecoration: 'none', display: 'flex' }}>
-              <div style={{
-                background: '#23244aee',
-                borderRadius: 16,
-                border: '2.5px solid #3b82f6',
-                boxShadow: '0 4px 24px 0 #3b82f633',
-                padding: 24,
-                width: '100%',
-                color: '#f5f6fa',
-                textAlign: 'center',
-                fontWeight: 600,
-                fontSize: '1.1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                transition: 'box-shadow 0.2s, border 0.2s',
-                cursor: 'pointer',
-                height: '100%'
-              }}>
-                <Image 
-                  src={getProxiedImageUrl(story.image || placeholderImage)} 
-                  alt={story.title} 
-                  width={160} 
-                  height={100} 
-                  priority={index === 0}
-                  style={{ 
-                    borderRadius: 12, 
-                    marginBottom: 16, 
-                    objectFit: 'cover', 
-                  }} 
-                />
-                <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{story.title}</div>
-                <div
-                  style={{
-                    fontSize: '1rem',
-                    color: '#a78bfa',
-                    marginBottom: 16,
-                    flexGrow: 1,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxHeight: '2.6em', // ~2 lines
-                  }}
-                  title={story.description}
-                >
-                  {story.description.length > 100
-                    ? story.description.slice(0, 100) + '…'
-                    : story.description}
-                </div>
-                
-                <div style={{
-                  fontSize: '0.9rem', 
-                  color: '#cbd5e1',
-                  marginTop: 'auto',
-                  paddingTop: 12,
-                  borderTop: '1px solid #4a5568',
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'space-around'
-                }}>
-                  <span>👤 {story.playerCount}</span>
-                  <span>💎 {story.totalArtifactsFound}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {fetchError && (
+          <div style={{ color: 'red', textAlign: 'center', gridColumn: '1 / -1' }}>{fetchError}</div>
+        )}
+        {!fetchError && (
+          <StoryGrid initialStories={storiesWithStats} />
+        )}
       </main>
       <AppFooter />
     </div>
