@@ -23,14 +23,14 @@
 - [x] Update WinnerBanner to display "kill" statuses alongside winner status for each user (red X overlay, etc).
 
 ## 6. Utility Functions
-- [ ] Move any remaining utility functions out of main components and into a shared utils file if not already done.
+- [x] Move any remaining utility functions out of main components and into a shared utils file if not already done.
 
 ## 7. Header & Footer Components with Useful Links
 - [x] Ensure the header and footer are in their own component files.
 - [x] Add useful navigation or external links to both header and footer.
 
 ## 8. Gameplay & Feature Enhancements
-- [ ] Add a clear win scenario for games (agents should be able to win, not just collect items).
+- [x] Add a clear win scenario for games (agents should be able to win, not just collect items).
 - [ ] Add random "sidequests" or events (e.g., tidalwave, creature attack) that can occur during gameplay.
 - [ ] Possibly allow players to talk with each other (chat or message system).
 - [ ] Fix the progress bar for number of items larger than 5 (UI bug).
@@ -68,4 +68,6 @@ See assistant notes for more details and options.
 
 - [ ] If a user kills another player and gains all required items while looting them while in the correct room, they should trigger a win state
 
-- [ ] Implement polling for player list changes to show toasts for new players joining a story 
+- [ ] Implement polling for player list changes to show toasts for new players joining a story
+
+- [ ] Replace <img> tags with <Image /> from next/image in StoryGrid.tsx and ZoomedItemModal.tsx for better performance and to resolve Next.js warnings. 

@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl } from '../api/game/types';
-import { LeaderboardUser } from '../AsciiLeaderboard';
+import { LeaderboardUser } from '../story/[id]/leaderboard';
 import type { Location as GameLocation } from '../api/game/types';
 import RoomUserList from './RoomUserList';
 import dagre from 'dagre';

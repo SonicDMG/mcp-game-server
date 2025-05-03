@@ -3,6 +3,7 @@ import { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
 import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
+import EventFeed from './components/EventFeed';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -97,6 +98,7 @@ export default async function LandingPage() {
         logoUrl="/images/logo.png"
         breadcrumbs={[{ label: 'Home', href: '/' }]}
         stats={{ players: 0, artifacts: '', rooms: '', winners: 0 }}
+        eventFeed={<EventFeed storyId="all" />}
       />
       <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
         <div className="hud-header">

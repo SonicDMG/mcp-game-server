@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerState, updatePlayerState, getStory, getLocation, getItem } from '../dataService';
 import type { ItemRecord } from '../dataService';
+import db from '@/lib/astradb'; // Import the initialized Db instance
 
 /**
  * POST /api/game/kill
@@ -55,6 +56,8 @@ export async function POST(request: NextRequest) {
     }
     // Add randomness to the kill attempt
     const roll = Math.random();
+    // Get the events collection
+    const eventsCollection = db.collection('game_events');
     if (roll < 0.6) {
       // Success: attacker kills target
       target.status = 'killed';
@@ -62,6 +65,15 @@ export async function POST(request: NextRequest) {
       if (!success) {
         return NextResponse.json({ error: 'Failed to update target status.' }, { status: 500 });
       }
+      // Log event
+      await eventsCollection.insertOne({
+        storyId,
+        type: 'kill',
+        message: buildKillMessage({ outcome: 'success' }),
+        actor: playerId,
+        target: targetId,
+        timestamp: new Date().toISOString(),
+      });
       return NextResponse.json({
         success: true,
         outcome: 'success',
@@ -77,6 +89,14 @@ export async function POST(request: NextRequest) {
       });
     } else if (roll < 0.9) {
       // Fail: attack misses
+      await eventsCollection.insertOne({
+        storyId,
+        type: 'kill-fail',
+        message: buildKillMessage({ outcome: 'fail' }),
+        actor: playerId,
+        target: targetId,
+        timestamp: new Date().toISOString(),
+      });
       return NextResponse.json({
         success: false,
         outcome: 'fail',
@@ -96,6 +116,14 @@ export async function POST(request: NextRequest) {
       if (!success) {
         return NextResponse.json({ error: 'Failed to update attacker status.' }, { status: 500 });
       }
+      await eventsCollection.insertOne({
+        storyId,
+        type: 'counter',
+        message: buildKillMessage({ outcome: 'counter' }),
+        actor: playerId,
+        target: targetId,
+        timestamp: new Date().toISOString(),
+      });
       return NextResponse.json({
         success: true,
         outcome: 'counter',

@@ -3,16 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import './globals.css';
 import { Location as GameLocation } from '@/app/api/game/types';
-import AsciiLeaderboard from './AsciiLeaderboard';
-
-interface LeaderboardUser {
-  id: string;
-  inventory: string[];
-  reachedGoal: boolean;
-  room: string;
-  isWinner?: boolean;
-  status?: 'playing' | 'winner' | 'killed';
-}
+import Leaderboard, { LeaderboardUser } from './story/[id]/leaderboard';
 
 interface StoryMetadata {
   title: string;
@@ -163,7 +154,7 @@ export function LeaderboardHUD({ setLeaderboardData }: LeaderboardHUDProps) {
 
   return (
     <div className="leaderboard-hud-root">
-      <AsciiLeaderboard story={story} users={users} />
+      <Leaderboard story={story} users={users} />
     </div>
   );
 }
