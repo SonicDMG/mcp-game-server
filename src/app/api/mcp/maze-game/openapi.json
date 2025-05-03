@@ -427,6 +427,66 @@
         }
       }
     },
+    "/stories/status": {
+      "get": {
+        "summary": "Get Story Creation Status",
+        "description": "Polls the creation status of a story by storyId. Agents should use this endpoint after creating a story to check if it is ready. If status is 'pending', continue polling. If 'done', the story is ready. If 'error', inform the user and suggest retrying.",
+        "operationId": "getStoryCreationStatus",
+        "tags": ["Game Setup"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "description": "The storyId to check creation status for.",
+            "schema": { "type": "string" },
+            "example": "mystic_library"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status and metadata for the story.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["pending", "done", "error"], "description": "Current creation status." },
+                    "hint": { "type": "string", "description": "Next step or progress message for the agent/user." },
+                    "message": { "type": "string", "description": "Progress or error message." },
+                    "storyId": { "type": "string" },
+                    "title": { "type": "string" },
+                    "description": { "type": "string" },
+                    "imageUrl": { "type": "string", "format": "uri", "nullable": true },
+                    "startingLocation": { "type": "string" },
+                    "requiredArtifacts": { "type": "array", "items": { "type": "string" } },
+                    "version": { "type": "string" },
+                    "theme": { "type": "string" }
+                  },
+                  "required": ["status", "hint", "message", "storyId", "title", "description", "version"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid storyId.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Story not found.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/kill": {
       "post": {
         "summary": "Kill Player",
@@ -763,8 +823,10 @@
       },
       "CreateStoryResponseThemeBased": {
         "type": "object",
-        "description": "Response after successfully creating a story via theme-based generation.",
+        "description": "Response after successfully creating a story via theme-based generation.\n\nAgents should check the 'status' field. If 'status' is 'done', the story is ready. If not, agents should display the 'hint' to the user and may poll for progress. The 'hint' field provides actionable next steps or context for the user or agent.",
         "properties": {
+          "status": { "type": "string", "description": "Status of the story creation process. 'done' means ready; other values may indicate in-progress or error." },
+          "hint": { "type": "string", "description": "A hint or next step for the user or agent." },
           "message": { "type": "string" },
           "storyId": { "type": "string" },
           "title": { "type": "string" },
@@ -780,7 +842,7 @@
             "description": "URL of the generated image, or null/undefined if failed."
           }
         },
-        "required": ["message", "storyId", "title", "theme", "storyDbId", "locationsGenerated", "itemsGenerated", "startingLocationId"]
+        "required": ["status", "hint", "message", "storyId", "title", "theme", "storyDbId", "locationsGenerated", "itemsGenerated", "startingLocationId"]
       },
       "PlayerActionInput": {
         "type": "object",

@@ -34,4 +34,32 @@
 - [ ] Add random "sidequests" or events (e.g., tidalwave, creature attack) that can occur during gameplay.
 - [ ] Possibly allow players to talk with each other (chat or message system).
 - [ ] Fix the progress bar for number of items larger than 5 (UI bug).
-- [ ] Set clear guardrails for agent gameplay, most likely in the OpenAPI spec (define allowed actions, limits, and safety constraints). 
+- [ ] Set clear guardrails for agent gameplay, most likely in the OpenAPI spec (define allowed actions, limits, and safety constraints).
+
+## 9. Win Path Design & Milestones
+
+- [ ] Phase 1: Ensure a Basic Win Path Exists
+  - Always generate a "collect all required items and reach the goal room" path.
+  - Make this explicit in the story/game data and OpenAPI spec.
+  - Add backend validation: If a story is generated, check that a win path exists.
+
+- [ ] Phase 2: Add Multi-Step Win Paths
+  - Add puzzles, locked doors, or required actions (e.g., "use key on door").
+  - Update the backend and OpenAPI to support these requirements.
+
+- [ ] Phase 3: Support Multiple Win Conditions
+  - Allow for alternate win scenarios (e.g., sidequests, boss fights, escape routes).
+  - Document these in the OpenAPI spec and story data.
+
+- [ ] Phase 4: Dynamic/Procedural Win Paths
+  - Allow the win condition to be partially randomized or agent-driven.
+  - E.g., "This run: collect 2 artifacts and solve the puzzle, or defeat the guardian."
+
+See assistant notes for more details and options.
+
+- [ ] Ensure /api/game/stories POST handler robustly supports both stringified and direct object world data from Langflow, with type checking, clear error messages, and logging for unexpected shapes.
+
+- [ ] Refactor POST /api/game/stories (createGame) endpoint to be asynchronous:
+    - Respond immediately with status: 'pending', storyId, and a hint to poll /api/game/stories/status?id=... for progress.
+    - Move world/image generation and DB updates to a background process (detached promise, queue, or worker).
+    - Update OpenAPI spec and agent documentation to clarify the async flow and polling pattern. 

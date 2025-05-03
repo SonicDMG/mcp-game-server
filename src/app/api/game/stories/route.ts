@@ -21,6 +21,7 @@ interface StoryRecord {
   version: string;
   theme?: string; // Add theme to story record for potential future use/reference
   image?: string; // Add image field from types.ts (implicitly)
+  creationStatus?: 'pending' | 'done' | 'error'; // Track story creation progress
 }
 
 interface LocationRecord {
@@ -198,21 +199,22 @@ export async function POST(request: NextRequest) {
     // 3. Parse the extracted world data string
     let generatedWorld: LangflowWorldResponse;
     try {
-        let parsed: any = worldDataString;
+        let parsed: unknown = worldDataString;
         if (typeof parsed === 'string') {
             try {
                 parsed = JSON.parse(parsed);
-            } catch (e) {
+            } catch (_e) {
                 // Try to extract JSON from a string with preamble or code block
-                const jsonStart = parsed.indexOf('{');
-                const jsonEnd = parsed.lastIndexOf('}');
+                const parsedStr = parsed as string;
+                const jsonStart = parsedStr.indexOf('{');
+                const jsonEnd = parsedStr.lastIndexOf('}');
                 if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-                    let jsonString = parsed.substring(jsonStart, jsonEnd + 1);
+                    let jsonString = parsedStr.substring(jsonStart, jsonEnd + 1);
                     // Remove code block markers if present
                     jsonString = jsonString.replace(/```json|```/g, '').trim();
                     try {
                         parsed = JSON.parse(jsonString);
-                    } catch (e2) {
+                    } catch (_e2) {
                         throw new Error('Failed to extract and parse JSON from stringified world data.');
                     }
                 } else {
@@ -224,11 +226,22 @@ export async function POST(request: NextRequest) {
             // Try parsing again (double-encoded)
             try {
                 parsed = JSON.parse(parsed);
-            } catch (e) {
+            } catch (_e) {
                 throw new Error('Failed to parse double-encoded world data JSON string from Langflow response.');
             }
         }
-        generatedWorld = parsed;
+        // Type guard: ensure parsed matches LangflowWorldResponse
+        if (
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          'startingLocationId' in parsed &&
+          'locations' in parsed &&
+          'items' in parsed
+        ) {
+          generatedWorld = parsed as LangflowWorldResponse;
+        } else {
+          throw new Error('Parsed world data does not match expected structure.');
+        }
         console.log('POST /api/game/stories - Parsed Inner World Data Object:', JSON.stringify(generatedWorld, null, 2));
     } catch (parseError) {
         console.error('POST /api/game/stories - Error parsing inner world data JSON string:', parseError);
@@ -300,10 +313,11 @@ export async function POST(request: NextRequest) {
         id: storyId,
         title: title,
         description: description,
-        startingLocation: startingLocationId, 
+        startingLocation: '', // Not known yet
         version: version,
         theme: theme,
-        requiredArtifacts: requiredArtifacts // Add the selected artifacts
+        requiredArtifacts: [], // Not known yet
+        creationStatus: 'pending'
     };
     console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
@@ -356,8 +370,14 @@ export async function POST(request: NextRequest) {
         console.log(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
         // --- 10. Update Story Record with Image URL ---
         const updateResult = await storiesCollection.updateOne(
-            { id: storyId }, // Filter by the unique story ID
-            { $set: { image: generatedImageUrl } } // Set the image field
+            { id: storyId },
+            { $set: {
+                startingLocation: startingLocationId,
+                requiredArtifacts: requiredArtifacts,
+                creationStatus: 'done',
+                ...(generatedImageUrl ? { image: generatedImageUrl } : {})
+              }
+            }
         );
         if (updateResult.modifiedCount === 1) {
             console.log(`Successfully updated story ${storyId} with image URL.`);
@@ -371,7 +391,9 @@ export async function POST(request: NextRequest) {
 
     // --- 11. Return Success ---
     return NextResponse.json({
-        message: 'Story created successfully using Langflow generator.' + (!generatedImageUrl ? ' Image generation failed or timed out.' : ''),
+        status: 'done',
+        message: 'Game created successfully using Langflow generator.' + (!generatedImageUrl ? ' Image generation failed or timed out.' : ''),
+        hint: 'You can now join the game as a player using the storyId. Start by creating or joining a player session.',
         storyId: storyId,
         title: title,
         theme: theme,
@@ -394,7 +416,18 @@ export async function POST(request: NextRequest) {
         errorMessage = String(error);
     }
     
-    return NextResponse.json({ error: errorMessage }, { status: status });
+    if (storyId) {
+      await storiesCollection.updateOne(
+        { id: storyId },
+        { $set: { creationStatus: 'error' } }
+      );
+    }
+    
+    return NextResponse.json({ 
+      status: 'error',
+      error: errorMessage,
+      hint: 'Check your theme and try again, or contact support if the problem persists.'
+    }, { status: status });
   }
 }
 
