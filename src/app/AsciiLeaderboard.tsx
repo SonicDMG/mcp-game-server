@@ -88,7 +88,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             exploredRooms={exploredRooms}
             totalRooms={totalRooms}
             winnersCount={winnersCount}
-            killedCount={0}
+            killedCount={users.filter(u => u.status === 'killed').length}
           />
         </div>
         <div className={styles.itemCollage}>
