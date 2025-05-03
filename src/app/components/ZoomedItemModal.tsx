@@ -7,9 +7,10 @@ interface ZoomedItemModalProps {
   name: string;
   description: string;
   onClose: () => void;
+  users?: { id: string }[];
 }
 
-const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, description, onClose }) => (
+const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, description, onClose, users }) => (
   <div
     style={{
       position: 'fixed',
@@ -29,21 +30,41 @@ const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, descript
       style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh', background: '#23244a', borderRadius: 16, boxShadow: '0 8px 32px #000a', padding: 32 }}
       onClick={e => e.stopPropagation()}
     >
-      <Image
-        src={getProxiedImageUrl(image)}
-        alt={name}
-        width={320}
-        height={320}
-        style={{
-          maxWidth: '60vw',
-          maxHeight: '60vh',
-          borderRadius: 12,
-          objectFit: 'contain',
-          boxShadow: '0 8px 32px #000a',
-          background: '#222',
-          marginBottom: 24,
-        }}
-      />
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
+        <Image
+          src={getProxiedImageUrl(image)}
+          alt={name}
+          width={320}
+          height={320}
+          style={{
+            maxWidth: '60vw',
+            maxHeight: '60vh',
+            borderRadius: 12,
+            objectFit: 'contain',
+            boxShadow: '0 8px 32px #000a',
+            background: '#222',
+            marginBottom: 24,
+          }}
+        />
+        {users && users.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: 24, gap: 12, marginTop: 8 }}>
+            {users.map(user => (
+              <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img
+                  src={`https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(user.id)}`}
+                  alt={user.id}
+                  width={32}
+                  height={32}
+                  style={{ borderRadius: 6, background: '#222', border: '2px solid #3b82f6' }}
+                />
+                <span style={{ color: '#a7a7ff', fontSize: 16, textAlign: 'left', wordBreak: 'break-word' }} title={user.id}>
+                  {user.id}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div style={{ color: '#a7a7ff', fontWeight: 700, fontSize: 22, marginBottom: 12, textAlign: 'center' }}>{name}</div>
       <div style={{ color: '#fff', fontSize: 16, marginBottom: 12, textAlign: 'center' }}>{description}</div>
       <button

@@ -12,7 +12,7 @@
 - [x] Ensure WinnerBanner is prominent but not cramped.
 
 ## 3. Fix the Cut Off RoomGrid
-- [ ] Investigate and fix any issues where the RoomGrid is being cut off or not fully visible, especially on different screen sizes.
+- [x] Investigate and fix any issues where the RoomGrid is being cut off or not fully visible, especially on different screen sizes.
 
 ## 4. Add ASCII/Unicode Art for MCP Desktops
 - [ ] Provide a visual fallback (ASCII, emoji, or Unicode art) for rooms/items next to image links.

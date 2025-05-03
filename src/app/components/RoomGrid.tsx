@@ -9,7 +9,7 @@ import dagre from 'dagre';
 interface RoomGridProps {
   rooms: GameLocation[];
   users: LeaderboardUser[];
-  setZoomedImage: (img: string) => void;
+  setZoomedImage: (img: string, name: string, description: string, roomId: string) => void;
   setSelectedUser: (user: LeaderboardUser) => void;
   setUserListModal: (modal: { room: string; users: LeaderboardUser[] } | null) => void;
 }
@@ -193,7 +193,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, setZoomedImage, setSe
                 width={64}
                 height={64}
                 style={{ objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in' }}
-                onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER)}
+                onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER, loc.name, loc.description, loc.id)}
                 unoptimized
               />
               <div style={{ color: '#a7a7ff', fontWeight: 600, marginBottom: 4, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{loc.name}</div>

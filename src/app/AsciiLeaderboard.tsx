@@ -43,6 +43,7 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);
   const [userListModal, setUserListModal] = useState<{ room: string; users: LeaderboardUser[] } | null>(null);
+  const [zoomedRoom, setZoomedRoom] = useState<{ image: string; name: string; description: string; users: LeaderboardUser[] } | null>(null);
   // console.log('[AsciiLeaderboard Render] selectedUser:', selectedUser);
 
   // Build ASCII art string and avatar map
@@ -109,7 +110,16 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
           <RoomGrid
             rooms={story.rooms}
             users={users}
-            setZoomedImage={setZoomedImage}
+            setZoomedImage={(img, name, description, roomId) => {
+              // TEMP DEBUG LOGGING
+              // eslint-disable-next-line no-console
+              console.log('[ZoomedRoom Modal] roomId:', roomId);
+              // eslint-disable-next-line no-console
+              console.log('[ZoomedRoom Modal] all users:', users);
+              // eslint-disable-next-line no-console
+              console.log('[ZoomedRoom Modal] filtered users:', users.filter(u => u.room === roomId));
+              setZoomedRoom({ image: img, name, description, users: users.filter(u => u.room === roomId) });
+            }}
             setSelectedUser={setSelectedUser}
             setUserListModal={setUserListModal}
           />
@@ -144,6 +154,15 @@ export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps
             name={zoomedItem.name}
             description={zoomedItem.description}
             onClose={() => setZoomedItem(null)}
+          />
+        )}
+        {zoomedRoom && (
+          <ZoomedItemModal
+            image={zoomedRoom.image}
+            name={zoomedRoom.name}
+            description={zoomedRoom.description}
+            users={zoomedRoom.users}
+            onClose={() => setZoomedRoom(null)}
           />
         )}
         {userListModal && (

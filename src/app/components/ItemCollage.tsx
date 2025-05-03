@@ -30,8 +30,8 @@ const ItemCollage: React.FC<ItemCollageProps> = ({ items, collectedItemIds, setZ
     height: '100%',
     flex: 1,
   }}>
-    {items.map(item => (
-      <div key={item.id} style={{ position: 'relative', textAlign: 'center', cursor: 'pointer' }} title={item.name + ': ' + item.description}>
+    {items.map((item, idx) => (
+      <div key={item.id + '-' + idx} style={{ position: 'relative', textAlign: 'center', cursor: 'pointer' }} title={item.name + ': ' + item.description}>
         <Image
           src={getProxiedImageUrl(item.image || '/images/item-placeholder.png')}
           alt={item.name}
