@@ -23,11 +23,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, winners, ki
   <header
     className="app-header"
     style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 200,
-      background: 'rgba(18, 22, 40, 0.98)',
-      boxShadow: '0 2px 16px #000a',
+      position: 'relative',
       padding: '0.5rem 0',
       marginBottom: 24,
       display: 'flex',
@@ -38,7 +34,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ logoUrl, breadcrumbs, winners, ki
   >
     <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', margin: '0 0 4px 0', padding: '0 32px' }}>
       <div className="breadcrumb" style={{ flex: 1, justifyContent: 'flex-start' }}>
-        <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="breadcrumb-link">powered by <b>Langflow</b></a>
+        <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="footer-link">powered by <b>Langflow</b></a>
       </div>
       <div className="breadcrumb" style={{ flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
         {breadcrumbs.map((crumb, idx) => (

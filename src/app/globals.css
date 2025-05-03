@@ -358,7 +358,6 @@ html, body {
   align-items: center;
   justify-content: center;
   background: var(--background);
-  border-bottom: 1px solid var(--border);
   z-index: 100;
   position: relative;
 }
@@ -544,4 +543,17 @@ html, body {
   min-width: 800px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.footer-link {
+  color: #a7a7ff;
+  font-size: 1rem;
+  text-decoration: none;
+  opacity: 0.85;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.footer-link:hover {
+  color: #fff;
+  opacity: 1;
 }
