@@ -157,7 +157,29 @@ export async function POST(request: NextRequest) {
     // Destructure to omit the _id field from the response object
     const { _id: location_id, ...locationResponse } = destinationLocation;
 
-     return NextResponse.json({
+    // --- Win Condition Check ---
+    // Fetch story for win logic
+    const storiesCollection = db.collection('game_stories');
+    const story = await storiesCollection.findOne({ id: storyId });
+    if (story && story.goalRoomId && story.requiredArtifacts) {
+      const inGoalRoom = targetLocationId === story.goalRoomId;
+      const hasAllArtifacts = story.requiredArtifacts.every((artifactId: string) => player.inventory.includes(artifactId));
+      console.log('[WIN CHECK] Player inventory:', player.inventory);
+      console.log('[WIN CHECK] Required artifacts:', story.requiredArtifacts);
+      console.log('[WIN CHECK] Current location:', targetLocationId, 'Goal room:', story.goalRoomId);
+      if (inGoalRoom && hasAllArtifacts) {
+        // Set player status to winner
+        await playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
+        return NextResponse.json({
+          success: true,
+          location: locationResponse,
+          message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
+          win: true
+        });
+      }
+    }
+
+    return NextResponse.json({
        success: true,
        location: locationResponse, // Return the destination location details (without _id)
        message: `You move to the ${destinationLocation.name}.\n${destinationLocation.description}`,

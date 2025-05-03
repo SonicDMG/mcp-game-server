@@ -62,4 +62,8 @@ See assistant notes for more details and options.
 - [ ] Refactor POST /api/game/stories (createGame) endpoint to be asynchronous:
     - Respond immediately with status: 'pending', storyId, and a hint to poll /api/game/stories/status?id=... for progress.
     - Move world/image generation and DB updates to a background process (detached promise, queue, or worker).
-    - Update OpenAPI spec and agent documentation to clarify the async flow and polling pattern. 
+    - Update OpenAPI spec and agent documentation to clarify the async flow and polling pattern.
+
+- [ ] Fix item layout in zoomed-in room card
+
+- [ ] If a user kills another player and gains all required items while looting them while in the correct room, they should trigger a win state 

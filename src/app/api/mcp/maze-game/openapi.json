@@ -779,10 +779,14 @@
           "description": { "type": "string", "example": "An ancient library filled with magical secrets." },
           "startingLocation": { "type": "string", "example": "entrance_hall" },
           "version": { "type": "string", "example": "1.1" },
-          "requiredArtifacts": { 
-            "type": "array", 
-            "items": { "type": "string" }, 
-            "description": "List of item IDs needed to win (optional)."
+          "requiredArtifacts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of item IDs that must be collected to win. No more than the value of MAX_REQUIRED_ARTIFACTS (from env, default 5) are required; if more are generated, a random subset will be chosen."
+          },
+          "goalRoomId": {
+            "type": "string",
+            "description": "The ID of the goal room. To win, a player must collect all requiredArtifacts and reach this room. Backend validates that a win path exists after world generation."
           },
           "theme": { "type": "string", "description": "Theme used for generation (optional)." },
           "image": { "type": "string", "format": "uri", "description": "URL of the generated story cover image (optional).", "nullable": true }

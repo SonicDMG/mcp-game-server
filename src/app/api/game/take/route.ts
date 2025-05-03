@@ -112,6 +112,12 @@ export async function POST(request: NextRequest) {
       await playersCollection.updateOne({ _id: player._id }, { $set: { inventory: player.inventory } });
     }
 
+    // Check if the item is a required artifact
+    let specialMessage = '';
+    if (story.requiredArtifacts && story.requiredArtifacts.includes(itemId)) {
+      specialMessage = ' There is something special about this item...';
+    }
+
     // Fetch updated inventory items
     const inventoryItems = (await itemsCollection.find({ _id: { $in: player.inventory } }).toArray()) as InventoryItemRecord[];
     const inventoryWithImages = inventoryItems.map((item) => {
@@ -121,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `You took the item!`,
+      message: `You took the item!${specialMessage}`,
       inventory: inventoryWithImages,
     });
   } catch (error) {

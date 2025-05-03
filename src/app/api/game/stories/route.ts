@@ -22,6 +22,7 @@ interface StoryRecord {
   theme?: string; // Add theme to story record for potential future use/reference
   image?: string; // Add image field from types.ts (implicitly)
   creationStatus?: 'pending' | 'done' | 'error'; // Track story creation progress
+  goalRoomId?: string; // The ID of the goal room for win path
 }
 
 interface LocationRecord {
@@ -286,9 +287,68 @@ export async function POST(request: NextRequest) {
         // Decide how to handle this - proceed with fewer, or throw error? 
         // For now, use all available takable items.
     }
-    const requiredArtifacts = takableItems.slice(0, 5).map(item => item.id);
+    let requiredArtifacts = takableItems.slice(0, 5).map(item => item.id);
     console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
+
+    // --- Enforce MAX_REQUIRED_ARTIFACTS limit ---
+    const MAX_REQUIRED_ARTIFACTS = parseInt(process.env.MAX_REQUIRED_ARTIFACTS || '5', 10);
+    if (requiredArtifacts.length > MAX_REQUIRED_ARTIFACTS) {
+      // Shuffle and select a random subset
+      requiredArtifacts = requiredArtifacts
+        .sort(() => Math.random() - 0.5)
+        .slice(0, MAX_REQUIRED_ARTIFACTS);
+    }
     // --- End Selection ---
+
+    // --- Select Goal Room ---
+    // For now, pick the last location as the goal room (could be improved with a special property)
+    const goalRoom = generatedWorld.locations[generatedWorld.locations.length - 1];
+    const goalRoomId = goalRoom?.id;
+    if (!goalRoomId) {
+      console.error('No goal room could be determined from generated locations.');
+      return NextResponse.json({
+        error: 'No goal room could be determined from generated locations. Story is invalid.'
+      }, { status: 400 });
+    }
+
+    // --- Win Path Validation ---
+    // Ensure all required artifacts are present in the world
+    const allItemIds = generatedWorld.items.map(item => item.id);
+    const missingArtifacts = requiredArtifacts.filter(id => !allItemIds.includes(id));
+    if (missingArtifacts.length > 0) {
+      console.error('Win path validation failed: missing required artifacts:', missingArtifacts);
+      return NextResponse.json({
+        error: `Win path validation failed: missing required artifacts: ${missingArtifacts.join(', ')}`
+      }, { status: 400 });
+    }
+
+    // --- Pathfinding: Ensure goal room is reachable from starting location ---
+    function bfs(startId: string, targetId: string, locations: Omit<LocationRecord, 'storyId' | '_id'>[]): boolean {
+      const visited = new Set<string>();
+      const queue: string[] = [startId];
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (current === targetId) return true;
+        visited.add(current);
+        const loc = locations.find(l => l.id === current);
+        if (loc && Array.isArray(loc.exits)) {
+          for (const exit of loc.exits) {
+            if (exit.targetLocationId && !visited.has(exit.targetLocationId)) {
+              queue.push(exit.targetLocationId);
+            }
+          }
+        }
+      }
+      return false;
+    }
+    const canReachGoal = bfs(startingLocationId, goalRoomId, generatedWorld.locations);
+    if (!canReachGoal) {
+      console.error('Win path validation failed: goal room is not reachable from starting location.');
+      return NextResponse.json({
+        error: 'Win path validation failed: goal room is not reachable from starting location.'
+      }, { status: 400 });
+    }
+    // (Optional: Check that all required artifacts are on a reachable path)
 
     // --- 5b. Generate Images for Locations and Items ---
     // Generate images for each location
@@ -317,7 +377,8 @@ export async function POST(request: NextRequest) {
         version: version,
         theme: theme,
         requiredArtifacts: [], // Not known yet
-        creationStatus: 'pending'
+        creationStatus: 'pending',
+        goalRoomId: goalRoomId
     };
     console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
@@ -375,6 +436,7 @@ export async function POST(request: NextRequest) {
                 startingLocation: startingLocationId,
                 requiredArtifacts: requiredArtifacts,
                 creationStatus: 'done',
+                goalRoomId: goalRoomId,
                 ...(generatedImageUrl ? { image: generatedImageUrl } : {})
               }
             }
