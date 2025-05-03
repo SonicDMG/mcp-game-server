@@ -537,47 +537,70 @@ export async function GET(request: NextRequest) {
     // Use the collection instance directly
     if (!storyId) {
       console.log('Finding all stories (storiesCollection.find({}))...');
-      // Pass an empty filter {} to find all documents
-      // Project only necessary fields for list view
-      const cursor = storiesCollection.find({}, {
+      // Find all stories
+      const stories = await storiesCollection.find({}, {
         projection: {
           id: 1,
           title: 1,
           description: 1,
           version: 1,
-          theme: 1 // Include theme if available
+          theme: 1,
+          image: 1,
+          goalRoomId: 1,
+          creationStatus: 1
         }
-      });
-      const stories = await cursor.toArray();
+      }).toArray();
       console.log('Stories found:', stories.length);
-      // Return stories without the _id for list view
-      return NextResponse.json(stories);
+
+      // Fetch all players for all stories
+      const allPlayers = await db.collection('game_players').find({}).toArray();
+      // Aggregate stats per story
+      const statsMap = new Map();
+      for (const player of allPlayers) {
+        if (!player.storyId) continue;
+        const stats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
+        stats.playerCount += 1;
+        stats.totalArtifactsFound += player.gameProgress?.itemsFound?.length || 0;
+        if (player.status === 'killed') stats.killedCount += 1;
+        statsMap.set(player.storyId, stats);
+      }
+      // Attach stats to each story
+      const storiesWithStats = stories.map(story => {
+        const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
+        return {
+          ...story,
+          playerCount: stats.playerCount,
+          totalArtifactsFound: stats.totalArtifactsFound,
+          killedCount: stats.killedCount
+        };
+      });
+      // Return stories with stats
+      return NextResponse.json(storiesWithStats);
     } else {
       // When fetching by specific ID, get the full record
       console.log(`Finding story with id: ${storyId} (storiesCollection.findOne({ id: storyId }))...`);
-      // Find by the user-defined 'id' field, not the database '_id'
       const story = await storiesCollection.findOne({ id: storyId });
       console.log('Story found:', story ? story.id : 'None');
-      
       if (!story) {
         return NextResponse.json({ error: `Story with id ${storyId} not found`}, { status: 404 });
       }
-       // Return the full story object
-      return NextResponse.json(story);
+      // Fetch players for this story
+      const players = await db.collection('game_players').find({ storyId }).toArray();
+      const playerCount = players.length;
+      const totalArtifactsFound = players.reduce((sum, p) => sum + (p.gameProgress?.itemsFound?.length || 0), 0);
+      const killedCount = players.filter(p => p.status === 'killed').length;
+      // Return the full story object with stats
+      return NextResponse.json({ ...story, playerCount, totalArtifactsFound, killedCount });
     }
   } catch (error) {
     console.error('Detailed error in /api/game/stories GET:', error);
-    
     const status = 500;
     let errorMessage = 'Failed to get stories';
-
-     // Reuse detailed error handling from POST if applicable, or keep simpler GET error handling
     if (error instanceof Error) {
       errorMessage = error.message;
     } else {
       errorMessage = String(error);
     }
-
     return NextResponse.json({ error: errorMessage }, { status: status });
   }
 } 
