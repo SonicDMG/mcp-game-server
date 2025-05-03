@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { getProxiedImageUrl } from '../api/game/types';
+import { getProxiedImageUrl } from '../../lib/utils';
 
 interface ZoomedItemModalProps {
   image: string;

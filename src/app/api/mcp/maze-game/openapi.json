@@ -319,7 +319,7 @@
       },
       "post": {
         "summary": "Create New Story (Theme-Based Generation)",
-        "description": "Generates a new game story, locations, items, and cover image based on a provided theme using AI services (Langflow, EverArt).",
+        "description": "Generates a new game story, locations, items, and cover image based on a provided theme using AI services (Langflow, EverArt). The maximum number of rooms per story is limited by the server (MAX_ROOMS_PER_STORY).",
         "operationId": "createGame",
         "tags": ["Game Setup"],
         "requestBody": {
@@ -642,10 +642,15 @@
             "type": "string", 
             "description": "Optional description/premise. If omitted, a default will be generated."
           },
-           "version": { 
-             "type": "string", 
-             "description": "Optional version string. Defaults to '1.0'."
-           }
+          "version": { 
+            "type": "string", 
+            "description": "Optional version string. Defaults to '1.0'."
+          },
+          "maxRooms": {
+            "type": "integer",
+            "description": "Maximum number of rooms to generate for the story (must be less than or equal to the server limit).",
+            "maximum": 6
+          }
         },
         "required": ["theme"]
       },

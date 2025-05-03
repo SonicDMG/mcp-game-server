@@ -14,10 +14,6 @@
 ## 3. Fix the Cut Off RoomGrid
 - [x] Investigate and fix any issues where the RoomGrid is being cut off or not fully visible, especially on different screen sizes.
 
-## 4. Add ASCII/Unicode Art for MCP Desktops
-- [ ] Provide a visual fallback (ASCII, emoji, or Unicode art) for rooms/items next to image links.
-- [ ] Ensure users on platforms like Claude get a visual even if images don't render.
-
 ## 5. Add "kill" and "help" Player Actions
 - [ ] **Backend:** Add/extend API endpoints to support these actions.
 - [ ] **Frontend:** Add UI controls for interacting with other users in the same room.

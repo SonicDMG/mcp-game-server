@@ -215,6 +215,15 @@ export async function POST(request: NextRequest) {
     const startingLocationId = generatedWorld.startingLocationId;
     console.log(`Parsed world data: ${generatedWorld.locations.length} locations, ${generatedWorld.items.length} items. Starting: ${startingLocationId}`);
 
+    // --- Enforce MAX_ROOMS_PER_STORY ---
+    const maxRooms = parseInt(process.env.MAX_ROOMS_PER_STORY || '20', 10);
+    if (generatedWorld.locations.length > maxRooms) {
+        console.error(`POST /api/game/stories - Error: Generated world has ${generatedWorld.locations.length} rooms, which exceeds the maximum allowed (${maxRooms}).`);
+        return NextResponse.json({
+            error: `Too many rooms generated: ${generatedWorld.locations.length}. The maximum allowed per story is ${maxRooms}. Please try a different theme or adjust your settings.`
+        }, { status: 400 });
+    }
+
     // +++ Add Debug Logging for Starting Location Items +++
     const startingLocData = generatedWorld.locations.find(loc => loc.id === startingLocationId);
     console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
