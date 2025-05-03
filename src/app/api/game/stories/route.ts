@@ -198,7 +198,37 @@ export async function POST(request: NextRequest) {
     // 3. Parse the extracted world data string
     let generatedWorld: LangflowWorldResponse;
     try {
-        generatedWorld = JSON.parse(worldDataString);
+        let parsed: any = worldDataString;
+        if (typeof parsed === 'string') {
+            try {
+                parsed = JSON.parse(parsed);
+            } catch (e) {
+                // Try to extract JSON from a string with preamble or code block
+                const jsonStart = parsed.indexOf('{');
+                const jsonEnd = parsed.lastIndexOf('}');
+                if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+                    let jsonString = parsed.substring(jsonStart, jsonEnd + 1);
+                    // Remove code block markers if present
+                    jsonString = jsonString.replace(/```json|```/g, '').trim();
+                    try {
+                        parsed = JSON.parse(jsonString);
+                    } catch (e2) {
+                        throw new Error('Failed to extract and parse JSON from stringified world data.');
+                    }
+                } else {
+                    throw new Error('String did not contain a valid JSON object.');
+                }
+            }
+        }
+        if (typeof parsed === 'string') {
+            // Try parsing again (double-encoded)
+            try {
+                parsed = JSON.parse(parsed);
+            } catch (e) {
+                throw new Error('Failed to parse double-encoded world data JSON string from Langflow response.');
+            }
+        }
+        generatedWorld = parsed;
         console.log('POST /api/game/stories - Parsed Inner World Data Object:', JSON.stringify(generatedWorld, null, 2));
     } catch (parseError) {
         console.error('POST /api/game/stories - Error parsing inner world data JSON string:', parseError);
@@ -206,11 +236,16 @@ export async function POST(request: NextRequest) {
         throw new Error(`Failed to parse the world data JSON string from Langflow response.`);
     }
     
-    // --- 5. Validate Langflow Response Structure (Using the parsed inner object) ---
-    if (!generatedWorld || !generatedWorld.startingLocationId || !Array.isArray(generatedWorld.locations) || !Array.isArray(generatedWorld.items) || generatedWorld.locations.length === 0) {
-        console.error('POST /api/game/stories - Error: Invalid or incomplete structure in parsed world data.');
-        console.error('Parsed World Data:', JSON.stringify(generatedWorld, null, 2)); // Log structure on error
-        throw new Error('Parsed world data has invalid structure.');
+    // Type check for robustness
+    if (
+      !generatedWorld ||
+      typeof generatedWorld !== 'object' ||
+      typeof generatedWorld.startingLocationId !== 'string' ||
+      !Array.isArray(generatedWorld.locations) ||
+      !Array.isArray(generatedWorld.items)
+    ) {
+      console.error('POST /api/game/stories - Parsed world data is missing required fields or has unexpected shape:', JSON.stringify(generatedWorld, null, 2));
+      throw new Error('Parsed world data from Langflow is missing required fields or has unexpected shape.');
     }
     const startingLocationId = generatedWorld.startingLocationId;
     console.log(`Parsed world data: ${generatedWorld.locations.length} locations, ${generatedWorld.items.length} items. Starting: ${startingLocationId}`);
