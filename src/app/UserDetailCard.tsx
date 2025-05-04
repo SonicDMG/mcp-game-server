@@ -64,6 +64,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
           padding: '24px',
           width: '90%',
           maxWidth: '400px',
+          minWidth: '400px',
           border: '1px solid #3b82f6',
           boxShadow: '0 0 20px rgba(59, 130, 246, 0.2)',
         }}
