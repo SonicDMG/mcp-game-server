@@ -22,10 +22,6 @@ interface AppHeaderProps {
 
 const AppHeader: React.FC<AppHeaderProps> = (props) => {
   const { logoUrl, breadcrumbs, winners, killed, onUserClick = () => {}, eventFeed } = props;
-  if (typeof window !== 'undefined') {
-    // Only log on the client
-    console.log('AppHeader props:', { winners, killed, eventFeed });
-  }
   return (
     <header
       className="app-header"
