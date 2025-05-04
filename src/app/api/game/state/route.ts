@@ -67,6 +67,8 @@ export async function POST(request: NextRequest) {
     console.log(`>>> State retrieved successfully for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
     return NextResponse.json({
       success: true,
+      storyId: storyId,
+      userId: userId,
       player: playerResponse,
       location: locationResponse
     });

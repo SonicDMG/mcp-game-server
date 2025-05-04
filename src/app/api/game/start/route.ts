@@ -155,6 +155,8 @@ export async function POST(request: NextRequest) {
     console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
     return NextResponse.json({
       success: true,
+      storyId: storyId,
+      userId: userId,
       message: message,
       player: playerResponse,
       location: locationResponse

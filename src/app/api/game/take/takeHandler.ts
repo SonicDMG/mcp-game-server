@@ -122,6 +122,8 @@ export async function handleTakeAction(
     status: 200,
     body: {
       success: true,
+      storyId,
+      userId,
       message: `You took the item!${specialMessage}`,
       inventory: inventoryWithImages,
     }

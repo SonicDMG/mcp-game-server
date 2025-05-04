@@ -693,7 +693,7 @@
       },
       "Location": {
         "type": "object",
-        "description": "Represents a location within a story.",
+        "description": "Represents a location within a story. If an image is present, both a top-level 'image' and 'alt' field and a 'content' array are included. The content array contains a type: 'image' object first, followed by a type: 'text' object.",
         "properties": {
           "id": { "type": "string", "description": "Unique ID for the location within the story.", "example": "dragon_entrance" },
           "storyId": { "type": "string", "example": "dragon_lair" },
@@ -729,13 +729,27 @@
                "item": { "type": "string", "nullable": true, "description": "Item ID required to enter.", "example": "silver_key" },
                "condition": { "type": "string", "nullable": true, "description": "Condition ID (e.g., puzzle) required to enter.", "example": "gate_puzzle" }
              }
-           }
+           },
+          "image": { "type": "string", "description": "URL of the image for the location, if present.", "nullable": true },
+          "alt": { "type": "string", "description": "Alt text for the image, if present.", "nullable": true },
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/ImageContent" },
+                { "$ref": "#/components/schemas/TextContent" }
+              ]
+            },
+            "description": "Array with image and text content for the location."
+          }
         }
       },
       "GameStateResponse": {
         "type": "object",
         "properties": {
            "success": { "type": "boolean", "example": true },
+           "storyId": { "type": "string", "description": "The unique identifier for the story." },
+           "userId": { "type": "string", "description": "The unique identifier for the user/player." },
            "message": { "type": "string", "nullable": true, "example": "Welcome back!" },
            "player": { "$ref": "#/components/schemas/PlayerState" },
            "location": { "$ref": "#/components/schemas/Location" }
@@ -774,8 +788,8 @@
       "StoryRecord": {
         "properties": {
           "_id": { "type": "string", "description": "Internal database ID.", "readOnly": true },
-          "id": { "type": "string", "description": "Unique logical story identifier.", "example": "mystic_library" },
-          "title": { "type": "string", "example": "The Mystic Library" },
+          "storyId": { "type": "string", "description": "Unique logical story identifier (echoed at top level for agent workflows).", "example": "mystic_library" },
+          "title": { "type": "string", "example": "The Mystic Library", "description": "Short, punchy, creative title. No prefixes or bylines." },
           "description": { "type": "string", "example": "An ancient library filled with magical secrets." },
           "startingLocation": { "type": "string", "example": "entrance_hall" },
           "version": { "type": "string", "example": "1.1" },
@@ -789,13 +803,24 @@
             "description": "The ID of the goal room. To win, a player must collect all requiredArtifacts and reach this room. Backend validates that a win path exists after world generation."
           },
           "theme": { "type": "string", "description": "Theme used for generation (optional)." },
-          "image": { "type": "string", "format": "uri", "description": "URL of the generated story cover image (optional).", "nullable": true }
+          "image": { "type": "string", "description": "URL of the story cover image, if present.", "nullable": true },
+          "alt": { "type": "string", "description": "Alt text for the story image, if present.", "nullable": true },
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/ImageContent" },
+                { "$ref": "#/components/schemas/TextContent" }
+              ]
+            },
+            "description": "Array with image and text content for the story."
+          }
         },
         "required": ["id", "title", "description", "startingLocation", "version"]
       },
       "CreateStoryInputThemeBased": {
         "type": "object",
-        "description": "Input for creating a story using theme-based generation.",
+        "description": "Input for creating a story using theme-based generation. Title must be short, punchy, and creative, with no prefixes or bylines.",
         "properties": {
           "theme": { 
             "type": "string", 
@@ -932,6 +957,39 @@
                 }
               }
             }
+          }
+        }
+      },
+      "ImageContent": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["image"] },
+          "image": { "type": "string", "description": "URL of the image." },
+          "alt": { "type": "string", "description": "Alt text for the image." }
+        }
+      },
+      "TextContent": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["text"] },
+          "text": { "type": "string", "description": "JSON stringified object with all metadata, including storyId." }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "description": "Represents an item. If an image is present, both a top-level 'image' and 'alt' field and a 'content' array are included.",
+        "properties": {
+          "image": { "type": "string", "description": "URL of the image for the item, if present.", "nullable": true },
+          "alt": { "type": "string", "description": "Alt text for the item image, if present.", "nullable": true },
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/ImageContent" },
+                { "$ref": "#/components/schemas/TextContent" }
+              ]
+            },
+            "description": "Array with image and text content for the item."
           }
         }
       }

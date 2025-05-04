@@ -57,8 +57,8 @@ export async function handleHelpAction(
       target: targetId,
       timestamp: new Date().toISOString(),
     });
-    return { status: 200, body: { success: true, message: `${targetId} has been revived by ${playerId}.`, targetStatus: target.status } };
+    return { status: 200, body: { success: true, storyId, userId: playerId, message: `${targetId} has been revived by ${playerId}.`, targetStatus: target.status } };
   } else {
-    return { status: 200, body: { success: false, message: `${targetId} does not need help.`, targetStatus: target.status } };
+    return { status: 200, body: { success: false, storyId, userId: playerId, message: `${targetId} does not need help.`, targetStatus: target.status } };
   }
 } 

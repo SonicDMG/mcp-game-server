@@ -95,11 +95,50 @@ export async function POST(request: NextRequest) {
     }).toArray();
     const players = otherPlayers.map(p => ({ id: p.id, status: p.status || 'playing' }));
 
+    // Build content array for location
+    const locationContent = [
+      locationResponseData.image ? {
+        type: 'image',
+        image: locationResponseData.image,
+        alt: locationResponseData.name || locationResponseData.id
+      } : null,
+      {
+        type: 'text',
+        text: JSON.stringify(locationResponseData, null, 2)
+      }
+    ].filter(Boolean);
+
+    // Build content arrays for items
+    const itemsContent = visibleItems.map(item => ([
+      item.image ? {
+        type: 'image',
+        image: item.image,
+        alt: item.name || item.id
+      } : null,
+      {
+        type: 'text',
+        text: JSON.stringify(item, null, 2)
+      }
+    ].filter(Boolean)));
+
+    // Extract top-level image/alt for location
+    const locationImage = locationContent[0]?.type === 'image' ? locationContent[0].image : null;
+    const locationAlt = locationContent[0]?.type === 'image' ? locationContent[0].alt : null;
+
+    // Extract top-level image/alt for each item
+    const itemsWithTopLevel = itemsContent.map(contentArr => {
+      const image = contentArr[0]?.type === 'image' ? contentArr[0].image : null;
+      const alt = contentArr[0]?.type === 'image' ? contentArr[0].alt : null;
+      return { image, alt, content: contentArr };
+    });
+
     console.log(`>>> Look successful for userId: ${userId} in location: ${location.id} <<<`);
     return NextResponse.json({
       success: true,
-      location: locationResponseData, // Return location details (without _id)
-      items: visibleItems, // Return details of items in the location (without _id)
+      storyId: storyId,
+      userId: userId,
+      location: { image: locationImage, alt: locationAlt, content: locationContent },
+      items: itemsWithTopLevel, // Each item as { image, alt, content }
       players, // List of other players in the same room
       message: location.description,
       hint: 'You can examine specific things you see for more details'

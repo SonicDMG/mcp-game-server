@@ -44,7 +44,10 @@ export async function GET(request: NextRequest, context: any) { // Use 'any' and
 
     console.log(`>>> Found story ${storyId}: ${story.title} <<<`);
     // Return the full story object (including database _id if present)
-    return NextResponse.json(story);
+    return NextResponse.json({
+      storyId: storyId,
+      ...story
+    });
 
   } catch (error) {
     console.error(`Error in GET handler for story ${storyId}:`, error);

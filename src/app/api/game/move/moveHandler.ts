@@ -115,6 +115,8 @@ export async function handleMoveAction(
         status: 200,
         body: {
           success: true,
+          storyId,
+          userId,
           location: destinationLocation,
           message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
           win: true
@@ -126,6 +128,8 @@ export async function handleMoveAction(
     status: 200,
     body: {
       success: true,
+      storyId,
+      userId,
       location: destinationLocation,
       message: `You move to the ${destinationLocation.name}.\n${destinationLocation.description}`,
       hint: destinationLocation.items && destinationLocation.items.length > 0 ? 'You notice some items here.' : 'Remember to look around.'

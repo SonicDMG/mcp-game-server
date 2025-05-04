@@ -76,9 +76,24 @@ export async function POST(request: NextRequest) {
         // Ensure image field is present
         itemData.image = getAbsoluteProxiedImageUrl(request, itemData.image || ITEM_IMAGE_PLACEHOLDER);
         console.log(`>>> Examine item successful: ${item.id} <<<`);
+        const contentArr = [
+          itemData.image ? {
+            type: 'image',
+            image: itemData.image,
+            alt: itemData.name || itemData.id
+          } : null,
+          {
+            type: 'text',
+            text: JSON.stringify(itemData, null, 2)
+          }
+        ].filter(Boolean);
+        const image = contentArr[0]?.type === 'image' ? contentArr[0].image : null;
+        const alt = contentArr[0]?.type === 'image' ? contentArr[0].alt : null;
         return NextResponse.json({
           success: true,
-          items: [itemData], // Return item details
+          storyId: storyId,
+          userId: userId,
+          items: [{ image, alt, content: contentArr }],
           message: itemData.description,
           hint: itemData.canTake && isItemInLocation ? 'This item can be picked up' : undefined
         });
@@ -98,9 +113,24 @@ export async function POST(request: NextRequest) {
         // Ensure image field is present
         locationData.image = getAbsoluteProxiedImageUrl(request, locationData.image || ROOM_IMAGE_PLACEHOLDER);
         console.log(`>>> Examine exit successful: ${destinationLocation.id} <<<`);
+        const contentArr = [
+          locationData.image ? {
+            type: 'image',
+            image: locationData.image,
+            alt: locationData.name || locationData.id
+          } : null,
+          {
+            type: 'text',
+            text: JSON.stringify(locationData, null, 2)
+          }
+        ].filter(Boolean);
+        const image = contentArr[0]?.type === 'image' ? contentArr[0].image : null;
+        const alt = contentArr[0]?.type === 'image' ? contentArr[0].alt : null;
         return NextResponse.json({
           success: true,
-          location: locationData, // Return destination details
+          storyId: storyId,
+          userId: userId,
+          location: { image, alt, content: contentArr },
           message: `Looking towards ${locationData.name}: ${locationData.description}`,
           hint: locationData.requirements?.item 
                   ? 'This area might require specific items to enter' 

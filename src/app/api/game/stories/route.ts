@@ -577,14 +577,37 @@ export async function GET(request: NextRequest) {
         if (player.status === 'killed') stats.killedCount += 1;
         statsMap.set(player.storyId, stats);
       }
-      // Attach stats to each story
+      // Attach stats to each story, with image as a content item first
       const storiesWithStats = stories.map(story => {
         const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
-        return {
-          ...story,
+        const storyObj = {
+          storyId: story.id,
+          id: story.id,
+          title: story.title,
+          description: story.description,
+          version: story.version,
+          theme: story.theme,
+          goalRoomId: story.goalRoomId,
+          creationStatus: story.creationStatus,
           playerCount: stats.playerCount ?? 0,
           totalArtifactsFound: stats.totalArtifactsFound ?? 0,
           killedCount: stats.killedCount ?? 0
+        };
+        return {
+          ...storyObj,
+          image: story.image || null,
+          alt: story.title || story.id,
+          content: [
+            story.image ? {
+              type: 'image',
+              image: story.image,
+              alt: story.title || story.id
+            } : null,
+            {
+              type: 'text',
+              text: JSON.stringify(storyObj, null, 2)
+            }
+          ].filter(Boolean)
         };
       });
       // Return stories with stats
@@ -602,8 +625,36 @@ export async function GET(request: NextRequest) {
       const playerCount = players.length;
       const totalArtifactsFound = players.reduce((max, p) => Math.max(max, p.gameProgress?.itemsFound?.length || 0), 0);
       const killedCount = players.filter(p => p.status === 'killed').length;
-      // Return the full story object with stats
-      return NextResponse.json({ ...story, playerCount, totalArtifactsFound, killedCount });
+      // Return the full story object with stats, as a content array
+      const storyObj = {
+        storyId: story.id,
+        id: story.id,
+        title: story.title,
+        description: story.description,
+        version: story.version,
+        theme: story.theme,
+        goalRoomId: story.goalRoomId,
+        creationStatus: story.creationStatus,
+        playerCount,
+        totalArtifactsFound,
+        killedCount
+      };
+      return NextResponse.json({
+        ...storyObj,
+        image: story.image || null,
+        alt: story.title || story.id,
+        content: [
+          story.image ? {
+            type: 'image',
+            image: story.image,
+            alt: story.title || story.id
+          } : null,
+          {
+            type: 'text',
+            text: JSON.stringify(storyObj, null, 2)
+          }
+        ].filter(Boolean)
+      });
     }
   } catch (error) {
     console.error('Detailed error in /api/game/stories GET:', error);

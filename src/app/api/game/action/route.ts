@@ -106,7 +106,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(playerState);
+    return NextResponse.json({
+      ...playerState,
+      storyId,
+      userId: playerId
+    });
   } catch (error) {
     console.error('Error in /api/game/action:', error);
     return NextResponse.json(
