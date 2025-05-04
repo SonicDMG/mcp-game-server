@@ -355,4 +355,75 @@ async function run() {
   }
 }
 
-run(); 
+// === New Test: Challenge-Based Artifact Acquisition ===
+async function testChallengeArtifactAcquisition() {
+  const errors = [];
+  const testTheme = 'Challenge Labyrinth';
+  console.log('\n--- Creating Challenge Test Story ---');
+  const createRes = await safeApiCall(() => post('/stories', { theme: testTheme }, GAME_API), 'create challenge story');
+  if (!createRes) { errors.push('Failed to create challenge story'); return; }
+  const storyId = createRes.storyId;
+  console.log(`Created challenge test story with id: ${storyId}`);
+  await debugStoriesAndMetadata(storyId);
+
+  // Start a player
+  const user = 'challenge_tester';
+  await safeApiCall(() => post('/start', { userId: user, storyId }, GAME_API), `startGame for ${user}`);
+  await safeApiCall(() => resetGame(user, storyId), `resetGame for ${user}`);
+
+  // Fetch story details
+  const story = await safeApiCall(() => get(`/stories/${storyId}`), 'fetch challenge story details');
+  if (!story) { errors.push('Failed to fetch challenge story details'); return; }
+  const requiredArtifacts = story.requiredArtifacts;
+  const goalRoomId = story.goalRoomId;
+  testStoryLogicalId = story.id;
+  await debugStoriesAndMetadata(storyId);
+
+  // Fetch challenges
+  const challenges = story.challenges || [];
+  if (!challenges.length) {
+    errors.push('No challenges found in generated story');
+    return;
+  }
+  console.log('Found challenges:', challenges.map(c => c.name));
+
+  // Move player to each challenge location and attempt the challenge
+  for (const challenge of challenges) {
+    console.log(`\n--- Moving to challenge location: ${challenge.locationId} ---`);
+    await safeApiCall(() => moveUserToGoal(user, storyId, challenge.locationId), `moveUserToGoal ${user} to ${challenge.locationId}`);
+    // Trigger challenge (move/examine already triggers in backend)
+    // Attempt to solve challenge
+    let answer = '';
+    if (challenge.solution) answer = challenge.solution.split(/[,.;]/)[0]; // Use first answer if multiple
+    else if (challenge.completionCriteria) answer = challenge.completionCriteria.split(/[,.;]/)[0];
+    else answer = 'unknown';
+    const attemptRes = await safeApiCall(() => post('/action', {
+      playerId: user,
+      storyId,
+      action: 'attempt_challenge',
+      challengeId: challenge.id,
+      answer
+    }, GAME_API), `attempt_challenge for ${challenge.id}`);
+    if (attemptRes && attemptRes.success) {
+      console.log(`SUCCESS: Challenge '${challenge.name}' completed, artifact awarded: ${attemptRes.artifactId}`);
+    } else {
+      errors.push(`Failed to complete challenge '${challenge.name}': ${attemptRes && attemptRes.error}`);
+    }
+    // Check inventory
+    const state = await safeApiCall(() => getPlayerState(user, storyId), `getPlayerState ${user} after challenge`);
+    if (state) {
+      console.log(`Inventory after challenge:`, state.player.inventory);
+    }
+  }
+
+  if (errors.length) {
+    console.error('\n--- CHALLENGE TEST ERRORS ---');
+    for (const err of errors) console.error(err);
+  } else {
+    console.log('\n--- CHALLENGE TEST COMPLETED WITHOUT ERRORS ---');
+  }
+}
+
+// Run both tests
+run();
+testChallengeArtifactAcquisition(); 
