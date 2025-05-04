@@ -32,14 +32,14 @@ interface StoryMetadata {
   items?: Array<{ id: string; name: string; description: string; image?: string }>;
 }
 
-interface AsciiLeaderboardProps {
+interface LeaderboardProps {
   story: StoryMetadata;
   users: LeaderboardUser[];
 }
 
 const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png"; // Place this image in your public/images/ directory or use a remote URL
 
-export default function AsciiLeaderboard({ story, users }: AsciiLeaderboardProps) {
+export default function Leaderboard({ story, users }: LeaderboardProps) {
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);

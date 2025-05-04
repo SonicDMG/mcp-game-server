@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import './globals.css';
 import { Location as GameLocation } from '@/app/api/game/types';
-import Leaderboard, { LeaderboardUser } from './story/[id]/leaderboard';
+import Leaderboard, { LeaderboardUser } from './story/[id]/Leaderboard';
 
 interface StoryMetadata {
   title: string;

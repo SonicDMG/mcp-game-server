@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { LeaderboardUser } from '../story/[id]/leaderboard';
+import { LeaderboardUser } from '../story/[id]/Leaderboard';
 import styles from './WinnerBanner.module.css';
 
 const color = {

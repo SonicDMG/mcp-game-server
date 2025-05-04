@@ -42,17 +42,32 @@ export async function GET(request: NextRequest) {
     const players = await cursor.toArray();
     console.log(`Found ${players.length} players for leaderboard.`);
 
+    // Defensive winner logic
+    let goalRoomId: string | undefined;
+    let requiredArtifacts: string[] = [];
+    if (players.length > 0) {
+      // Fetch the story to get goalRoomId and requiredArtifacts
+      const story = await db.collection('game_stories').findOne({ id: storyId });
+      if (story) {
+        goalRoomId = story.goalRoomId;
+        requiredArtifacts = story.requiredArtifacts || [];
+      }
+    }
     // Map player data to the format expected by the client/frontend
-    const leaderboardData = players.map(player => ({
-      id: player.userId, // Use userId instead of id
-      room: player.currentLocation, // Use currentLocation for room
-      inventory: player.inventory,
-      // Goal condition is now correctly handled by the take handler setting progress to 100
-      reachedGoal: player.gameProgress.storyProgress >= 100, 
-      score: player.gameProgress.storyProgress,
-      isWinner: player.status === 'winner', // Change 'status' to 'isWinner' and check the value
-      status: player.status || 'playing', // <-- Add status field for frontend filtering
-    }));
+    const leaderboardData = players.map(player => {
+      const inGoalRoom = goalRoomId && player.currentLocation === goalRoomId;
+      const hasAllArtifacts = requiredArtifacts.length > 0 ? requiredArtifacts.every((artifactId: string) => player.inventory.includes(artifactId)) : true;
+      const isWinner = player.status === 'winner' && inGoalRoom && hasAllArtifacts;
+      return {
+        id: player.userId, // Use userId instead of id
+        room: player.currentLocation, // Use currentLocation for room
+        inventory: player.inventory,
+        reachedGoal: player.gameProgress.storyProgress >= 100, 
+        score: player.gameProgress.storyProgress,
+        isWinner,
+        status: player.status || 'playing',
+      };
+    });
 
     return NextResponse.json(leaderboardData);
 

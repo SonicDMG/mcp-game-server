@@ -11,10 +11,14 @@ export async function GET(request: NextRequest) {
     if (!storyId) {
       return NextResponse.json({ error: 'Missing storyId parameter' }, { status: 400 });
     }
-    let query = {};
+    let query: any = {};
     if (storyId !== 'all') {
-      query = { storyId };
+      query.storyId = storyId;
     }
+    // Add 10-minute TTL filter
+    const now = Date.now();
+    const tenMinutesAgo = now - 10 * 60 * 1000;
+    query.timestamp = { $gte: tenMinutesAgo };
     // Find events (all or by story), most recent first
     const events = await eventsCollection.find(query, {
       sort: { timestamp: -1 },

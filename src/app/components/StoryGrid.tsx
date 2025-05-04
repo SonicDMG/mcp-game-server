@@ -113,6 +113,9 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
   const [prevStats, setPrevStats] = useState<{ [id: string]: { playerCount: number; totalArtifactsFound: number; killedCount: number } }>({});
   const [bumpMap, setBumpMap] = useState<{ [id: string]: { player: boolean; artifact: boolean; killed: boolean } }>({});
 
+  // Winner state: storyId -> boolean
+  const [storyWinners, setStoryWinners] = useState<{ [storyId: string]: boolean }>({});
+
   useEffect(() => {
     // Inject animation style if not present
     if (!document.getElementById('story-pop-in-style')) {
@@ -213,6 +216,27 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stories]);
 
+  // Fetch winner info for each story
+  useEffect(() => {
+    async function fetchWinners() {
+      const winnerMap: { [storyId: string]: boolean } = {};
+      await Promise.all(
+        stories.map(async (story) => {
+          try {
+            const res = await fetch(`/api/leaderboard?storyId=${story.id}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            winnerMap[story.id] = Array.isArray(data) && data.some((u: any) => u.isWinner);
+          } catch {
+            // ignore
+          }
+        })
+      );
+      setStoryWinners(winnerMap);
+    }
+    if (stories.length > 0) fetchWinners();
+  }, [stories]);
+
   return (
     <div
       style={{
@@ -279,15 +303,11 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
               }}
             >
               {/* Winner Ribbon */}
-              {(() => {
-                // Demo logic: if totalArtifactsFound >= playerCount and playerCount > 0, show ribbon
-                const winnerCount = story.totalArtifactsFound >= story.playerCount && story.playerCount > 0 ? 1 : 0;
-                return winnerCount > 0 ? (
-                  <div style={ribbonStyle} title="This story has a winner!">
-                    🏆 Winner!
-                  </div>
-                ) : null;
-              })()}
+              {storyWinners[story.id] && (
+                <div style={ribbonStyle} title="This story has a winner!">
+                  🏆 Winner!
+                </div>
+              )}
               {story.image && story.image.trim() ? (
                 <Image 
                   src={getProxiedImageUrl(story.image)}
