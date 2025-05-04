@@ -95,6 +95,16 @@ export interface StoryInfo {
   description: string;
 }
 
+// Utility to clean up story titles
+function cleanTitle(title: string): string {
+  // Remove leading prefixes
+  title = title.replace(/^(Story:|Game:|Title:|The Adventure of)\s*/i, '');
+  // Remove anything in parentheses (byline-style)
+  title = title.replace(/\s*\(.*?\)\s*/g, '');
+  // Trim whitespace
+  return title.trim();
+}
+
 export async function POST(request: NextRequest) {
   let storyId: string | undefined = undefined; // Define storyId in outer scope for potential cleanup
   let generatedImageUrl: string | undefined = undefined;
@@ -111,7 +121,8 @@ export async function POST(request: NextRequest) {
 
     // --- 2. Generate Metadata if Missing ---
     storyId = inputData.id || uuidv4(); // Generate unique ID if not provided
-    const title = inputData.title || `Story: ${theme}`;
+    let title = inputData.title || theme;
+    title = cleanTitle(title);
     const description = inputData.description || `A game about ${theme}.`;
     const version = inputData.version || "1.0";
 

@@ -807,7 +807,7 @@
           },
           "title": { 
             "type": "string", 
-            "description": "Optional title for the story. If omitted, a default will be generated from the theme."
+            "description": "Optional title for the story. If omitted, a default will be generated from the theme. The title should be short, punchy, creative, and fun. Do NOT include prefixes like 'Story:' or 'Game:'. Do NOT include byline-style text, explanations, or anything in parentheses. The title should be 2-5 words, memorable, and exciting—not boring or overly literal. Output only the title, nothing else. Examples: 'Flaming Carrot Rampage', 'Quantum Pickle Quest', 'Banana Bandit Blitz'."
           },
           "description": { 
             "type": "string", 

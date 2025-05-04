@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { toast } from "react-toastify";
 import { getProxiedImageUrl, Story } from "@/app/api/game/types";
+import { LeaderboardUser } from '../story/[id]/Leaderboard';
 
 interface StoryGridProps {
   initialStories: Array<Story & {
@@ -151,7 +151,6 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
             if (newStories.length > 0) {
               newStories.forEach((s: Story) => {
                 if (!announcedStoryIds.current.has(s.id)) {
-                  toast.success(`New story added: ${s.title}`);
                   announcedStoryIds.current.add(s.id);
                 }
               });
@@ -226,7 +225,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
             const res = await fetch(`/api/leaderboard?storyId=${story.id}`);
             if (!res.ok) return;
             const data = await res.json();
-            winnerMap[story.id] = Array.isArray(data) && data.some((u: any) => u.isWinner);
+            winnerMap[story.id] = Array.isArray(data) && data.some((u: LeaderboardUser) => u.isWinner);
           } catch {
             // ignore
           }
