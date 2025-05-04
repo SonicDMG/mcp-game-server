@@ -6,6 +6,7 @@ export interface Story {
   version: string;
   requiredArtifacts?: string[];
   image?: string;
+  challenges?: Challenge[];
 }
 
 export interface GameItem {
@@ -56,6 +57,21 @@ export interface GameResponse {
   items?: GameItem[];
   inventory?: GameItem[];
   effects?: string[];
+}
+
+export interface Challenge {
+  id: string;
+  type: 'npc' | 'creature' | 'obstacle' | 'hidden_area';
+  name: string;
+  description: string;
+  locationId: string;
+  artifactId: string;
+  challengeType: 'riddle' | 'combat' | 'puzzle' | 'quest' | 'discovery' | 'ritual';
+  themeTag: string;
+  requirements?: any;
+  solvedBy?: string[];
+  solution?: string;
+  completionCriteria?: string;
 }
 
 // Utility functions moved to src/lib/utils.ts

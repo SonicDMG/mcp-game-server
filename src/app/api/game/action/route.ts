@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPlayerState, updatePlayerState, getLocation, getItem } from '../dataService';
+import { getPlayerState, updatePlayerState, getLocation, getItem, getStory } from '../dataService';
+import type { Challenge } from '../types';
 
 /**
  * POST /api/game/action
@@ -55,6 +56,26 @@ export async function POST(request: NextRequest) {
         if (!playerState.discoveredLocations.includes(target)) {
           playerState.discoveredLocations.push(target);
         }
+
+        // --- Challenge Trigger Integration ---
+        // Fetch story and check for unsolved challenges at this location
+        const story = await getStory(storyId);
+        let triggeredChallenges: Challenge[] = [];
+        if (story && story.challenges) {
+          triggeredChallenges = story.challenges.filter(
+            (c) => c.locationId === target && (!c.solvedBy || !c.solvedBy.includes(playerId))
+          );
+        }
+        // Return challenge info in the response if any are found
+        if (triggeredChallenges.length > 0) {
+          return NextResponse.json({
+            ...playerState,
+            storyId,
+            userId: playerId,
+            triggeredChallenges,
+            message: `You encounter a challenge: ${triggeredChallenges.map(c => c.name).join(', ')}`
+          });
+        }
         break;
       }
 
@@ -88,6 +109,97 @@ export async function POST(request: NextRequest) {
       case 'examine': {
         // Just return success as examining doesn't change state
         break;
+      }
+
+      case 'attempt_challenge': {
+        // New: Attempt to complete a challenge
+        const { challengeId, answer, usedItems } = body;
+        // Fetch story and challenge
+        const story = await getStory(storyId);
+        if (!story || !story.challenges) {
+          return NextResponse.json({ error: 'Story or challenges not found' }, { status: 404 });
+        }
+        const challenge = story.challenges.find((c) => c.id === challengeId);
+        if (!challenge) {
+          return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
+        }
+        // Check if player is at the correct location
+        if (playerState.currentLocation !== challenge.locationId) {
+          return NextResponse.json({ error: 'You must be at the challenge location to attempt it.' }, { status: 400 });
+        }
+        // Check requirements (e.g., required items)
+        let requirementsMet = true;
+        if (challenge.requirements) {
+          if (challenge.requirements.item && !playerState.inventory.includes(challenge.requirements.item)) {
+            requirementsMet = false;
+          }
+          if (challenge.requirements.items && Array.isArray(challenge.requirements.items)) {
+            for (const reqItem of challenge.requirements.items) {
+              if (!playerState.inventory.includes(reqItem)) {
+                requirementsMet = false;
+                break;
+              }
+            }
+          }
+        }
+        if (!requirementsMet) {
+          return NextResponse.json({ error: 'You do not meet the requirements to attempt this challenge.' }, { status: 400 });
+        }
+        // Check if already solved
+        if (challenge.solvedBy && challenge.solvedBy.includes(playerId)) {
+          return NextResponse.json({ error: 'You have already completed this challenge.' }, { status: 400 });
+        }
+        // Validate solution/completion
+        let solved = false;
+        if (challenge.solution) {
+          // For riddles, puzzles, etc. (case-insensitive match)
+          if (typeof answer === 'string' && challenge.solution.toLowerCase().includes(answer.toLowerCase())) {
+            solved = true;
+          }
+        } else if (challenge.completionCriteria) {
+          // For rituals, actions, etc. (simple check: must provide a string that matches or contains the criteria)
+          if (typeof answer === 'string' && challenge.completionCriteria.toLowerCase().includes(answer.toLowerCase())) {
+            solved = true;
+          }
+          // Optionally, check usedItems if needed
+        }
+        if (!solved) {
+          return NextResponse.json({
+            error: 'Challenge not completed. Try again or check your answer/requirements.',
+            hint: challenge.description
+          }, { status: 200 });
+        }
+        // Award artifact
+        if (!playerState.inventory.includes(challenge.artifactId)) {
+          playerState.inventory.push(challenge.artifactId);
+        }
+        // Mark challenge as solved for this player
+        if (!challenge.solvedBy) challenge.solvedBy = [];
+        challenge.solvedBy.push(playerId);
+        // Update player progress
+        playerState.gameProgress = playerState.gameProgress || { itemsFound: [], puzzlesSolved: [], storyProgress: 0 };
+        if (!playerState.gameProgress.itemsFound.includes(challenge.artifactId)) {
+          playerState.gameProgress.itemsFound.push(challenge.artifactId);
+        }
+        // Save updated player state
+        const success = await updatePlayerState(playerState);
+        // Save updated challenge solvedBy in the story
+        // (Direct DB update for solvedBy array)
+        const db = require('@/lib/astradb').default;
+        const storiesCollection = db.collection('game_stories');
+        await storiesCollection.updateOne(
+          { id: storyId, 'challenges.id': challengeId },
+          { $addToSet: { 'challenges.$.solvedBy': playerId } }
+        );
+        if (!success) {
+          return NextResponse.json({ error: 'Failed to update player state' }, { status: 500 });
+        }
+        return NextResponse.json({
+          success: true,
+          message: `Challenge completed! You have earned the artifact: ${challenge.artifactId}`,
+          artifactId: challenge.artifactId,
+          inventory: playerState.inventory
+        });
       }
 
       default:

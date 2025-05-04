@@ -28,27 +28,41 @@ const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, descript
     onClick={onClose}
   >
     <div
-      style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh', background: '#23244a', borderRadius: 16, boxShadow: '0 8px 32px #000a', padding: 32 }}
+      style={{
+        position: 'relative',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        background: '#23244a',
+        borderRadius: 16,
+        boxShadow: '0 8px 32px #000a',
+        padding: 32,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
       onClick={e => e.stopPropagation()}
     >
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
-        <Image
-          src={getProxiedImageUrl(image)}
-          alt={name}
-          width={320}
-          height={320}
-          style={{
-            maxWidth: '60vw',
-            maxHeight: '60vh',
-            borderRadius: 12,
-            objectFit: 'contain',
-            boxShadow: '0 8px 32px #000a',
-            background: '#222',
-            marginBottom: 24,
-          }}
-        />
+      <Image
+        src={getProxiedImageUrl(image)}
+        alt={name}
+        width={800}
+        height={800}
+        style={{
+          maxWidth: '60vw',
+          maxHeight: '80vh',
+          objectFit: 'contain',
+          borderRadius: 12,
+          boxShadow: '0 8px 32px #000a',
+          background: '#222',
+          marginRight: 32,
+        }}
+      />
+      <div style={{ flex: 1, color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ color: '#a7a7ff', fontWeight: 700, fontSize: 22, marginBottom: 12 }}>{name}</div>
+        <div style={{ fontSize: 16, marginBottom: 12 }}>{description}</div>
         {users && users.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: 24, gap: 12, marginTop: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12, marginTop: 8 }}>
             {users.map(user => (
               <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
@@ -72,8 +86,6 @@ const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, descript
           </div>
         )}
       </div>
-      <div style={{ color: '#a7a7ff', fontWeight: 700, fontSize: 22, marginBottom: 12, textAlign: 'center' }}>{name}</div>
-      <div style={{ color: '#fff', fontSize: 16, marginBottom: 12, textAlign: 'center' }}>{description}</div>
       <button
         onClick={onClose}
         style={{

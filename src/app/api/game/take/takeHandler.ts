@@ -71,6 +71,17 @@ export async function handleTakeAction(
   if (itemIndex === -1) {
     return { status: 200, body: { success: false, message: `You don't see ${itemId} here.` } };
   }
+  // Check if the item is a required artifact (awarded via challenge)
+  if (story.requiredArtifacts && story.requiredArtifacts.includes(itemId)) {
+    return {
+      status: 200,
+      body: {
+        success: false,
+        message: 'This artifact can only be obtained by completing its challenge.',
+        hint: 'Find and complete the associated challenge to earn this artifact.'
+      }
+    };
+  }
   // Remove item from location
   location.items.splice(itemIndex, 1);
   await services.locationsCollection.updateOne({ _id: location._id }, { $set: { items: location.items } });

@@ -35,6 +35,14 @@
 - [ ] Possibly allow players to talk with each other (chat or message system).
 - [ ] Fix the progress bar for number of items larger than 5 (UI bug).
 - [ ] Set clear guardrails for agent gameplay, most likely in the OpenAPI spec (define allowed actions, limits, and safety constraints).
+- [ ] Thematic NPCs, Challenges, and Artifact Acquisition
+  - When generating a new story, also generate theme-appropriate NPCs, creatures/obstacles, and hidden areas.
+  - Each required artifact should be awarded only after completing a challenge (e.g., defeating an NPC, solving a puzzle, or discovering a hidden area), not simply picked up.
+  - Ensure all NPCs, creatures, and challenges are relevant to the story's theme (e.g., no random monsters in a Barbie Beach story).
+  - Update the story generation logic and Langflow prompt to support this.
+  - Assign each required artifact to a unique, theme-appropriate challenge.
+  - Refactor item acquisition logic to require challenge completion.
+  - Add feedback and polish for challenge success/failure.
 
 ## 9. Win Path Design & Milestones
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import DB instance
 import { PlayerState, Location as GameLocation, GameItem, getAbsoluteProxiedImageUrl } from '../types'; // Import types
+import type { Challenge } from '../types';
 
 // Define interfaces for DB records
 interface PlayerRecord extends PlayerState { _id: string; }
@@ -67,6 +68,31 @@ export async function POST(request: NextRequest) {
     // 3. Check if target is an Item (in inventory or location)
     const isItemInInventory = player.inventory.includes(target);
     const isItemInLocation = location.items.includes(target);
+
+    // --- Challenge Trigger Integration for Examine ---
+    // Fetch story and check for unsolved challenges at this location that may be triggered by examining this item/feature
+    const storiesCollection = db.collection('game_stories');
+    const story = await storiesCollection.findOne({ id: storyId });
+    let triggeredChallenges: Challenge[] = [];
+    if (story && story.challenges) {
+      triggeredChallenges = story.challenges.filter(
+        (c: Challenge) => c.locationId === player.currentLocation && (!c.solvedBy || !c.solvedBy.includes(userId)) && (
+          c.requirements?.item === target ||
+          (Array.isArray(c.requirements?.items) && c.requirements.items.includes(target)) ||
+          c.artifactId === target ||
+          c.id === target
+        )
+      );
+    }
+    if (triggeredChallenges.length > 0) {
+      return NextResponse.json({
+        success: true,
+        storyId: storyId,
+        userId: userId,
+        triggeredChallenges,
+        message: `You have triggered a challenge: ${triggeredChallenges.map(c => c.name).join(', ')}`
+      });
+    }
 
     if (isItemInInventory || isItemInLocation) {
       console.log(`>>> Target ${target} identified as item. Fetching details... <<<`);

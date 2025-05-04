@@ -58,6 +58,7 @@ interface LangflowWorldResponse {
     startingLocationId: string;
     locations: Omit<LocationRecord, 'storyId' | '_id'>[]; // From Langflow, won't have storyId yet
     items: Omit<ItemRecord, 'storyId' | '_id'>[];       // From Langflow, won't have storyId yet
+    challenges?: any[]; // New: challenges array from Langflow
 }
 
 // Interface for the outer structure of the Langflow response 
@@ -275,6 +276,14 @@ export async function POST(request: NextRequest) {
     const startingLocationId = generatedWorld.startingLocationId;
     console.log(`Parsed world data: ${generatedWorld.locations.length} locations, ${generatedWorld.items.length} items. Starting: ${startingLocationId}`);
 
+    // --- NEW: Extract and validate challenges array ---
+    const challenges = Array.isArray(generatedWorld.challenges) ? generatedWorld.challenges : [];
+    if (challenges.length === 0) {
+      console.warn('No challenges array found in generated world data. Artifact acquisition may not be gated by challenges.');
+    } else {
+      console.log(`Parsed ${challenges.length} challenges from generated world data.`);
+    }
+
     // --- Enforce MAX_ROOMS_PER_STORY ---
     const maxRooms = parseInt(process.env.MAX_ROOMS_PER_STORY || '20', 10);
     if (generatedWorld.locations.length > maxRooms) {
@@ -320,40 +329,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'No goal room could be determined from generated locations. Story is invalid.'
       }, { status: 400 });
-    }
-
-    // --- Ensure all required artifacts are placed in rooms ---
-    const startingLocId = startingLocationId;
-    const eligibleRoomIds = generatedWorld.locations
-      .map(loc => loc.id)
-      .filter(id => id !== startingLocId && id !== goalRoomId);
-    let roomIdx = 0;
-    for (const artifactId of requiredArtifacts) {
-      // Check if artifact is already placed in a room
-      let placed = false;
-      for (const loc of generatedWorld.locations) {
-        if ((loc.items || []).includes(artifactId)) {
-          placed = true;
-          break;
-        }
-      }
-      if (!placed && eligibleRoomIds.length > 0) {
-        // Place artifact in a non-start/goal room, round-robin
-        const targetRoomId = eligibleRoomIds[roomIdx % eligibleRoomIds.length];
-        const targetLoc = generatedWorld.locations.find(l => l.id === targetRoomId);
-        if (targetLoc) {
-          if (!targetLoc.items) targetLoc.items = [];
-          targetLoc.items.push(artifactId);
-        }
-        roomIdx++;
-      } else if (!placed) {
-        // Fallback: place in any room if no eligible
-        const fallbackLoc = generatedWorld.locations.find(l => l.id !== goalRoomId) || generatedWorld.locations[0];
-        if (fallbackLoc) {
-          if (!fallbackLoc.items) fallbackLoc.items = [];
-          fallbackLoc.items.push(artifactId);
-        }
-      }
     }
 
     // --- Win Path Validation ---
@@ -474,7 +449,7 @@ export async function POST(request: NextRequest) {
 
     if (generatedImageUrl) {
         console.log(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
-        // --- 10. Update Story Record with Image URL ---
+        // --- 10. Update Story Record with Image URL and Challenges ---
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
             { $set: {
@@ -482,18 +457,36 @@ export async function POST(request: NextRequest) {
                 requiredArtifacts: requiredArtifacts,
                 creationStatus: 'done',
                 goalRoomId: goalRoomId,
+                challenges: challenges, // Store challenges array
                 ...(generatedImageUrl ? { image: generatedImageUrl } : {})
               }
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.log(`Successfully updated story ${storyId} with image URL.`);
+            console.log(`Successfully updated story ${storyId} with image URL and challenges.`);
         } else {
             // This shouldn't happen if the initial insert succeeded, but log a warning
-            console.warn(`Warning: Failed to update story ${storyId} with image URL. Update modified count: ${updateResult.modifiedCount}`);
+            console.warn(`Warning: Failed to update story ${storyId} with image URL and challenges. Update modified count: ${updateResult.modifiedCount}`);
         }
     } else {
         console.warn(`Warning: EverArt image generation failed or timed out for story ${storyId}. Story record will not have an image URL.`);
+        // Still update with challenges even if image failed
+        const updateResult = await storiesCollection.updateOne(
+            { id: storyId },
+            { $set: {
+                startingLocation: startingLocationId,
+                requiredArtifacts: requiredArtifacts,
+                creationStatus: 'done',
+                goalRoomId: goalRoomId,
+                challenges: challenges
+              }
+            }
+        );
+        if (updateResult.modifiedCount === 1) {
+            console.log(`Successfully updated story ${storyId} with challenges (no image).`);
+        } else {
+            console.warn(`Warning: Failed to update story ${storyId} with challenges (no image). Update modified count: ${updateResult.modifiedCount}`);
+        }
     }
 
     // --- 11. Return Success ---

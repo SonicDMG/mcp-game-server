@@ -24,19 +24,19 @@ const ZoomedImageModal: React.FC<ZoomedImageModalProps> = ({ image, onClose }) =
     onClick={onClose}
   >
     <div
-      style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
+      style={{ position: 'relative', maxWidth: '100vw', maxHeight: '100vh' }}
       onClick={e => e.stopPropagation()}
     >
       <Image
         src={getProxiedImageUrl(image)}
         alt="Zoomed Room"
-        width={600}
-        height={400}
+        width={1920}
+        height={1080}
         style={{
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          borderRadius: 12,
+          width: '100vw',
+          height: '100vh',
           objectFit: 'contain',
+          borderRadius: 0,
           boxShadow: '0 8px 32px #000a',
           background: '#222',
         }}
