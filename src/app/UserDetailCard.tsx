@@ -33,8 +33,10 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
 
   // Calculate total required artifacts, defaulting to 0 if undefined/empty
   const totalRequired = story.requiredArtifacts?.length ?? 0;
+  // Only count required artifacts in the user's inventory
+  const requiredCollected = user.inventory.filter(itemId => story.requiredArtifacts?.includes(itemId));
   // Prevent division by zero for progress bar width
-  const progressPercentage = totalRequired > 0 ? (user.inventory.length / totalRequired) * 100 : 0;
+  const progressPercentage = totalRequired > 0 ? (requiredCollected.length / totalRequired) * 100 : 0;
 
   return (
     <div
@@ -119,7 +121,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
 
         <div style={{ marginTop: '20px' }}>
           <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Inventory</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px 12px', alignItems: 'flex-start', justifyContent: 'flex-start', minHeight: 56 }}>
             {user.inventory.length === 0 ? (
               <div style={{ color: '#666' }}>No artifacts collected yet</div>
             ) : (
@@ -128,7 +130,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
                 return (
                   <div
                     key={itemId + '-' + idx}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', cursor: setZoomedItem && itemObj ? 'pointer' : 'default' }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', cursor: setZoomedItem && itemObj ? 'pointer' : 'default', minWidth: 56 }}
                     onClick={() => setZoomedItem && itemObj && setZoomedItem({
                       image: itemObj.image || '/images/item-placeholder.png',
                       name: itemObj.name || itemId,
@@ -155,7 +157,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
         </div>
 
         <div style={{ marginTop: '20px' }}>
-          <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Progress</h3>
+          <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Required Artifact Progress</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ flex: 1, height: '8px', background: '#2a2a2a', borderRadius: '4px' }}>
               <div
@@ -169,7 +171,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
               />
             </div>
             <div style={{ color: '#fff', fontSize: '0.9rem' }}>
-              {user.inventory.length}/{totalRequired}
+              {requiredCollected.length}/{totalRequired}
             </div>
           </div>
         </div>

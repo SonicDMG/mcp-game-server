@@ -15,12 +15,13 @@ interface UserListModalProps {
   users: LeaderboardUser[];
   setSelectedUser: (user: LeaderboardUser) => void;
   onClose: () => void;
+  requiredArtifacts: string[];
 }
 
 const avatarUrl = (userId: string) =>
   `https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(userId)}`;
 
-const UserListModal: React.FC<UserListModalProps> = ({ room, users, setSelectedUser, onClose }) => (
+const UserListModal: React.FC<UserListModalProps> = ({ room, users, setSelectedUser, onClose, requiredArtifacts }) => (
   <div
     style={{
       position: 'fixed',
@@ -41,41 +42,44 @@ const UserListModal: React.FC<UserListModalProps> = ({ room, users, setSelectedU
       onClick={e => e.stopPropagation()}
     >
       <h3 style={{ color: color.heading, marginBottom: 12, textAlign: 'center' }}>Users in {room}</h3>
-      {users.map((user) => (
-        <div key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-          <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
-            <Image
-              src={getProxiedImageUrl(avatarUrl(user.id))}
-              alt="avatar"
-              width={24}
-              height={24}
-              style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer' }}
+      {users.map((user) => {
+        const requiredCollected = user.inventory.filter(itemId => requiredArtifacts.includes(itemId));
+        return (
+          <div key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+            <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
+              <Image
+                src={getProxiedImageUrl(avatarUrl(user.id))}
+                alt="avatar"
+                width={24}
+                height={24}
+                style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer' }}
+                onClick={() => setSelectedUser(user)}
+                unoptimized
+              />
+              {user.status === 'killed' && (
+                <span className={styles.killedSkullOverlay} style={{ fontSize: '1.5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
+              )}
+            </span>
+            <span
+              style={{
+                color: color.user,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                textDecorationStyle: 'dotted',
+                textDecorationColor: 'rgba(59, 130, 246, 0.4)',
+                marginRight: 4,
+              }}
               onClick={() => setSelectedUser(user)}
-              unoptimized
-            />
-            {user.status === 'killed' && (
-              <span className={styles.killedSkullOverlay} style={{ fontSize: '1.5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
-            )}
-          </span>
-          <span
-            style={{
-              color: color.user,
-              fontWeight: 600,
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              textDecorationStyle: 'dotted',
-              textDecorationColor: 'rgba(59, 130, 246, 0.4)',
-              marginRight: 4,
-            }}
-            onClick={() => setSelectedUser(user)}
-          >
-            {user.id}
-          </span>
-          <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400 }}>
-            ({user.inventory.length} Artifact{user.inventory.length === 1 ? '' : 's'})
-          </span>
-        </div>
-      ))}
+            >
+              {user.id}
+            </span>
+            <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400 }}>
+              ({requiredCollected.length} of {requiredArtifacts.length} Artifact{requiredArtifacts.length === 1 ? '' : 's'})
+            </span>
+          </div>
+        );
+      })}
       <button
         onClick={onClose}
         style={{

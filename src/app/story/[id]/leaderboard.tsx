@@ -155,6 +155,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
             users={userListModal.users}
             setSelectedUser={setSelectedUser}
             onClose={() => setUserListModal(null)}
+            requiredArtifacts={story.requiredArtifacts || []}
           />
         )}
       </div>
