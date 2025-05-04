@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerState, updatePlayerState, getLocation, getItem, getStory } from '../dataService';
 import type { Challenge } from '../types';
+import db from '@/lib/astradb';
 
 /**
  * POST /api/game/action
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
 
       case 'attempt_challenge': {
         // New: Attempt to complete a challenge
-        const { challengeId, answer, usedItems } = body;
+        const { challengeId, answer } = body;
         // Fetch story and challenge
         const story = await getStory(storyId);
         if (!story || !story.challenges) {
@@ -185,7 +186,6 @@ export async function POST(request: NextRequest) {
         const success = await updatePlayerState(playerState);
         // Save updated challenge solvedBy in the story
         // (Direct DB update for solvedBy array)
-        const db = require('@/lib/astradb').default;
         const storiesCollection = db.collection('game_stories');
         await storiesCollection.updateOne(
           { id: storyId, 'challenges.id': challengeId },

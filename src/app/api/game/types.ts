@@ -68,10 +68,18 @@ export interface Challenge {
   artifactId: string;
   challengeType: 'riddle' | 'combat' | 'puzzle' | 'quest' | 'discovery' | 'ritual';
   themeTag: string;
-  requirements?: any;
+  requirements?: { item?: string; items?: string[] };
   solvedBy?: string[];
   solution?: string;
   completionCriteria?: string;
+}
+
+export interface LangflowWorldResponse {
+  startingLocationId: string;
+  locations: Omit<Location, 'storyId'>[];
+  items: Omit<GameItem, 'storyId'>[];
+  challenges?: Challenge[];
+  requiredArtifacts?: string[];
 }
 
 // Utility functions moved to src/lib/utils.ts

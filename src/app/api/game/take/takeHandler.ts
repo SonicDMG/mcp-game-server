@@ -73,6 +73,26 @@ export async function handleTakeAction(
   }
   // Check if the item is a required artifact (awarded via challenge)
   if (story.requiredArtifacts && story.requiredArtifacts.includes(itemId)) {
+    // Log blocked take event
+    await services.eventsCollection.insertOne({
+      storyId,
+      type: 'take',
+      message: `${userId} attempted to pick up required artifact ${itemId} (blocked)`,
+      actor: userId,
+      target: itemId,
+      timestamp: new Date().toISOString(),
+      blocked: true,
+    });
+    // Log artifact event for blocked attempt
+    await services.eventsCollection.insertOne({
+      storyId,
+      type: 'artifact',
+      message: `${userId} attempted to pick up required artifact ${itemId} (blocked)`,
+      actor: userId,
+      target: itemId,
+      timestamp: new Date().toISOString(),
+      blocked: true,
+    });
     return {
       status: 200,
       body: {
@@ -82,9 +102,7 @@ export async function handleTakeAction(
       }
     };
   }
-  // Remove item from location
-  location.items.splice(itemIndex, 1);
-  await services.locationsCollection.updateOne({ _id: location._id }, { $set: { items: location.items } });
+  // Do NOT remove item from location; allow all players to pick up all objects
   // Add item to player inventory
   player.inventory = player.inventory || [];
   if (!player.inventory.includes(itemId)) {

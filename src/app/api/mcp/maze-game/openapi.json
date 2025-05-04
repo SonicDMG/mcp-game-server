@@ -247,6 +247,46 @@
         }
       }
     },
+    "/challenge/solve": {
+      "post": {
+        "summary": "Solve Challenge",
+        "description": "Submits a solution to a challenge (e.g., riddle, puzzle, quest) and awards the artifact if correct.",
+        "operationId": "solveChallenge",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, Challenge, and Solution.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChallengeSolveInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Challenge solution result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "artifact": { "type": "object", "nullable": true },
+                    "challengeId": { "type": "string" },
+                    "solved": { "type": "boolean" },
+                    "error": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
      "/leaderboard": {
       "get": {
         "summary": "Get Leaderboard",
@@ -992,6 +1032,16 @@
             "description": "Array with image and text content for the item."
           }
         }
+      },
+      "ChallengeSolveInput": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "storyId": { "type": "string" },
+          "challengeId": { "type": "string" },
+          "solution": { "type": "string" }
+        },
+        "required": ["userId", "storyId", "challengeId", "solution"]
       }
     },
     "responses": {

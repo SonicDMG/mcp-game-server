@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 import { generateImageWithPolling } from '@/lib/everartUtils'; // Import the new utility function
+import { LangflowWorldResponse } from '@/app/api/game/types'; // Import the correct interface
 
 /**
  * GET/POST /api/game/stories
@@ -51,14 +52,6 @@ interface CreateStoryInput {
   title?: string;
   description?: string;
   version?: string;
-}
-
-// Interface for the expected structure of the Langflow response
-interface LangflowWorldResponse {
-    startingLocationId: string;
-    locations: Omit<LocationRecord, 'storyId' | '_id'>[]; // From Langflow, won't have storyId yet
-    items: Omit<ItemRecord, 'storyId' | '_id'>[];       // From Langflow, won't have storyId yet
-    challenges?: any[]; // New: challenges array from Langflow
 }
 
 // Interface for the outer structure of the Langflow response 
@@ -298,27 +291,17 @@ export async function POST(request: NextRequest) {
     console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
     // +++ End Debug Logging +++
 
-    // --- Select Required Artifacts --- 
-    const takableItems = generatedWorld.items.filter(
-        (item: Omit<ItemRecord, 'storyId' | '_id'> & { canTake?: boolean }) => item.canTake === true
-    );
-    if (takableItems.length < 5) {
-        console.warn(`Warning: Story '${storyId}' generated only ${takableItems.length} takable items, fewer than the required 5.`);
-        // Decide how to handle this - proceed with fewer, or throw error? 
-        // For now, use all available takable items.
-    }
-    let requiredArtifacts = takableItems.slice(0, 5).map(item => item.id);
-    console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
-
-    // --- Enforce MAX_REQUIRED_ARTIFACTS limit ---
+    // --- Select Required Artifacts ---
+    let requiredArtifacts = Array.isArray(generatedWorld.requiredArtifacts) && generatedWorld.requiredArtifacts.length > 0
+      ? generatedWorld.requiredArtifacts
+      : generatedWorld.items.filter((item: Omit<ItemRecord, 'storyId' | '_id'> & { canTake?: boolean }) => item.canTake === true).slice(0, 5).map(item => item.id);
     const MAX_REQUIRED_ARTIFACTS = parseInt(process.env.MAX_REQUIRED_ARTIFACTS || '5', 10);
     if (requiredArtifacts.length > MAX_REQUIRED_ARTIFACTS) {
-      // Shuffle and select a random subset
       requiredArtifacts = requiredArtifacts
         .sort(() => Math.random() - 0.5)
         .slice(0, MAX_REQUIRED_ARTIFACTS);
     }
-    // --- End Selection ---
+    console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
 
     // --- Select Goal Room ---
     // For now, pick the last location as the goal room (could be improved with a special property)
@@ -334,7 +317,7 @@ export async function POST(request: NextRequest) {
     // --- Win Path Validation ---
     // Ensure all required artifacts are present in the world
     const allItemIds = generatedWorld.items.map(item => item.id);
-    const missingArtifacts = requiredArtifacts.filter(id => !allItemIds.includes(id));
+    const missingArtifacts = requiredArtifacts.filter((id: string) => !allItemIds.includes(id));
     if (missingArtifacts.length > 0) {
       console.error('Win path validation failed: missing required artifacts:', missingArtifacts);
       return NextResponse.json({
