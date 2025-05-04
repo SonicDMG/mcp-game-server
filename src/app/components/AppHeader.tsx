@@ -44,17 +44,13 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
       {/* Main header row with logo and banners */}
       <div className={styles.headerRow} style={{ position: 'relative', zIndex: 2 }}>
         <div className={styles.headerLeft}>
-          {winners && winners.length > 0 && (
-            <WinnerSection winners={winners} onUserClick={onUserClick} />
-          )}
+          {typeof winners !== 'undefined' && <WinnerSection winners={winners} onUserClick={onUserClick} />}
         </div>
         <div className={styles.headerCenter}>
           <Image src={logoUrl} alt="MCP Logo" width={160} height={160} className="app-logo" style={{ objectFit: 'contain' }} />
         </div>
         <div className={styles.headerRight}>
-          {killed && killed.length > 0 && (
-            <KilledSection killed={killed} onUserClick={onUserClick} />
-          )}
+          {typeof killed !== 'undefined' && <KilledSection killed={killed} onUserClick={onUserClick} />}
         </div>
       </div>
       {/* Marquee event feed below the logo row, above the hud-frame */}

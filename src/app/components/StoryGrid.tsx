@@ -306,16 +306,19 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                   }}
                 />
               ) : (
-                <img
+                <Image
                   src={placeholderImage}
                   alt="Story Placeholder"
                   width={160}
                   height={100}
+                  priority={index === 0}
                   style={{
                     borderRadius: 12,
                     marginBottom: 16,
                     objectFit: 'cover',
                     filter: 'grayscale(1)',
+                    width: 160,
+                    height: 100,
                   }}
                 />
               )}
