@@ -89,7 +89,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
               />
             </div>
             <div className={styles.itemCollage}>
-              <ItemCollage items={items} collectedItemIds={collectedItemIds} setZoomedItem={setZoomedItem} />
+              <ItemCollage items={items} collectedItemIds={collectedItemIds} requiredArtifacts={story.requiredArtifacts || []} setZoomedItem={setZoomedItem} />
             </div>
           </div>
           {/* Right: Info and Map */}

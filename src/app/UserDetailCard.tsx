@@ -121,16 +121,28 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
 
         <div style={{ marginTop: '20px' }}>
           <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Inventory</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px 12px', alignItems: 'flex-start', justifyContent: 'flex-start', minHeight: 56 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '18px 16px', alignItems: 'flex-start', justifyContent: 'flex-start', minHeight: 56, maxWidth: 352 }}>
             {user.inventory.length === 0 ? (
               <div style={{ color: '#666' }}>No artifacts collected yet</div>
             ) : (
               user.inventory.map((itemId, idx) => {
                 const itemObj = items.find(i => i.id === itemId);
+                const isRequired = story.requiredArtifacts?.includes(itemId);
                 return (
                   <div
                     key={itemId + '-' + idx}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', cursor: setZoomedItem && itemObj ? 'pointer' : 'default', minWidth: 56 }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      background: isRequired ? 'rgba(255, 215, 0, 0.08)' : 'none',
+                      width: 80,
+                      height: 100,
+                      margin: 0,
+                      padding: '8px 4px 4px 4px',
+                      borderRadius: 8,
+                    }}
                     onClick={() => setZoomedItem && itemObj && setZoomedItem({
                       image: itemObj.image || '/images/item-placeholder.png',
                       name: itemObj.name || itemId,
@@ -140,13 +152,41 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
                     <Image
                       src={getProxiedImageUrl(itemObj?.image || '/images/item-placeholder.png')}
                       alt={itemObj?.name || itemId}
-                      width={40}
-                      height={40}
-                      style={{ borderRadius: 6, background: '#222', marginBottom: 2, border: '2px solid #3b82f6' }}
+                      width={48}
+                      height={48}
+                      style={{
+                        borderRadius: 6,
+                        background: '#222',
+                        marginBottom: 6,
+                        width: 48,
+                        height: 48,
+                        objectFit: 'cover',
+                        border: isRequired ? '2px solid #ffd700' : '2px solid #3b82f6',
+                        boxShadow: isRequired
+                          ? '0 0 8px 2px #ffd700cc'
+                          : '0 0 8px 2px #3b82f6cc',
+                        transition: 'box-shadow 0.2s, border 0.2s',
+                      }}
                       title={itemObj?.name || itemId}
                       unoptimized
                     />
-                    <span style={{ color: '#a7a7ff', fontSize: 11, maxWidth: 80, textAlign: 'center', wordBreak: 'break-word' }} title={itemObj?.name || itemId}>
+                    <span
+                      style={{
+                        color: '#a7a7ff',
+                        fontSize: 12,
+                        width: 72,
+                        textAlign: 'center',
+                        display: 'block',
+                        marginTop: 4,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'normal',
+                        lineHeight: 1.15,
+                        maxHeight: '2.3em', // ~2 lines
+                        wordBreak: 'break-word',
+                      }}
+                      title={itemObj?.name || itemId}
+                    >
                       {itemObj?.name || itemId}
                     </span>
                   </div>
