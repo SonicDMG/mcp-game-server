@@ -24,24 +24,14 @@ export async function POST(request: NextRequest) {
     // Get item details for both players (if any)
     const actorItems: (ItemRecord | null)[] = actor?.inventory?.length ? await Promise.all(actor.inventory.map(itemId => getItem(itemId, storyId))) : [];
     const targetItems: (ItemRecord | null)[] = target?.inventory?.length ? await Promise.all(target.inventory.map(itemId => getItem(itemId, storyId))) : [];
-    // Helper to pick a random item name from a list
-    const randomItemName = (items: (ItemRecord | null)[]) => {
-      const filtered = items.filter((i): i is ItemRecord => !!i);
-      return filtered.length > 0 ? (filtered[Math.floor(Math.random() * filtered.length)]?.name || 'an unknown item') : null;
-    };
-    // Helper to build a descriptive message
+    // Helper to build a short, action-focused message for the event feed
     function buildKillMessage({ outcome }: { outcome: string }) {
-      const theme = story?.description || story?.title || 'the adventure';
-      const room = location?.name || 'the room';
-      const roomDesc = location?.description || '';
-      const actorItem = randomItemName(actorItems);
-      const targetItem = randomItemName(targetItems);
       if (outcome === 'success') {
-        return `${playerId} ambushed ${targetId} in ${room} during ${theme}. ${actorItem ? `${playerId} used ${actorItem}` : `${playerId} struck swiftly`} and ${targetId} fell. ${roomDesc}`;
+        return `${playerId} killed ${targetId}`;
       } else if (outcome === 'fail') {
-        return `${playerId} tried to take down ${targetId} in ${room}, but failed. ${targetId}${targetItem ? `, wielding ${targetItem},` : ''} was ready. The tension in ${room} remains. ${roomDesc}`;
+        return `${playerId} tried to attack ${targetId} but failed`;
       } else if (outcome === 'counter') {
-        return `${playerId} tried to attack ${targetId} in ${room}, but ${targetId} turned the tables${targetItem ? ` with ${targetItem}` : ''} and killed ${playerId} instead! ${roomDesc}`;
+        return `${playerId} tried to attack ${targetId}, but ${targetId} killed ${playerId} instead`;
       }
       return '';
     }

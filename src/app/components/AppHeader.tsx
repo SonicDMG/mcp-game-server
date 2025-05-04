@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { WinnerSection, KilledSection } from './WinnerBanner';
 import { LeaderboardUser } from '../story/[id]/leaderboard';
+import styles from './AppHeader.module.css';
 
 interface Breadcrumb {
   label: string;
@@ -24,18 +25,10 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
   const { logoUrl, breadcrumbs, winners, killed, onUserClick = () => {}, eventFeed } = props;
   return (
     <header
-      className="app-header"
-      style={{
-        position: 'relative',
-        padding: '0.5rem 0',
-        marginBottom: 24,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        width: '100%',
-      }}
+      className={`app-header ${styles.headerContainer}`}
     >
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', margin: '0 0 4px 0', padding: '0 32px' }}>
+      {/* Breadcrumbs row at the top */}
+      <div className={styles.breadcrumbsRow}>
         <div className="breadcrumb" style={{ flex: 1, justifyContent: 'flex-start' }}>
           <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="footer-link">powered by <b>Langflow</b></a>
         </div>
@@ -48,28 +41,28 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
           ))}
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between', maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flex: 1 }}>
-          {typeof winners !== 'undefined' ? (
+      {/* Main header row with logo and banners */}
+      <div className={styles.headerRow} style={{ position: 'relative', zIndex: 2 }}>
+        <div className={styles.headerLeft}>
+          {winners && winners.length > 0 && (
             <WinnerSection winners={winners} onUserClick={onUserClick} />
-          ) : (
-            <div style={{ width: 160 }} />
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+        <div className={styles.headerCenter}>
           <Image src={logoUrl} alt="MCP Logo" width={160} height={160} className="app-logo" style={{ objectFit: 'contain' }} />
         </div>
-        <div style={{ minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
-          {typeof killed !== 'undefined' ? (
+        <div className={styles.headerRight}>
+          {killed && killed.length > 0 && (
             <KilledSection killed={killed} onUserClick={onUserClick} />
-          ) : (
-            <div style={{ width: 160 }} />
-          )}
-          {typeof winners === 'undefined' && typeof killed === 'undefined' && eventFeed && (
-            <div style={{ marginLeft: 24 }}>{eventFeed}</div>
           )}
         </div>
       </div>
+      {/* Marquee event feed below the logo row, above the hud-frame */}
+      {eventFeed && (
+        <div style={{ width: '100%', margin: 0, zIndex: 1, paddingBottom: 0 }}>
+          {eventFeed}
+        </div>
+      )}
     </header>
   );
 };
