@@ -52,12 +52,13 @@ const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, descript
             {users.map(user => (
               <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined} style={{ display: 'inline-block' }}>
-                  <img
+                  <Image
                     src={`https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(user.id)}`}
                     alt={user.id}
                     width={32}
                     height={32}
                     style={{ borderRadius: 6, background: '#222', border: '2px solid #3b82f6' }}
+                    unoptimized
                   />
                   {user.status === 'killed' && (
                     <span className={styles.killedSkullOverlay} style={{ fontSize: '3.5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>

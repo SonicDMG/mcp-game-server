@@ -70,4 +70,7 @@ See assistant notes for more details and options.
 
 - [ ] Implement polling for player list changes to show toasts for new players joining a story
 
-- [ ] Replace <img> tags with <Image /> from next/image in StoryGrid.tsx and ZoomedItemModal.tsx for better performance and to resolve Next.js warnings. 
+- [ ] Replace <img> tags with <Image /> from next/image in StoryGrid.tsx and ZoomedItemModal.tsx for better performance and to resolve Next.js warnings.
+
+## 10. Testing Improvements
+- [ ] Add integration tests that use a real or test database to verify end-to-end behavior of API handlers and business logic, ensuring correct interaction with the database and external systems. 

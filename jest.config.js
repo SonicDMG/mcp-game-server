@@ -9,4 +9,7 @@ module.exports = {
   },
   // Default to jsdom for React/Next.js; override with @jest-environment node in API tests
   testEnvironment: 'jsdom',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
 }; 
