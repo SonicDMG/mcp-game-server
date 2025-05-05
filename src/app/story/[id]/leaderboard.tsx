@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl } from '../../api/game/types';
 import UserDetailCard from '../../UserDetailCard';
@@ -10,6 +10,7 @@ import RoomGrid from '../../components/RoomGrid';
 import UserListModal from '../../components/UserListModal';
 import ZoomedItemModal from '../../components/ZoomedItemModal';
 import styles from '../../components/Leaderboard.module.css';
+import Confetti from 'react-confetti';
 
 export interface LeaderboardUser {
   id: string;
@@ -45,6 +46,16 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);
   const [userListModal, setUserListModal] = useState<{ room: string; users: LeaderboardUser[] } | null>(null);
   const [zoomedRoom, setZoomedRoom] = useState<{ image: string; name: string; description: string; users: LeaderboardUser[] } | null>(null);
+  const [killEffectTrigger, setKillEffectTrigger] = useState(false);
+  const prevKilledCount = useRef(users.filter(u => u.status === 'killed').length);
+
+  useEffect(() => {
+    if (users.filter(u => u.status === 'killed').length > prevKilledCount.current) {
+      setKillEffectTrigger(true);
+      setTimeout(() => setKillEffectTrigger(false), 100);
+    }
+    prevKilledCount.current = users.filter(u => u.status === 'killed').length;
+  }, [users.filter(u => u.status === 'killed').length]);
 
   // --- Collage and Stats Data ---
   const items = (story.items || []).map(item => ({
@@ -62,8 +73,25 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
   const killed = users.filter(u => u.status === 'killed');
   const totalRooms = story.rooms.length;
 
+  // Add keyframes for shake only
+  if (typeof window !== 'undefined' && !document.getElementById('shake-keyframes')) {
+    const style = document.createElement('style');
+    style.id = 'shake-keyframes';
+    style.innerHTML = `@keyframes shake { 0% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); } 20%, 40%, 60%, 80% { transform: translateX(8px); } 100% { transform: translateX(0); } }`;
+    document.head.appendChild(style);
+  }
+
   return (
-    <div className={styles.leaderboardContainer}>
+    <div className={styles.leaderboardContainer} style={killEffectTrigger ? { animation: 'shake 0.5s cubic-bezier(0.4,0,0.2,1)' } : {}}>
+      {/* Confetti Fanfare */}
+      {winners.length > 0 && (
+        <Confetti
+          width={typeof window !== 'undefined' ? window.innerWidth : 1200}
+          height={typeof window !== 'undefined' ? window.innerHeight : 800}
+          numberOfPieces={350}
+          recycle={false}
+        />
+      )}
       <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
         <div className={styles.mainLayout}>
           {/* Left: Story Image, StatsPanel, and ItemCollage */}

@@ -163,9 +163,6 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
           {dagreEdges}
         </svg>
         {rooms.map((loc) => {
-          if (typeof window !== 'undefined') {
-            console.log('[RoomGrid] goalRoom:', goalRoom, '| rendering room:', loc.id, '| isGoal:', goalRoom && loc.id === goalRoom);
-          }
           const node = dagreNodes[loc.id];
           if (!node) return null;
           const isGoal = goalRoom && loc.id === goalRoom;
