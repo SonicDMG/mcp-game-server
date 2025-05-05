@@ -72,6 +72,7 @@ export interface Challenge {
   solvedBy?: string[];
   solution?: string;
   completionCriteria?: string;
+  expectedAction?: string;
 }
 
 export interface LangflowWorldResponse {

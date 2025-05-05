@@ -54,12 +54,33 @@ export async function POST(request: NextRequest) {
     let isCorrect = false;
     if (challenge.solution) {
       isCorrect = solution.trim().toLowerCase() === challenge.solution.trim().toLowerCase();
+    } else if (challenge.expectedAction) {
+      // For discovery/action challenges, require the correct action/command
+      if (
+        solution.trim().toLowerCase() === challenge.expectedAction.trim().toLowerCase() &&
+        (!challenge.requirements?.item || player.inventory.includes(challenge.requirements.item)) &&
+        player.currentLocation === challenge.locationId
+      ) {
+        isCorrect = true;
+      } else {
+        return NextResponse.json({
+          success: false,
+          error: 'You must perform the correct action in the right location with the required item to complete this challenge.'
+        }, { status: 400 });
+      }
     } else if (challenge.completionCriteria) {
-      // TODO: Implement logic for non-text solutions (e.g., quest actions)
-      return NextResponse.json({
-        success: false,
-        error: 'This challenge requires a special action. (Not yet implemented)'
-      }, { status: 400 });
+      // Special logic for other non-text challenges
+      if (
+        (!challenge.requirements?.item || player.inventory.includes(challenge.requirements.item)) &&
+        player.currentLocation === challenge.locationId
+      ) {
+        isCorrect = true;
+      } else {
+        return NextResponse.json({
+          success: false,
+          error: 'You must be in the correct location and have the required item to complete this challenge.'
+        }, { status: 400 });
+      }
     } else {
       return NextResponse.json({
         success: false,
