@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getProxiedImageUrl, Story } from "@/app/api/game/types";
-import { LeaderboardUser } from '../story/[id]/Leaderboard';
+import { LeaderboardUser } from './Leaderboard';
 
 interface StoryGridProps {
   initialStories: Array<Story & {

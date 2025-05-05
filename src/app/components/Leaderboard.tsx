@@ -1,15 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { getProxiedImageUrl } from '../../api/game/types';
-import UserDetailCard from '../../UserDetailCard';
-import { Location as GameLocation } from '@/app/api/game/types';
-import ItemCollage from '../../components/ItemCollage';
-import StatsPanel from '../../components/StatsPanel';
-import RoomGrid from '../../components/RoomGrid';
-import UserListModal from '../../components/UserListModal';
-import ZoomedItemModal from '../../components/ZoomedItemModal';
-import styles from '../../components/Leaderboard.module.css';
+import { getProxiedImageUrl } from '../api/game/types';
+import UserDetailCard from '../UserDetailCard';
+import { Location as GameLocation } from '../api/game/types';
+import ItemCollage from './ItemCollage';
+import StatsPanel from './StatsPanel';
+import RoomGrid from './RoomGrid';
+import UserListModal from './UserListModal';
+import ZoomedItemModal from './ZoomedItemModal';
+import styles from './Leaderboard.module.css';
 import Confetti from 'react-confetti';
 
 export interface LeaderboardUser {

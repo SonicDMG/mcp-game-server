@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { WinnerSection, KilledSection } from './WinnerBanner';
-import { LeaderboardUser } from '../story/[id]/Leaderboard';
+import { LeaderboardUser } from './Leaderboard';
 import styles from './AppHeader.module.css';
 
 interface Breadcrumb {

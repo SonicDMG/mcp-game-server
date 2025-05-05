@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import LeaderboardHUD from '../../MazeMuralGrid';
 import UserDetailCard from '../../UserDetailCard';
-import type { LeaderboardUser } from './Leaderboard';
+import type { LeaderboardUser } from '../../components/Leaderboard';
 import { Location as GameLocation } from '@/app/api/game/types';
 import AppFooter from '../../components/AppFooter';
 import AppHeader from '../../components/AppHeader';
