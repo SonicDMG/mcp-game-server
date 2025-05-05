@@ -82,7 +82,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
   }
 
   return (
-    <div className={styles.leaderboardContainer} style={killEffectTrigger ? { animation: 'shake 0.5s cubic-bezier(0.4,0,0.2,1)' } : {}}>
+    <div className={styles.leaderboardContainer}>
       {/* Confetti Fanfare */}
       {winners.length > 0 && (
         <Confetti

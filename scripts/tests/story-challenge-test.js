@@ -100,6 +100,10 @@ async function testChallengeArtifactAcquisition() {
     await solveChallengeByArtifact(artifact);
   }
 
+  // Move player to the final room after collecting all required artifacts
+  console.log(`Moving player to the final room: ${goalRoomId}`);
+  await safeApiCall(() => moveUserToGoal(user, storyId, goalRoomId), `moveUserToGoal ${user} to final room (${goalRoomId})`);
+
   if (errors.length) {
     console.error('\n--- CHALLENGE TEST ERRORS ---');
     for (const err of errors) console.error(err);

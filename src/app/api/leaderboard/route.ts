@@ -47,7 +47,10 @@ export async function GET(request: NextRequest) {
     let requiredArtifacts: string[] = [];
     if (players.length > 0) {
       // Fetch the story to get goalRoomId and requiredArtifacts
-      const story = await db.collection('game_stories').findOne({ id: storyId });
+      let story = await db.collection('game_stories').findOne({ id: storyId });
+      if (!story) {
+        story = await db.collection('game_stories').findOne({ _id: storyId });
+      }
       if (story) {
         goalRoomId = story.goalRoomId;
         requiredArtifacts = story.requiredArtifacts || [];
