@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 import { generateImageWithPolling } from '@/lib/everartUtils'; // Import the new utility function
-import { LangflowWorldResponse } from '@/app/api/game/types'; // Import the correct interface
+import { callLangflow } from '@/lib/langflow';
 
 /**
  * GET/POST /api/game/stories
@@ -52,29 +52,6 @@ interface CreateStoryInput {
   title?: string;
   description?: string;
   version?: string;
-}
-
-// Interface for the outer structure of the Langflow response 
-interface LangflowOuterResponse {
-  outputs?: Array<{
-    outputs?: Array<{
-      results?: {
-        message?: {
-          text?: string;
-          // Add other potential fields if needed, or use Record<string, any>
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [key: string]: any; // Allow other properties within results
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [key: string]: any; // Allow other properties within inner outputs
-    }>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any; // Allow other properties within outer outputs
-  }>;
-  // Add other potential top-level keys if needed
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 // Get a typed collection instance
@@ -143,45 +120,21 @@ export async function POST(request: NextRequest) {
         throw new Error('World generation service URL components are not configured.');
     }
     
-    // Construct the full URL by inserting the path segment
-    const langflowUrl = `${langflowApiUrl}/api/v1/run/${langflowEndpoint}`;
-
-    console.log(`Calling Langflow at ${langflowUrl} with theme: "${theme}"`);
-
-    const langflowPayload = {
-        "input_value": theme,
-        "input_type": "chat", // Assuming these are constant for your flow
-        "output_type": "chat",
-        "session_id": storyId // Use the unique storyId as the session_id
-    };
-
-    console.log('Langflow Payload:', JSON.stringify(langflowPayload, null, 2)); // Log the payload
-
-    const langflowResponse = await fetch(langflowUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(langflowPayload)
-    });
-
-    if (!langflowResponse.ok) {
-        const errorBody = await langflowResponse.text();
-        console.error(`POST /api/game/stories - Error from Langflow (${langflowResponse.status}): ${errorBody}`);
-        throw new Error(`Failed to generate world content from Langflow service. Status: ${langflowResponse.status}`);
-    }
-
-    // Log the raw text response before attempting to parse JSON
-    const rawResponseBody = await langflowResponse.text();
-    console.log('POST /api/game/stories - Raw Langflow Response Body:', rawResponseBody);
-
-    let langflowOuterResponse: LangflowOuterResponse; // Use defined interface
+    // Use the new Langflow utility
+    let langflowOuterResponse;
+    let generatedWorld;
     try {
-        // 1. Parse the outer Langflow response structure
-        langflowOuterResponse = JSON.parse(rawResponseBody);
-        console.log('POST /api/game/stories - Parsed Outer Langflow Response Object:', JSON.stringify(langflowOuterResponse, null, 2));
-    } catch (parseError) {
-        console.error('POST /api/game/stories - Error parsing outer Langflow JSON response:', parseError);
-        console.error('Raw response was:', rawResponseBody); 
-        throw new Error(`Failed to parse the main JSON response structure from Langflow service.`);
+      const result = await callLangflow({
+        input_value: theme,
+        session_id: storyId,
+        apiUrl: langflowApiUrl,
+        endpoint: langflowEndpoint
+      });
+      langflowOuterResponse = result.outer;
+      generatedWorld = result.world;
+    } catch (err) {
+      console.error('POST /api/game/stories - Langflow call failed:', err);
+      throw err;
     }
 
     // 2. Extract the nested world data JSON string
@@ -202,73 +155,6 @@ export async function POST(request: NextRequest) {
         throw new Error('Error processing Langflow response structure.');
     }
 
-    // 3. Parse the extracted world data string
-    let generatedWorld: LangflowWorldResponse;
-    try {
-        let parsed: unknown = worldDataString;
-        if (typeof parsed === 'string') {
-            try {
-                parsed = JSON.parse(parsed);
-            } catch (_e) {
-                // Try to extract JSON from a string with preamble or code block
-                const parsedStr = parsed as string;
-                const jsonStart = parsedStr.indexOf('{');
-                const jsonEnd = parsedStr.lastIndexOf('}');
-                if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-                    let jsonString = parsedStr.substring(jsonStart, jsonEnd + 1);
-                    // Remove code block markers if present
-                    jsonString = jsonString.replace(/```json|```/g, '').trim();
-                    try {
-                        parsed = JSON.parse(jsonString);
-                    } catch (_e2) {
-                        throw new Error('Failed to extract and parse JSON from stringified world data.');
-                    }
-                } else {
-                    throw new Error('String did not contain a valid JSON object.');
-                }
-            }
-        }
-        if (typeof parsed === 'string') {
-            // Try parsing again (double-encoded)
-            try {
-                parsed = JSON.parse(parsed);
-            } catch (_e) {
-                throw new Error('Failed to parse double-encoded world data JSON string from Langflow response.');
-            }
-        }
-        // Type guard: ensure parsed matches LangflowWorldResponse
-        if (
-          typeof parsed === 'object' &&
-          parsed !== null &&
-          'startingLocationId' in parsed &&
-          'locations' in parsed &&
-          'items' in parsed
-        ) {
-          generatedWorld = parsed as LangflowWorldResponse;
-        } else {
-          throw new Error('Parsed world data does not match expected structure.');
-        }
-        console.log('POST /api/game/stories - Parsed Inner World Data Object:', JSON.stringify(generatedWorld, null, 2));
-    } catch (parseError) {
-        console.error('POST /api/game/stories - Error parsing inner world data JSON string:', parseError);
-        console.error('Extracted string was:', worldDataString);
-        throw new Error(`Failed to parse the world data JSON string from Langflow response.`);
-    }
-    
-    // Type check for robustness
-    if (
-      !generatedWorld ||
-      typeof generatedWorld !== 'object' ||
-      typeof generatedWorld.startingLocationId !== 'string' ||
-      !Array.isArray(generatedWorld.locations) ||
-      !Array.isArray(generatedWorld.items)
-    ) {
-      console.error('POST /api/game/stories - Parsed world data is missing required fields or has unexpected shape:', JSON.stringify(generatedWorld, null, 2));
-      throw new Error('Parsed world data from Langflow is missing required fields or has unexpected shape.');
-    }
-    const startingLocationId = generatedWorld.startingLocationId;
-    console.log(`Parsed world data: ${generatedWorld.locations.length} locations, ${generatedWorld.items.length} items. Starting: ${startingLocationId}`);
-
     // --- NEW: Extract and validate challenges array ---
     const challenges = Array.isArray(generatedWorld.challenges) ? generatedWorld.challenges : [];
     if (challenges.length === 0) {
@@ -287,7 +173,7 @@ export async function POST(request: NextRequest) {
     }
 
     // +++ Add Debug Logging for Starting Location Items +++
-    const startingLocData = generatedWorld.locations.find(loc => loc.id === startingLocationId);
+    const startingLocData = generatedWorld.locations.find(loc => loc.id === generatedWorld.startingLocationId);
     console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
     // +++ End Debug Logging +++
 
@@ -344,7 +230,7 @@ export async function POST(request: NextRequest) {
       }
       return false;
     }
-    const canReachGoal = bfs(startingLocationId, goalRoomId, generatedWorld.locations);
+    const canReachGoal = bfs(generatedWorld.startingLocationId, goalRoomId, generatedWorld.locations);
     if (!canReachGoal) {
       console.error('Win path validation failed: goal room is not reachable from starting location.');
       return NextResponse.json({
@@ -436,7 +322,7 @@ export async function POST(request: NextRequest) {
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
             { $set: {
-                startingLocation: startingLocationId,
+                startingLocation: generatedWorld.startingLocationId,
                 requiredArtifacts: requiredArtifacts,
                 creationStatus: 'done',
                 goalRoomId: goalRoomId,
@@ -457,7 +343,7 @@ export async function POST(request: NextRequest) {
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
             { $set: {
-                startingLocation: startingLocationId,
+                startingLocation: generatedWorld.startingLocationId,
                 requiredArtifacts: requiredArtifacts,
                 creationStatus: 'done',
                 goalRoomId: goalRoomId,
@@ -483,7 +369,7 @@ export async function POST(request: NextRequest) {
         storyDbId: storyInsertResult.insertedId,
         locationsGenerated: locationInsertResult.insertedCount,
         itemsGenerated: itemInsertResult.insertedCount,
-        startingLocationId: startingLocationId,
+        startingLocationId: generatedWorld.startingLocationId,
         imageUrl: generatedImageUrl // Include the URL (or undefined) in the response
     });
 
