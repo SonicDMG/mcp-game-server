@@ -10,6 +10,7 @@ interface StoryRecord extends Story {
   roomOrder?: string[];
   artifacts?: string[];
   goalRoom?: string;
+  goalRoomId?: string;
   requiredArtifacts?: string[];
   image?: string;
 }
@@ -79,7 +80,7 @@ async function fetchAndFormatMetadata(storyId: string) {
     // Use defaults if fields are missing from the story document
     const roomOrder = story.roomOrder || locations.map(loc => loc.id); // Default to location IDs if no order specified
     const artifacts = story.artifacts || []; // Default to empty array
-    const goalRoom = story.goalRoom || roomOrder[roomOrder.length - 1] || ''; // Default to last room in order
+    const goalRoom = story.goalRoomId || story.goalRoom || roomOrder[roomOrder.length - 1] || ''; // Prefer goalRoomId, then goalRoom, then fallback
     const requiredArtifacts = story.requiredArtifacts || []; // Default to empty array
 
     // Get room data and filter to ResponseRoom type

@@ -9,6 +9,7 @@ import dagre from 'dagre';
 interface RoomGridProps {
   rooms: GameLocation[];
   users: LeaderboardUser[];
+  goalRoom?: string;
   setZoomedImage: (img: string, name: string, description: string, roomId: string) => void;
   setSelectedUser: (user: LeaderboardUser) => void;
   setUserListModal: (modal: { room: string; users: LeaderboardUser[] } | null) => void;
@@ -23,7 +24,7 @@ const MAX_MAP_COLS = 3;
 const CARD_WIDTH = 140;
 const CARD_HEIGHT = 120;
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, setZoomedImage, setSelectedUser, setUserListModal }) => {
+const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedImage, setSelectedUser, setUserListModal }) => {
   // Step 2: Remap coordinates to fit within MAX_MAP_COLS columns
   const rootId = rooms[0]?.id;
   const visited = new Set();
@@ -162,8 +163,12 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, setZoomedImage, setSe
           {dagreEdges}
         </svg>
         {rooms.map((loc) => {
+          if (typeof window !== 'undefined') {
+            console.log('[RoomGrid] goalRoom:', goalRoom, '| rendering room:', loc.id, '| isGoal:', goalRoom && loc.id === goalRoom);
+          }
           const node = dagreNodes[loc.id];
           if (!node) return null;
+          const isGoal = goalRoom && loc.id === goalRoom;
           return (
             <div
               key={loc.id}
@@ -172,7 +177,8 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, setZoomedImage, setSe
                 left: node.x - CARD_WIDTH / 2 - minX + PADDING + LEFT_MARGIN,
                 top: node.y - CARD_HEIGHT / 2 - minY + PADDING,
                 width: CARD_WIDTH,
-                border: '2px solid #333',
+                border: isGoal ? '2.5px solid #ffd700' : '2px solid #333',
+                boxShadow: isGoal ? '0 0 16px 2px #ffd70055' : undefined,
                 borderRadius: 8,
                 padding: 10,
                 background: '#181c2a',

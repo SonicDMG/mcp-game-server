@@ -94,6 +94,31 @@ export async function POST(request: NextRequest) {
     if (challenge.artifactId) {
       artifact = await itemsCollection.findOne({ id: challenge.artifactId, storyId });
     }
+
+    // --- WIN CONDITION CHECK (added) ---
+    if (story && story.goalRoomId && story.requiredArtifacts) {
+      const inGoalRoom = player.currentLocation === story.goalRoomId;
+      const hasAllArtifacts = story.requiredArtifacts.every((artifactId: string) => player.inventory.includes(artifactId));
+      if (inGoalRoom && hasAllArtifacts) {
+        await playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
+        await db.collection('game_events').insertOne({
+          storyId,
+          type: 'win',
+          message: `${userId} has won the game!`,
+          actor: userId,
+          timestamp: new Date().toISOString(),
+        });
+        return NextResponse.json({
+          success: true,
+          message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
+          win: true,
+          artifact,
+          challengeId,
+          solved: true
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Challenge solved! You have been awarded the artifact.',

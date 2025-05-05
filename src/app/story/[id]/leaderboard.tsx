@@ -107,6 +107,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
               <RoomGrid
                 rooms={story.rooms}
                 users={users}
+                goalRoom={story.goalRoom}
                 setZoomedImage={(img, name, description, roomId) => {
                   setZoomedRoom({ image: img, name, description, users: users.filter(u => u.room === roomId) });
                 }}
