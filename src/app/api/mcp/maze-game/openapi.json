@@ -123,7 +123,7 @@
      "/move": {
       "post": {
         "summary": "Move Player",
-        "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.",
+        "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
         "operationId": "movePlayer",
         "tags": ["Game Actions"],
         "requestBody": {
@@ -164,7 +164,7 @@
     "/take": {
       "post": {
         "summary": "Take Item",
-        "description": "Allows the player to pick up a specified item from their current location.",
+        "description": "Allows the player to pick up a specified item from their current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
         "operationId": "takeItem",
         "tags": ["Game Actions"],
         "requestBody": {
@@ -209,7 +209,7 @@
     "/examine": {
       "post": {
         "summary": "Examine Target",
-        "description": "Gets a detailed description of a specific item or feature in the player's current location.",
+        "description": "Gets a detailed description of a specific item or feature in the player's current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
         "operationId": "examineTarget",
         "tags": ["Game Actions"],
          "requestBody": {
@@ -250,7 +250,7 @@
     "/challenge/solve": {
       "post": {
         "summary": "Solve Challenge",
-        "description": "Submits a solution to a challenge (e.g., riddle, puzzle, quest) and awards the artifact if correct.",
+        "description": "Submits a solution to a challenge (e.g., riddle, puzzle, quest) and awards the artifact if correct.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
         "operationId": "solveChallenge",
         "tags": ["Game Actions"],
         "requestBody": {
