@@ -46,16 +46,15 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);
   const [userListModal, setUserListModal] = useState<{ room: string; users: LeaderboardUser[] } | null>(null);
   const [zoomedRoom, setZoomedRoom] = useState<{ image: string; name: string; description: string; users: LeaderboardUser[] } | null>(null);
-  const [killEffectTrigger, setKillEffectTrigger] = useState(false);
   const prevKilledCount = useRef(users.filter(u => u.status === 'killed').length);
+  const killedCount = users.filter(u => u.status === 'killed').length;
 
   useEffect(() => {
-    if (users.filter(u => u.status === 'killed').length > prevKilledCount.current) {
-      setKillEffectTrigger(true);
-      setTimeout(() => setKillEffectTrigger(false), 100);
+    if (killedCount > prevKilledCount.current) {
+      // (Optional: trigger any effect here if needed)
     }
-    prevKilledCount.current = users.filter(u => u.status === 'killed').length;
-  }, [users.filter(u => u.status === 'killed').length]);
+    prevKilledCount.current = killedCount;
+  }, [killedCount]);
 
   // --- Collage and Stats Data ---
   const items = (story.items || []).map(item => ({
