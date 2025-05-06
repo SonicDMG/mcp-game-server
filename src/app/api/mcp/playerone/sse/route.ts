@@ -89,6 +89,15 @@ if (typeof process !== 'undefined' && process.on) {
   process.on('SIGTERM', cleanupClientsAndExit);
 }
 
+// Helper to get the base API URL
+function getApiBaseUrl(req: NextRequest): string {
+  if (process.env.API_BASE_URL) return process.env.API_BASE_URL.replace(/\/$/, '');
+  // Fallback: use the request's host header
+  const proto = req.headers.get('x-forwarded-proto') || 'http';
+  const host = req.headers.get('host') || 'localhost:3000';
+  return `${proto}://${host}`;
+}
+
 export async function GET(req: NextRequest) {
   // Only handle /sse path
   if (!req.nextUrl.pathname.endsWith('/sse')) {
@@ -297,7 +306,7 @@ export async function POST(req: NextRequest) {
       if (endpoint.method !== 'GET' && endpoint.method !== 'HEAD') {
         fetchOptions.body = JSON.stringify(argsCopy);
       }
-      const apiRes = await fetch(`http://localhost:3000${route}`, fetchOptions);
+      const apiRes = await fetch(`${getApiBaseUrl(req)}${route}`, fetchOptions);
       const contentType = apiRes.headers.get('content-type');
       if (!apiRes.ok || !contentType || !contentType.includes('application/json')) {
         const text = await apiRes.text();
@@ -412,7 +421,7 @@ export async function POST(req: NextRequest) {
       if (endpoint.method !== 'GET' && endpoint.method !== 'HEAD') {
         fetchOptions.body = JSON.stringify(argsCopy);
       }
-      const apiRes = await fetch(`http://localhost:3000${route}`, fetchOptions);
+      const apiRes = await fetch(`${getApiBaseUrl(req)}${route}`, fetchOptions);
       const contentType = apiRes.headers.get('content-type');
       if (!apiRes.ok || !contentType || !contentType.includes('application/json')) {
         const text = await apiRes.text();

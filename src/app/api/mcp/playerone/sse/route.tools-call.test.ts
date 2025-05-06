@@ -25,6 +25,8 @@ describe('tools/call handler', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
+    // Set API_BASE_URL for dynamic base URL logic
+    process.env.API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
     // Mock the clients map and writer
     writer = { write: jest.fn(), close: jest.fn() };
     clients.set('test-session', writer as unknown as WritableStreamDefaultWriter<Uint8Array>);
@@ -60,7 +62,8 @@ describe('tools/call handler', () => {
     const res = await POST(req);
 
     // Assert
-    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/mcp/playerone/listStories', expect.objectContaining({
+    const baseUrl = process.env.API_BASE_URL;
+    expect(fetch).toHaveBeenCalledWith(`${baseUrl}/api/mcp/playerone/listStories`, expect.objectContaining({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(toolArgs)
