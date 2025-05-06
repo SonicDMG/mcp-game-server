@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "MCPlayerOne Game API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "API for interacting with the MCP text adventure game. Allows starting games, getting state, moving, taking items, examining things, and viewing leaderboards."
   },
   "servers": [
@@ -12,118 +12,10 @@
     }
   ],
   "paths": {
-    "/start": {
+    "/api/game/move": {
       "post": {
-        "summary": "Start Game / Get Initial State",
-        "description": "Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.",
-        "operationId": "startGame",
-        "tags": ["Game Actions"],
-        "requestBody": {
-          "description": "User and Story identifiers.",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserStoryInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Game started or state retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GameStateResponse"
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
-        }
-      }
-    },
-    "/state": {
-      "post": {
-        "summary": "Get Current Game State",
-        "description": "Retrieves the current state of the game (player and location) for a specific user and story. Requires `userId` and `storyId`. Obtain `storyId` using the `listStories` tool. Obtain `userId` from the result of `startGame` (for new players) or user input (for resuming). NOTE: The current MCP tool definition for `getGameState` may be faulty and might not accept the required `userId` and `storyId` parameters, potentially only accepting `random_string`. A correctly defined tool *must* send `userId` and `storyId`.",
-        "operationId": "getGameState",
-        "tags": ["Game Actions"],
-        "requestBody": {
-          "description": "User and Story identifiers.",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserStoryInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Current game state retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GameStateResponse"
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
-        }
-      }
-    },
-    "/look": {
-      "post": {
-        "summary": "Look Around Current Location",
-        "description": "Gets details about the player's current location (description, items, exits). Functionally similar to /state but may provide slightly different presentation.",
-        "operationId": "lookAround",
-        "tags": ["Game Actions"],
-         "requestBody": {
-          "description": "User and Story identifiers.",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserStoryInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Location details retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "location": { "$ref": "#/components/schemas/Location" },
-                    "message": { "type": "string", "example": "You are in the Dragon Entrance..." },
-                    "hint": { "type": "string", "example": "You see a Rusty Sword." }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
-        }
-      }
-    },
-     "/move": {
-      "post": {
-        "summary": "Move Player",
-        "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+        "summary": "movePlayer",
+        "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.",
         "operationId": "movePlayer",
         "tags": ["Game Actions"],
         "requestBody": {
@@ -131,9 +23,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MoveInput"
-              }
+              "schema": { "$ref": "#/components/schemas/MoveInput" }
             }
           }
         },
@@ -142,29 +32,17 @@
             "description": "Move successful. Returns the details of the new location.",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "location": { "$ref": "#/components/schemas/Location" },
-                    "message": { "type": "string", "example": "You move to the Guard Chamber..." },
-                    "hint": { "type": "string", "example": "Remember to look around." }
-                  }
-                }
+                "schema": { "type": "object" }
               }
             }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          }
         }
       }
     },
-    "/take": {
+    "/api/game/take": {
       "post": {
-        "summary": "Take Item",
-        "description": "Allows the player to pick up a specified item from their current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+        "summary": "takeItem",
+        "description": "Allows the player to pick up a specified item from their current location.",
         "operationId": "takeItem",
         "tags": ["Game Actions"],
         "requestBody": {
@@ -172,54 +50,34 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TakeInput"
-              }
+              "schema": { "$ref": "#/components/schemas/TakeInput" }
             }
           }
         },
-         "responses": {
+        "responses": {
           "200": {
             "description": "Item taken successfully. Returns the updated inventory.",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "You picked up the rusty_sword." },
-                    "item": { "type": "string", "description": "ID of the item taken.", "example": "rusty_sword"},
-                    "inventory": { 
-                      "type": "array", 
-                      "items": { "type": "string" },
-                      "description": "Player's full inventory after taking the item." ,
-                      "example": ["rusty_sword", "torch"]
-                    }
-                  }
-                }
+                "schema": { "type": "object" }
               }
             }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          }
         }
       }
     },
-    "/examine": {
+    "/api/game/examine": {
       "post": {
-        "summary": "Examine Target",
-        "description": "Gets a detailed description of a specific item or feature in the player's current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+        "summary": "examineTarget",
+        "description": "Gets a detailed description of a specific item or feature in the player's current location.",
         "operationId": "examineTarget",
         "tags": ["Game Actions"],
-         "requestBody": {
+        "requestBody": {
           "description": "User, Story, and target Item/Feature identifiers.",
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExamineInput"
-              }
+              "schema": { "$ref": "#/components/schemas/ExamineInput" }
             }
           }
         },
@@ -228,29 +86,98 @@
             "description": "Examination successful. Returns details about the target.",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "name": { "type": "string", "example": "Rusty Sword" },
-                    "description": { "type": "string", "example": "A standard-issue sword, showing signs of rust and neglect." },
-                    "type": { "type": "string", "enum": ["item", "feature"], "example": "item" },
-                    "hint": { "type": "string", "example": "It might be useful in a fight." }
-                  }
-                }
+                "schema": { "type": "object" }
               }
             }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          }
         }
       }
     },
-    "/challenge/solve": {
+    "/api/game/look": {
       "post": {
-        "summary": "Solve Challenge",
-        "description": "Submits a solution to a challenge (e.g., riddle, puzzle, quest) and awards the artifact if correct.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+        "summary": "lookAround",
+        "description": "Gets details about the player's current location (description, items, exits).",
+        "operationId": "lookAround",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserStoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/state": {
+      "post": {
+        "summary": "getGameState",
+        "description": "Retrieves the current state of the game (player and location) for a specific user and story.",
+        "operationId": "getGameState",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserStoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current game state retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/start": {
+      "post": {
+        "summary": "startGame",
+        "description": "Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.",
+        "operationId": "startGame",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserStoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Game started or state retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/challenge/solve": {
+      "post": {
+        "summary": "solveChallenge",
+        "description": "Submits a solution to a challenge and awards the artifact if correct.",
         "operationId": "solveChallenge",
         "tags": ["Game Actions"],
         "requestBody": {
@@ -267,29 +194,97 @@
             "description": "Challenge solution result.",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "artifact": { "type": "object", "nullable": true },
-                    "challengeId": { "type": "string" },
-                    "solved": { "type": "boolean" },
-                    "error": { "type": "string", "nullable": true }
-                  }
-                }
+                "schema": { "type": "object" }
               }
             }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          }
         }
       }
     },
-     "/leaderboard": {
+    "/api/game/kill": {
+      "post": {
+        "summary": "killPlayer",
+        "description": "Attempts to 'kill' another player in the same room.",
+        "operationId": "killPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, and story ID.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PlayerActionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kill action result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/loot": {
+      "post": {
+        "summary": "lootPlayer",
+        "description": "Allows a player to loot items from a killed player in the same room.",
+        "operationId": "lootPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, story ID, and items to loot.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LootActionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loot action result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/help": {
+      "post": {
+        "summary": "helpPlayer",
+        "description": "Attempts to 'help' (revive) another player in the same room.",
+        "operationId": "helpPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, and story ID.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PlayerActionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Help action result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/leaderboard": {
       "get": {
-        "summary": "Get Leaderboard",
+        "summary": "getLeaderboard",
         "description": "Retrieves the leaderboard data (player progress) for a specific story.",
         "operationId": "getLeaderboard",
         "tags": ["Game Info"],
@@ -299,9 +294,7 @@
             "in": "query",
             "required": true,
             "description": "The ID of the story for which to retrieve the leaderboard.",
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "example": "dragon_lair"
           }
         ],
@@ -310,23 +303,16 @@
             "description": "Leaderboard retrieved successfully.",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntry"
-                  }
-                }
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/LeaderboardEntry" } }
               }
             }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          }
         }
       }
     },
-    "/stories": {
+    "/api/game/stories": {
       "get": {
-        "summary": "List available game stories",
+        "summary": "listStories",
         "description": "Retrieves a list of all available game stories that can be played. Returns an empty array if none are found.",
         "operationId": "listStories",
         "tags": ["Game Setup"],
@@ -358,7 +344,7 @@
         }
       },
       "post": {
-        "summary": "Create New Story (Theme-Based Generation)",
+        "summary": "createGame",
         "description": "Generates a new game story, locations, items, and cover image based on a provided theme using AI services (Langflow, EverArt). The maximum number of rooms per story is limited by the server (MAX_ROOMS_PER_STORY).",
         "operationId": "createGame",
         "tags": ["Game Setup"],
@@ -397,9 +383,9 @@
         }
       }
     },
-    "/stories/{storyId}": {
+    "/api/game/stories/{storyId}": {
       "get": {
-        "summary": "Get Story By ID",
+        "summary": "getStoryById",
         "description": "Retrieves the details of a specific story using its logical ID.",
         "operationId": "getStoryById",
         "tags": ["Game Setup"],
@@ -430,7 +416,7 @@
         }
       },
       "delete": {
-        "summary": "Delete Story",
+        "summary": "deleteStory",
         "description": "Deletes a specific story and all associated data (locations, items, player states) from the database.",
         "operationId": "deleteStory",
         "tags": ["Game Setup"],
@@ -467,9 +453,9 @@
         }
       }
     },
-    "/stories/status": {
+    "/api/game/stories/status": {
       "get": {
-        "summary": "Get Story Creation Status",
+        "summary": "getStoryCreationStatus",
         "description": "Polls the creation status of a story by storyId. Agents should use this endpoint after creating a story to check if it is ready. If status is 'pending', continue polling. If 'done', the story is ready. If 'error', inform the user and suggest retrying.",
         "operationId": "getStoryCreationStatus",
         "tags": ["Game Setup"],
@@ -524,113 +510,6 @@
               }
             }
           }
-        }
-      }
-    },
-    "/kill": {
-      "post": {
-        "summary": "Kill Player",
-        "description": "Attempts to 'kill' another player in the same room. Sets the target's status to 'killed'. Returns lootable items.",
-        "operationId": "killPlayer",
-        "tags": ["Player Actions"],
-        "requestBody": {
-          "description": "Acting player, target player, and story ID.",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PlayerActionInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Kill action result. Outcome can be: 'success' (attacker kills target), 'fail' (attack misses), or 'counter' (target kills attacker). If a player is killed, their lootable items are returned.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    { "$ref": "#/components/schemas/PlayerActionResponse" },
-                    { "type": "object", "properties": {
-                        "lootableItems": { "type": "array", "items": { "type": "string" } },
-                        "outcome": { "type": "string", "enum": ["success", "fail", "counter"], "description": "Result of the kill attempt." },
-                        "context": { "$ref": "#/components/schemas/ContextDetails" }
-                    } }
-                  ]
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
-        }
-      }
-    },
-    "/loot": {
-      "post": {
-        "summary": "Loot Items from Killed Player",
-        "description": "Allows a player to loot items from a killed player in the same room.",
-        "operationId": "lootPlayer",
-        "tags": ["Player Actions"],
-        "requestBody": {
-          "description": "Acting player, target player, story ID, and items to loot.",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LootActionInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Loot action result.",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LootActionResponse" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
-        }
-      }
-    },
-    "/help": {
-      "post": {
-        "summary": "Help Player",
-        "description": "Attempts to 'help' (revive) another player in the same room. If the target is 'killed', sets their status to 'playing'.",
-        "operationId": "helpPlayer",
-        "tags": ["Player Actions"],
-        "requestBody": {
-          "description": "Acting player, target player, and story ID.",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PlayerActionInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Help action result.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PlayerActionResponse"
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     }
@@ -826,37 +705,43 @@
         "required": ["success", "error"]
       },
       "StoryRecord": {
+        "type": "object",
+        "additionalProperties": false,
         "properties": {
-          "_id": { "type": "string", "description": "Internal database ID.", "readOnly": true },
+          "id": { "type": "string", "description": "Internal or legacy story identifier (may duplicate storyId)" },
           "storyId": { "type": "string", "description": "Unique logical story identifier (echoed at top level for agent workflows).", "example": "mystic_library" },
           "title": { "type": "string", "example": "The Mystic Library", "description": "Short, punchy, creative title. No prefixes or bylines." },
           "description": { "type": "string", "example": "An ancient library filled with magical secrets." },
-          "startingLocation": { "type": "string", "example": "entrance_hall" },
           "version": { "type": "string", "example": "1.1" },
-          "requiredArtifacts": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "List of item IDs that must be collected to win. No more than the value of MAX_REQUIRED_ARTIFACTS (from env, default 5) are required; if more are generated, a random subset will be chosen."
-          },
-          "goalRoomId": {
-            "type": "string",
-            "description": "The ID of the goal room. To win, a player must collect all requiredArtifacts and reach this room. Backend validates that a win path exists after world generation."
-          },
           "theme": { "type": "string", "description": "Theme used for generation (optional)." },
+          "playerCount": { "type": "integer" },
+          "totalArtifactsFound": { "type": "integer" },
+          "killedCount": { "type": "integer" },
           "image": { "type": "string", "description": "URL of the story cover image, if present.", "nullable": true },
           "alt": { "type": "string", "description": "Alt text for the story image, if present.", "nullable": true },
+          "startingLocation": { "type": "string", "example": "entrance_hall" },
           "content": {
             "type": "array",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/ImageContent" },
-                { "$ref": "#/components/schemas/TextContent" }
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ImageContent" }
               ]
             },
             "description": "Array with image and text content for the story."
           }
         },
-        "required": ["id", "title", "description", "startingLocation", "version"]
+        "required": [
+          "storyId",
+          "title",
+          "description",
+          "version",
+          "theme",
+          "playerCount",
+          "totalArtifactsFound",
+          "killedCount",
+          "startingLocation"
+        ]
       },
       "CreateStoryInputThemeBased": {
         "type": "object",
@@ -1000,19 +885,21 @@
           }
         }
       },
-      "ImageContent": {
-        "type": "object",
-        "properties": {
-          "type": { "type": "string", "enum": ["image"] },
-          "image": { "type": "string", "description": "URL of the image." },
-          "alt": { "type": "string", "description": "Alt text for the image." }
-        }
-      },
       "TextContent": {
         "type": "object",
+        "required": ["type", "text"],
         "properties": {
           "type": { "type": "string", "enum": ["text"] },
           "text": { "type": "string", "description": "JSON stringified object with all metadata, including storyId." }
+        }
+      },
+      "ImageContent": {
+        "type": "object",
+        "required": ["type", "image", "alt"],
+        "properties": {
+          "type": { "type": "string", "enum": ["image"] },
+          "image": { "type": "string", "format": "uri", "description": "URL of the image." },
+          "alt": { "type": "string", "description": "Alt text for the image." }
         }
       },
       "Item": {

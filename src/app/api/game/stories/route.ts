@@ -453,7 +453,8 @@ export async function GET(request: NextRequest) {
           creationStatus: story.creationStatus,
           playerCount: stats.playerCount ?? 0,
           totalArtifactsFound: stats.totalArtifactsFound ?? 0,
-          killedCount: stats.killedCount ?? 0
+          killedCount: stats.killedCount ?? 0,
+          startingLocation: story.startingLocation || ""
         };
         return {
           ...storyObj,
@@ -499,7 +500,8 @@ export async function GET(request: NextRequest) {
         creationStatus: story.creationStatus,
         playerCount,
         totalArtifactsFound,
-        killedCount
+        killedCount,
+        startingLocation: story.startingLocation || ""
       };
       return NextResponse.json({
         ...storyObj,
