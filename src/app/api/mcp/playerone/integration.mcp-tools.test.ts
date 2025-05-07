@@ -12,7 +12,7 @@ describe('MCP Tools Integration Test', () => {
   const player2 = 'victim';
   let itemId: string | undefined;
   let challengeId: string;
-  let lootableItems: string[] = [];
+  const lootableItems: string[] = [];
 
   it('should create a new story', async () => {
     const res = await fetch(`${baseUrl}/api/game/stories`, {
