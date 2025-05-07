@@ -98,6 +98,19 @@ function getApiBaseUrl(req: NextRequest): string {
   return `${proto}://${host}`;
 }
 
+// Helper to safely remove a client and close its writer
+function removeClient(sessionId: string) {
+  const writer = clients.get(sessionId);
+  if (writer) {
+    try {
+      writer.close();
+    } catch (_e) {
+      // Ignore errors on close
+    }
+    clients.delete(sessionId);
+  }
+}
+
 export async function GET(req: NextRequest) {
   // Only handle /sse path
   if (!req.nextUrl.pathname.endsWith('/sse')) {
@@ -181,10 +194,8 @@ export async function POST(req: NextRequest) {
   }
 
   const sessionId = req.nextUrl.searchParams.get('session_id');
-  if (!sessionId || !clients.has(String(sessionId))) {
-    return NextResponse.json({ error: 'No SSE client for session' }, { status: 400 });
-  }
-  const writer = clients.get(String(sessionId));
+  const writer = sessionId && clients.has(String(sessionId)) ? clients.get(String(sessionId)) : undefined;
+  const isSSE = !!writer;
   const body = await req.json();
   const { id, method, params } = body as { id: string; method: string; params: unknown };
   console.log('[MCP][SSE][POST] Incoming:', {
@@ -195,14 +206,20 @@ export async function POST(req: NextRequest) {
   });
 
   function reply(msg: unknown) {
-    if (!writer) return;
-    try {
-      console.log('[MCP][SSE][POST][REPLY] Sending:', JSON.stringify(msg));
-      writer.write(encoder(`data: ${JSON.stringify(msg)}\n\n`));
-    } catch (err) {
-      console.error(`[MCP][SSE][error] Write failed for client ${sessionId}:`, err);
-      clients.delete(String(sessionId));
+    if (isSSE && writer) {
+      try {
+        console.log('[MCP][SSE][POST][REPLY] Sending:', JSON.stringify(msg));
+        writer.write(encoder(`data: ${JSON.stringify(msg)}\n\n`));
+      } catch (err) {
+        if (err && typeof err === 'object' && err.constructor && err.constructor.name === 'ResponseAborted') {
+          console.info(`[MCP][SSE][info] SSE client disconnected (ResponseAborted) for session ${sessionId}`);
+        } else {
+          console.error(`[MCP][SSE][error] Write failed for client ${sessionId}:`, err);
+        }
+        removeClient(String(sessionId));
+      }
     }
+    // For stateless (no SSE), reply does nothing; handled below
   }
 
   // 1) initialize
@@ -218,6 +235,10 @@ export async function POST(req: NextRequest) {
     };
     console.log('[MCP][SSE][POST][BRANCH] initialize');
     reply(resultMsg);
+    if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+      // For stateless tool calls, allow processing; do not return 400
+      // (No-op: just allows the rest of the handler to run)
+    }
     return new Response(null, { status: 200 });
   }
 
@@ -233,6 +254,10 @@ export async function POST(req: NextRequest) {
     const tools = getToolsForInspector();
     const resultMsg = { jsonrpc: '2.0', id, result: { tools } };
     reply(resultMsg);
+    if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+      // For stateless tool calls, allow processing; do not return 400
+      // (No-op: just allows the rest of the handler to run)
+    }
     return new Response(null, { status: 200 });
   }
 
@@ -258,6 +283,10 @@ export async function POST(req: NextRequest) {
       };
       console.log('[MCP][SSE][POST][BRANCH] tools/call missing tool name', { params });
       reply(errorMsg);
+      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+        // For stateless tool calls, allow processing; do not return 400
+        // (No-op: just allows the rest of the handler to run)
+      }
       return new Response(null, { status: 200 });
     }
     const endpoint = endpointMap[toolName];
@@ -269,6 +298,10 @@ export async function POST(req: NextRequest) {
       };
       console.log('[MCP][SSE][POST][BRANCH] tools/call endpoint not found', { toolName });
       reply(errorMsg);
+      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+        // For stateless tool calls, allow processing; do not return 400
+        // (No-op: just allows the rest of the handler to run)
+      }
       return new Response(null, { status: 200 });
     }
     // Fill path params if needed
@@ -296,6 +329,10 @@ export async function POST(req: NextRequest) {
           id,
           error: { code: -32000, message: `Proxy error: ${apiRes.status} ${apiRes.statusText}`, detail: text }
         });
+        if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+          // For stateless tool calls, allow processing; do not return 400
+          // (No-op: just allows the rest of the handler to run)
+        }
         return new Response(null, { status: 200 });
       }
       const result = await apiRes.json();
@@ -323,7 +360,12 @@ export async function POST(req: NextRequest) {
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
       console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
-      reply(resultMsg);
+      if (isSSE && writer) {
+        reply(resultMsg);
+        return new Response(null, { status: 200 });
+      } else {
+        return NextResponse.json(resultMsg, { status: 200 });
+      }
     } catch (e: unknown) {
       let message = 'Unknown error';
       if (e instanceof Error) message = e.message;
@@ -334,8 +376,12 @@ export async function POST(req: NextRequest) {
       };
       console.log('[MCP][SSE][POST][BRANCH] tools/call proxy error', { toolName, message });
       reply(errorMsg);
+      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+        // For stateless tool calls, allow processing; do not return 400
+        // (No-op: just allows the rest of the handler to run)
+      }
+      return new Response(null, { status: 200 });
     }
-    return new Response(null, { status: 200 });
   }
 
   // 4) <toolId>.run
@@ -350,6 +396,10 @@ export async function POST(req: NextRequest) {
       };
       console.log('[MCP][SSE][POST][BRANCH] .run endpoint not found', { toolId });
       reply(errorMsg);
+      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+        // For stateless tool calls, allow processing; do not return 400
+        // (No-op: just allows the rest of the handler to run)
+      }
       return new Response(null, { status: 200 });
     }
     let route = endpoint.route;
@@ -376,6 +426,10 @@ export async function POST(req: NextRequest) {
           id,
           error: { code: -32000, message: `Proxy error: ${apiRes.status} ${apiRes.statusText}`, detail: text }
         });
+        if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+          // For stateless tool calls, allow processing; do not return 400
+          // (No-op: just allows the rest of the handler to run)
+        }
         return new Response(null, { status: 200 });
       }
       const result = await apiRes.json();
@@ -403,7 +457,12 @@ export async function POST(req: NextRequest) {
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
       console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
-      reply(resultMsg);
+      if (isSSE && writer) {
+        reply(resultMsg);
+        return new Response(null, { status: 200 });
+      } else {
+        return NextResponse.json(resultMsg, { status: 200 });
+      }
     } catch (e: unknown) {
       let message = 'Unknown error';
       if (e instanceof Error) message = e.message;
@@ -414,12 +473,31 @@ export async function POST(req: NextRequest) {
       };
       console.log('[MCP][SSE][POST][BRANCH] .run proxy error', { toolId, message });
       reply(errorMsg);
+      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+        // For stateless tool calls, allow processing; do not return 400
+        // (No-op: just allows the rest of the handler to run)
+      }
+      return new Response(null, { status: 200 });
     }
-    return new Response(null, { status: 200 });
   }
 
   console.log('[MCP][SSE][POST][BRANCH] fallback for method:', method);
   const errorMsg = { jsonrpc: '2.0', id, error: { code: -32601, message: 'Unknown method' } };
   reply(errorMsg);
+  if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
+    // For stateless tool calls, allow processing; do not return 400
+    // (No-op: just allows the rest of the handler to run)
+  }
   return new Response(null, { status: 400 });
+}
+
+// Global unhandledRejection handler for graceful logging
+if (typeof process !== 'undefined' && process.on) {
+  process.on('unhandledRejection', (reason) => {
+    if (reason && typeof reason === 'object' && reason.constructor && reason.constructor.name === 'ResponseAborted') {
+      console.info('[MCP][SSE][info] UnhandledRejection: SSE client disconnected (ResponseAborted)');
+    } else {
+      console.error('[MCP][SSE][unhandledRejection]', reason);
+    }
+  });
 }
