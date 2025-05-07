@@ -74,6 +74,30 @@ function resolveRef(ref: string, spec: unknown): unknown {
   return result;
 }
 
+// Flattens an OpenAPI schema with allOf into a single object schema
+function flattenAllOf(schema: unknown, spec: unknown): Record<string, unknown> | undefined {
+  if (!schema || typeof schema !== 'object') return schema as Record<string, unknown>;
+  if (!('allOf' in schema)) return schema as Record<string, unknown>;
+  const allOfSchemas = (schema as { allOf: unknown[] }).allOf;
+  const merged: { type: string; properties: Record<string, unknown>; required: string[] } = { type: 'object', properties: {}, required: [] };
+  for (const sub of allOfSchemas) {
+    let resolved = sub;
+    if (typeof resolved === 'object' && resolved !== null && '$ref' in resolved) {
+      resolved = resolveRef((resolved as { $ref: string }).$ref, spec);
+    }
+    const flat = flattenAllOf(resolved, spec);
+    if (flat && typeof flat === 'object') {
+      if ('properties' in flat && typeof flat.properties === 'object') {
+        Object.assign(merged.properties, flat.properties);
+      }
+      if ('required' in flat && Array.isArray(flat.required)) {
+        merged.required = Array.from(new Set([...(merged.required || []), ...flat.required]));
+      }
+    }
+  }
+  return merged;
+}
+
 if (openapiSpec && openapiSpec.paths) {
   for (const [route, methods] of Object.entries(openapiSpec.paths)) {
     for (const [method, op] of Object.entries(methods as Record<string, unknown>)) {
@@ -96,7 +120,7 @@ if (openapiSpec && openapiSpec.paths) {
         if (typeof schema === 'object' && schema !== null && '$ref' in schema) {
           schema = resolveRef((schema as { $ref: string }).$ref, openapiSpec);
         }
-        inputSchema = schema as Record<string, unknown>;
+        inputSchema = flattenAllOf(schema, openapiSpec) as Record<string, unknown>;
       }
       // Fallback to parameters (for GET, etc.)
       if ((typeof inputSchema !== 'object' || Object.keys(inputSchema).length === 0) && Array.isArray((opUnknown as unknown as { parameters?: unknown[] }).parameters)) {

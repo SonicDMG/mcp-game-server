@@ -1,5 +1,5 @@
 import { POST } from './route';
-import { endpointMap, clients } from './sse-internals';
+import { endpointMap, clients, getToolsForInspector } from './sse-internals';
 import { NextRequest } from 'next/server';
 
 // Helper to create a mock NextRequest
@@ -142,7 +142,7 @@ describe('tools/call handler', () => {
     const toolName = 'startGame';
     const toolArgs = { userId: 'user1', storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/start', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -161,7 +161,7 @@ describe('tools/call handler', () => {
     const toolName = 'getGameState';
     const toolArgs = { userId: 'user1', storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/state', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -180,7 +180,7 @@ describe('tools/call handler', () => {
     const toolName = 'lookAround';
     const toolArgs = { userId: 'user1', storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/look', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -199,7 +199,7 @@ describe('tools/call handler', () => {
     const toolName = 'movePlayer';
     const toolArgs = { userId: 'user1', storyId: 'story1', target: 'loc2' };
     endpointMap[toolName] = { route: '/api/game/move', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -218,7 +218,7 @@ describe('tools/call handler', () => {
     const toolName = 'takeItem';
     const toolArgs = { userId: 'user1', storyId: 'story1', target: 'item1' };
     endpointMap[toolName] = { route: '/api/game/take', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -237,7 +237,7 @@ describe('tools/call handler', () => {
     const toolName = 'examineTarget';
     const toolArgs = { userId: 'user1', storyId: 'story1', target: 'item1' };
     endpointMap[toolName] = { route: '/api/game/examine', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -256,7 +256,7 @@ describe('tools/call handler', () => {
     const toolName = 'solveChallenge';
     const toolArgs = { userId: 'user1', storyId: 'story1', challengeId: 'c1', solution: '42' };
     endpointMap[toolName] = { route: '/api/game/challenge/solve', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -275,7 +275,7 @@ describe('tools/call handler', () => {
     const toolName = 'getStoryById';
     const toolArgs = { storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/stories/story1', method: 'GET' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -294,7 +294,7 @@ describe('tools/call handler', () => {
     const toolName = 'deleteStory';
     const toolArgs = { storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/stories/story1', method: 'DELETE' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -313,7 +313,7 @@ describe('tools/call handler', () => {
     const toolName = 'getStoryCreationStatus';
     const toolArgs = { id: 'story1' };
     endpointMap[toolName] = { route: '/api/game/stories/status', method: 'GET' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -332,7 +332,7 @@ describe('tools/call handler', () => {
     const toolName = 'killPlayer';
     const toolArgs = { playerId: 'user1', targetId: 'user2', storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/kill', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -351,7 +351,7 @@ describe('tools/call handler', () => {
     const toolName = 'lootPlayer';
     const toolArgs = { playerId: 'user1', targetId: 'user2', storyId: 'story1', items: ['item1'] };
     endpointMap[toolName] = { route: '/api/game/loot', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -370,7 +370,7 @@ describe('tools/call handler', () => {
     const toolName = 'helpPlayer';
     const toolArgs = { playerId: 'user1', targetId: 'user2', storyId: 'story1' };
     endpointMap[toolName] = { route: '/api/game/help', method: 'POST' };
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -383,5 +383,35 @@ describe('tools/call handler', () => {
     const decoded = new TextDecoder().decode(writer.write.mock.calls[0][0] as Uint8Array);
     expect(decoded).toContain('Helped');
     expect(res.status).toBe(200);
+  });
+});
+
+describe('SSE MCP tool schema exposure', () => {
+  it('should expose correct inputSchema for all tools', () => {
+    const tools = getToolsForInspector();
+    // Map of toolId to expected required fields
+    const expectedRequired: Record<string, string[]> = {
+      startGame: ['userId', 'storyId'],
+      getGameState: ['userId', 'storyId'],
+      lookAround: ['userId', 'storyId'],
+      movePlayer: ['userId', 'storyId', 'target'],
+      takeItem: ['userId', 'storyId', 'target'],
+      examineTarget: ['userId', 'storyId', 'target'],
+      solveChallenge: ['userId', 'storyId', 'challengeId', 'solution'],
+      getStoryById: ['storyId'],
+      deleteStory: ['storyId'],
+      getStoryCreationStatus: ['id'],
+      killPlayer: ['playerId', 'targetId', 'storyId'],
+      lootPlayer: ['playerId', 'targetId', 'storyId', 'items'],
+      helpPlayer: ['playerId', 'targetId', 'storyId'],
+      createGame: ['theme'],
+      listStories: [], // GET, no required fields
+    };
+    for (const tool of tools) {
+      if (expectedRequired[tool.id]) {
+        const required = Array.isArray(tool.inputSchema.required) ? tool.inputSchema.required : [];
+        expect(required).toEqual(expect.arrayContaining(expectedRequired[tool.id]));
+      }
+    }
   });
 }); 

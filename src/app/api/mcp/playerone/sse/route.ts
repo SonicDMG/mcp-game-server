@@ -300,14 +300,26 @@ export async function POST(req: NextRequest) {
       }
       const result = await apiRes.json();
       // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
-      // This matches the behavior of the earlier openapi.json, which always returned a content array.
+      // For agent tools, wrap as { type: 'text', text: ... } unless already a valid content type
+      function wrapAsTextContent(obj: unknown): { type: string; text?: string; image?: string; alt?: string } {
+        if (
+          obj &&
+          typeof obj === 'object' &&
+          'type' in obj &&
+          typeof (obj as { type: unknown }).type === 'string' &&
+          ['text', 'image', 'audio', 'resource'].includes((obj as { type: string }).type)
+        ) {
+          return obj as { type: string; text?: string; image?: string; alt?: string };
+        }
+        return { type: 'text', text: typeof obj === 'string' ? obj : JSON.stringify(obj) };
+      }
       let finalResult;
       if (Array.isArray(result)) {
-        finalResult = { content: result };
+        finalResult = { content: result.map(wrapAsTextContent) };
       } else if (typeof result === 'object' && result !== null) {
-        finalResult = { content: [result] };
+        finalResult = { content: [wrapAsTextContent(result)] };
       } else {
-        finalResult = { content: [result] };
+        finalResult = { content: [wrapAsTextContent(result)] };
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
       console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
@@ -368,16 +380,29 @@ export async function POST(req: NextRequest) {
       }
       const result = await apiRes.json();
       // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
-      // This matches the behavior of the earlier openapi.json, which always returned a content array.
+      // For agent tools, wrap as { type: 'text', text: ... } unless already a valid content type
+      function wrapAsTextContent(obj: unknown): { type: string; text?: string; image?: string; alt?: string } {
+        if (
+          obj &&
+          typeof obj === 'object' &&
+          'type' in obj &&
+          typeof (obj as { type: unknown }).type === 'string' &&
+          ['text', 'image', 'audio', 'resource'].includes((obj as { type: string }).type)
+        ) {
+          return obj as { type: string; text?: string; image?: string; alt?: string };
+        }
+        return { type: 'text', text: typeof obj === 'string' ? obj : JSON.stringify(obj) };
+      }
       let finalResult;
       if (Array.isArray(result)) {
-        finalResult = { content: result };
+        finalResult = { content: result.map(wrapAsTextContent) };
       } else if (typeof result === 'object' && result !== null) {
-        finalResult = { content: [result] };
+        finalResult = { content: [wrapAsTextContent(result)] };
       } else {
-        finalResult = { content: [result] };
+        finalResult = { content: [wrapAsTextContent(result)] };
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
+      console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
       reply(resultMsg);
     } catch (e: unknown) {
       let message = 'Unknown error';
