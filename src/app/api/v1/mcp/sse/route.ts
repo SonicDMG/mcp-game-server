@@ -15,7 +15,7 @@ function encoder(str: string) {
 }
 
 // --- Load OpenAPI spec at startup ---
-const openapiPath = path.join(process.cwd(), 'src/app/api/mcp/playerone/openapi/openapi.json');
+const openapiPath = path.join(process.cwd(), 'src/app/api/v1/mcp/openapi/openapi.json');
 
 let openapiSpec: OpenAPISpec;
 try {
@@ -126,8 +126,16 @@ export async function GET(req: NextRequest) {
   clients.set(String(sessionId), writer);
   console.log(`[MCP][SSE][connect] New client ${sessionId}`);
 
+  // Set a TTL for the client (1 hour)
+  setTimeout(() => {
+    if (clients.has(String(sessionId))) {
+      clients.delete(String(sessionId));
+      console.log(`[MCP][SSE][cleanup] Session ${sessionId} expired after 1 hour`);
+    }
+  }, 60 * 60 * 1000); // 1 hour in ms
+
   // Send endpoint event
-  const postUrl = `/api/mcp/playerone/sse?session_id=${sessionId}`;
+  const postUrl = `/api/v1/mcp/sse?session_id=${sessionId}`;
   try {
     writer.write(encoder(`event: endpoint\ndata: ${postUrl}\n\n`));
   } catch (err) {
@@ -183,6 +191,7 @@ export async function GET(req: NextRequest) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
     },
   });
 }
@@ -194,8 +203,9 @@ export async function POST(req: NextRequest) {
   }
 
   const sessionId = req.nextUrl.searchParams.get('session_id');
-  const writer = sessionId && clients.has(String(sessionId)) ? clients.get(String(sessionId)) : undefined;
-  const isSSE = !!writer;
+  console.log('[DEBUG] sessionId:', sessionId, 'clientsKeys:', Array.from(clients.keys()));
+  const isSSE = !!sessionId;
+  const writer = isSSE && clients.has(String(sessionId)) ? clients.get(String(sessionId)) : undefined;
   const body = await req.json();
   const { id, method, params } = body as { id: string; method: string; params: unknown };
   console.log('[MCP][SSE][POST] Incoming:', {
@@ -235,11 +245,8 @@ export async function POST(req: NextRequest) {
     };
     console.log('[MCP][SSE][POST][BRANCH] initialize');
     reply(resultMsg);
-    if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-      // For stateless tool calls, allow processing; do not return 400
-      // (No-op: just allows the rest of the handler to run)
-    }
-    return new Response(null, { status: 200 });
+    // Always return JSON-RPC result in HTTP response for initialize
+    return NextResponse.json(resultMsg, { status: 200 });
   }
 
   // 2) notifications/initialized
@@ -254,11 +261,11 @@ export async function POST(req: NextRequest) {
     const tools = getToolsForInspector();
     const resultMsg = { jsonrpc: '2.0', id, result: { tools } };
     reply(resultMsg);
-    if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-      // For stateless tool calls, allow processing; do not return 400
-      // (No-op: just allows the rest of the handler to run)
+    if (isSSE && writer) {
+      return new Response(null, { status: 204 });
+    } else {
+      return NextResponse.json(resultMsg, { status: 200 });
     }
-    return new Response(null, { status: 200 });
   }
 
   function fillPathParams(route: string, args: Record<string, unknown>) {
@@ -282,12 +289,12 @@ export async function POST(req: NextRequest) {
         error: { code: -32601, message: 'Tool name missing in tools/call' }
       };
       console.log('[MCP][SSE][POST][BRANCH] tools/call missing tool name', { params });
-      reply(errorMsg);
-      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-        // For stateless tool calls, allow processing; do not return 400
-        // (No-op: just allows the rest of the handler to run)
+      if (isSSE && writer) {
+        reply(errorMsg);
+        return new Response(null, { status: 204 });
+      } else {
+        return NextResponse.json(errorMsg, { status: 200 });
       }
-      return new Response(null, { status: 200 });
     }
     const endpoint = endpointMap[toolName];
     if (!endpoint) {
@@ -297,12 +304,12 @@ export async function POST(req: NextRequest) {
         error: { code: -32601, message: `Tool not found: ${toolName}` }
       };
       console.log('[MCP][SSE][POST][BRANCH] tools/call endpoint not found', { toolName });
-      reply(errorMsg);
-      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-        // For stateless tool calls, allow processing; do not return 400
-        // (No-op: just allows the rest of the handler to run)
+      if (isSSE && writer) {
+        reply(errorMsg);
+        return new Response(null, { status: 204 });
+      } else {
+        return NextResponse.json(errorMsg, { status: 200 });
       }
-      return new Response(null, { status: 200 });
     }
     // Fill path params if needed
     let route = endpoint.route;
@@ -324,16 +331,17 @@ export async function POST(req: NextRequest) {
       if (!apiRes.ok || !contentType || !contentType.includes('application/json')) {
         const text = await apiRes.text();
         console.error('[MCP][SSE][POST][BRANCH] tools/call proxy error response:', text);
-        reply({
+        const errorMsg = {
           jsonrpc: '2.0',
           id,
           error: { code: -32000, message: `Proxy error: ${apiRes.status} ${apiRes.statusText}`, detail: text }
-        });
-        if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-          // For stateless tool calls, allow processing; do not return 400
-          // (No-op: just allows the rest of the handler to run)
+        };
+        if (isSSE && writer) {
+          reply(errorMsg);
+          return new Response(null, { status: 204 });
+        } else {
+          return NextResponse.json(errorMsg, { status: 200 });
         }
-        return new Response(null, { status: 200 });
       }
       const result = await apiRes.json();
       // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
@@ -362,7 +370,7 @@ export async function POST(req: NextRequest) {
       console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
       if (isSSE && writer) {
         reply(resultMsg);
-        return new Response(null, { status: 200 });
+        return new Response(null, { status: 204 });
       } else {
         return NextResponse.json(resultMsg, { status: 200 });
       }
@@ -375,12 +383,12 @@ export async function POST(req: NextRequest) {
         error: { code: -32000, message }
       };
       console.log('[MCP][SSE][POST][BRANCH] tools/call proxy error', { toolName, message });
-      reply(errorMsg);
-      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-        // For stateless tool calls, allow processing; do not return 400
-        // (No-op: just allows the rest of the handler to run)
+      if (isSSE && writer) {
+        reply(errorMsg);
+        return new Response(null, { status: 204 });
+      } else {
+        return NextResponse.json(errorMsg, { status: 200 });
       }
-      return new Response(null, { status: 200 });
     }
   }
 
@@ -395,12 +403,12 @@ export async function POST(req: NextRequest) {
         error: { code: -32601, message: 'Method not found' }
       };
       console.log('[MCP][SSE][POST][BRANCH] .run endpoint not found', { toolId });
-      reply(errorMsg);
-      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-        // For stateless tool calls, allow processing; do not return 400
-        // (No-op: just allows the rest of the handler to run)
+      if (isSSE && writer) {
+        reply(errorMsg);
+        return new Response(null, { status: 204 });
+      } else {
+        return NextResponse.json(errorMsg, { status: 200 });
       }
-      return new Response(null, { status: 200 });
     }
     let route = endpoint.route;
     const argsCopy: Record<string, unknown> = params && typeof params === 'object' ? { ...(params as Record<string, unknown>) } : {};
@@ -421,16 +429,17 @@ export async function POST(req: NextRequest) {
       if (!apiRes.ok || !contentType || !contentType.includes('application/json')) {
         const text = await apiRes.text();
         console.error('[MCP][SSE][POST][BRANCH] .run proxy error response:', text);
-        reply({
+        const errorMsg = {
           jsonrpc: '2.0',
           id,
           error: { code: -32000, message: `Proxy error: ${apiRes.status} ${apiRes.statusText}`, detail: text }
-        });
-        if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-          // For stateless tool calls, allow processing; do not return 400
-          // (No-op: just allows the rest of the handler to run)
+        };
+        if (isSSE && writer) {
+          reply(errorMsg);
+          return new Response(null, { status: 204 });
+        } else {
+          return NextResponse.json(errorMsg, { status: 200 });
         }
-        return new Response(null, { status: 200 });
       }
       const result = await apiRes.json();
       // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
@@ -459,7 +468,7 @@ export async function POST(req: NextRequest) {
       console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
       if (isSSE && writer) {
         reply(resultMsg);
-        return new Response(null, { status: 200 });
+        return new Response(null, { status: 204 });
       } else {
         return NextResponse.json(resultMsg, { status: 200 });
       }
@@ -472,23 +481,23 @@ export async function POST(req: NextRequest) {
         error: { code: -32000, message }
       };
       console.log('[MCP][SSE][POST][BRANCH] .run proxy error', { toolId, message });
-      reply(errorMsg);
-      if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-        // For stateless tool calls, allow processing; do not return 400
-        // (No-op: just allows the rest of the handler to run)
+      if (isSSE && writer) {
+        reply(errorMsg);
+        return new Response(null, { status: 204 });
+      } else {
+        return NextResponse.json(errorMsg, { status: 200 });
       }
-      return new Response(null, { status: 200 });
     }
   }
 
   console.log('[MCP][SSE][POST][BRANCH] fallback for method:', method);
   const errorMsg = { jsonrpc: '2.0', id, error: { code: -32601, message: 'Unknown method' } };
-  reply(errorMsg);
-  if (!isSSE && req.nextUrl.pathname.endsWith('/sse')) {
-    // For stateless tool calls, allow processing; do not return 400
-    // (No-op: just allows the rest of the handler to run)
+  if (isSSE && writer) {
+    reply(errorMsg);
+    return new Response(null, { status: 204 });
+  } else {
+    return NextResponse.json(errorMsg, { status: 400 });
   }
-  return new Response(null, { status: 400 });
 }
 
 // Global unhandledRejection handler for graceful logging

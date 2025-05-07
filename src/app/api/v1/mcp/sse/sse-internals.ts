@@ -42,7 +42,7 @@ export interface EndpointMapEntry {
   method: string;
 }
 
-const openapiPath = path.join(process.cwd(), 'src/app/api/mcp/playerone/openapi/openapi.json');
+const openapiPath = path.join(process.cwd(), 'src/app/api/v1/mcp/openapi/openapi.json');
 
 let openapiSpec: OpenAPISpec;
 try {
