@@ -81,7 +81,9 @@ export async function POST(request: NextRequest) {
   let generatedImageUrl: string | undefined = undefined;
   try {
     const inputData: CreateStoryInput = await request.json();
-    console.log('POST /api/game/stories - Received data:', JSON.stringify(inputData, null, 2));
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('POST /api/game/stories - Received data:', JSON.stringify(inputData, null, 2));
+    }
 
     // --- 1. Validate Input ---
     if (!inputData || !inputData.theme) {
@@ -97,7 +99,9 @@ export async function POST(request: NextRequest) {
     const description = inputData.description || `A game about ${theme}.`;
     const version = inputData.version || "1.0";
 
-    console.log(`Resolved Story Metadata: ID=${storyId}, Title=${title}, Version=${version}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Resolved Story Metadata: ID=${storyId}, Title=${title}, Version=${version}`);
+    }
 
     // --- 3. Check for Duplicate Story ID ---
     const existingStory = await storiesCollection.findOne({ id: storyId }, { projection: { _id: 1 } });
@@ -109,7 +113,9 @@ export async function POST(request: NextRequest) {
             : `Generated Story ID '${storyId}' collision. Please try again.`;
         return NextResponse.json({ error: errorMessage }, { status: 409 }); // 409 Conflict
     }
-    console.log(`Story ID '${storyId}' is unique.`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Story ID '${storyId}' is unique.`);
+    }
 
     // --- 4. Call Langflow World Generator ---
     const langflowApiUrl = process.env.LANGFLOW_API_URL;
@@ -147,7 +153,9 @@ export async function POST(request: NextRequest) {
              console.error('Outer Response:', JSON.stringify(langflowOuterResponse, null, 2));
              throw new Error('Langflow response structure did not contain world data string at expected path.');
         }
-        console.log('POST /api/game/stories - Extracted World Data String:', worldDataString);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('POST /api/game/stories - Extracted World Data String:', worldDataString);
+        }
     } catch (accessError) {
         // Catch errors during property access (though checks should prevent most)
         console.error('POST /api/game/stories - Error accessing nested path in Langflow response:', accessError);
@@ -160,7 +168,9 @@ export async function POST(request: NextRequest) {
     if (challenges.length === 0) {
       console.warn('No challenges array found in generated world data. Artifact acquisition may not be gated by challenges.');
     } else {
-      console.log(`Parsed ${challenges.length} challenges from generated world data.`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`Parsed ${challenges.length} challenges from generated world data.`);
+      }
     }
 
     // --- Enforce MAX_ROOMS_PER_STORY ---
@@ -174,7 +184,9 @@ export async function POST(request: NextRequest) {
 
     // +++ Add Debug Logging for Starting Location Items +++
     const startingLocData = generatedWorld.locations.find(loc => loc.id === generatedWorld.startingLocationId);
-    console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
+    }
     // +++ End Debug Logging +++
 
     // --- Select Required Artifacts ---
@@ -187,7 +199,9 @@ export async function POST(request: NextRequest) {
         .sort(() => Math.random() - 0.5)
         .slice(0, MAX_REQUIRED_ARTIFACTS);
     }
-    console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
+    }
 
     // --- Select Goal Room ---
     // For now, pick the last location as the goal room (could be improved with a special property)
@@ -269,7 +283,9 @@ export async function POST(request: NextRequest) {
         creationStatus: 'pending',
         goalRoomId: goalRoomId
     };
-    console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
+    }
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
     console.log('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
 
@@ -312,7 +328,9 @@ export async function POST(request: NextRequest) {
     }
 
     // --- 9. Generate Image using EverArt Utils ---
-    console.log('Attempting to generate story image via EverArt...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Attempting to generate story image via EverArt...');
+    }
     const imagePrompt = `A digital painting game art banner for a text adventure game titled "${title}". Theme: ${theme}. Style: fantasy art, detailed, vibrant colors.`;
     generatedImageUrl = await generateImageWithPolling(imagePrompt);
 
@@ -405,11 +423,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const storyId = searchParams.get('id');
 
-    console.log(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
+    }
     
     // Use the collection instance directly
     if (!storyId) {
-      console.log('Finding all stories (storiesCollection.find({}))...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Finding all stories (storiesCollection.find({}))...');
+      }
       // Find all stories
       const stories = await storiesCollection.find({}, {
         projection: {
@@ -423,7 +445,9 @@ export async function GET(request: NextRequest) {
           creationStatus: 1
         }
       }).toArray();
-      console.log('Stories found:', stories.length);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Stories found:', stories.length);
+      }
 
       // Fetch all players for all stories
       const allPlayers = await db.collection('game_players').find({}).toArray();
@@ -477,9 +501,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(storiesWithStats);
     } else {
       // When fetching by specific ID, get the full record
-      console.log(`Finding story with id: ${storyId} (storiesCollection.findOne({ id: storyId }))...`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Finding story with id: ${storyId} (storiesCollection.findOne({ id: storyId }))...');
+      }
       const story = await storiesCollection.findOne({ id: storyId });
-      console.log('Story found:', story ? story.id : 'None');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Story found:', story ? story.id : 'None');
+      }
       if (!story) {
         return NextResponse.json({ error: `Story with id ${storyId} not found`}, { status: 404 });
       }

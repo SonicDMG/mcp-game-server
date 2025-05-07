@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import db from '@/lib/astradb'; // Import DB instance
 import { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
@@ -48,16 +49,24 @@ export default async function LandingPage() {
 
   try {
     // 1. Fetch all stories
-    console.log('Fetching stories from database...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Fetching stories from database...');
+    }
     const stories = await storiesCollection.find({}).toArray();
-    console.log(`Fetched ${stories.length} stories.`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Fetched ${stories.length} stories.`);
+    }
 
     if (stories.length > 0) {
       // 2. Fetch all player data (since aggregate isn't directly supported)
-      console.log('Fetching all player data for stats calculation...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Fetching all player data for stats calculation...');
+      }
       // We might want to filter fields later if performance becomes an issue
       const allPlayers = await playersCollection.find({}).toArray(); 
-      console.log(`Fetched ${allPlayers.length} total players.`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`Fetched ${allPlayers.length} total players.`);
+      }
 
       // 3. Calculate stats in code
       const statsMap = new Map<string, PlayerStats>();
@@ -71,7 +80,9 @@ export default async function LandingPage() {
         if (player.status === 'killed') currentStats.killedCount += 1;
         statsMap.set(player.storyId, currentStats);
       }
-      console.log(`Calculated stats for ${statsMap.size} stories.`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`Calculated stats for ${statsMap.size} stories.`);
+      }
 
       // 4. Combine story data with calculated stats
       storiesWithStats = stories.map(story => {

@@ -24,7 +24,9 @@ const ITEM_IMAGE_PLACEHOLDER = "/images/item-placeholder.png";
  */
 // POST /api/game/examine
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/examine handler <<<');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('>>> ENTERING /api/game/examine handler <<<');
+  }
   interface ExamineRequestBody {
     userId?: string;
     storyId?: string;
@@ -33,8 +35,9 @@ export async function POST(request: NextRequest) {
   let requestBody: ExamineRequestBody;
   try {
     requestBody = await request.json() as ExamineRequestBody;
-    // Log request body after parsing
-    console.log('[API /examine] Received request body:', JSON.stringify(requestBody));
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[API /examine] Received request body:', JSON.stringify(requestBody));
+    }
     const { userId, storyId, target } = requestBody;
 
     if (!userId || !storyId || !target) {
@@ -44,12 +47,16 @@ export async function POST(request: NextRequest) {
         hint: 'Specify player, story, and what to examine'
       }, { status: 400 });
     }
-    console.log(`>>> Processing examine for userId: ${userId}, story: ${storyId}, target: ${target} (Database) <<<`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`>>> Processing examine for userId: ${userId}, story: ${storyId}, target: ${target} (Database) <<<`);
+    }
 
     const playerDocId = `${storyId}_${userId}`;
 
     // 1. Get Player State
-    console.log(`>>> Fetching player: ${playerDocId} <<<`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`>>> Fetching player: ${playerDocId} <<<`);
+    }
     const player = await playersCollection.findOne({ _id: playerDocId });
     if (!player) {
       return NextResponse.json({ success: false, error: 'Player not found.' }, { status: 404 });
@@ -59,7 +66,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Get Current Location (needed to check exits and items in room)
-    console.log(`>>> Fetching current location: id=${player.currentLocation}, storyId=${storyId} <<<`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`>>> Fetching current location: id=${player.currentLocation}, storyId=${storyId} <<<`);
+    }
     const location = await locationsCollection.findOne({ id: player.currentLocation, storyId: storyId });
     if (!location) {
       return NextResponse.json({ success: false, error: 'Internal server error: Current location data missing' }, { status: 500 });
@@ -95,13 +104,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (isItemInInventory || isItemInLocation) {
-      console.log(`>>> Target ${target} identified as item. Fetching details... <<<`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`>>> Target ${target} identified as item. Fetching details... <<<`);
+      }
       const item = await itemsCollection.findOne({ id: target, storyId: storyId });
       if (item) {
         const { _id, ...itemData } = item;
         // Ensure image field is present
         itemData.image = getAbsoluteProxiedImageUrl(request, itemData.image || ITEM_IMAGE_PLACEHOLDER);
-        console.log(`>>> Examine item successful: ${item.id} <<<`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`>>> Examine item successful: ${item.id} <<<`);
+        }
         const contentArr = [
           itemData.image ? {
             type: 'image',
@@ -125,20 +138,26 @@ export async function POST(request: NextRequest) {
         });
       } else {
         // Should not happen if item ID was in inventory/location list
-        console.error(`Inconsistency: Item ${target} (story ${storyId}) not found in items collection.`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(`Inconsistency: Item ${target} (story ${storyId}) not found in items collection.`);
+        }
         return NextResponse.json({ success: false, error: 'Internal error: Item data missing' }, { status: 500 });
       }
     }
 
     // 4. Check if target is a valid Exit from the current location
     if (location.exits.some(exit => exit.targetLocationId === target)) {
-      console.log(`>>> Target ${target} identified as exit. Fetching destination details... <<<`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`>>> Target ${target} identified as exit. Fetching destination details... <<<`);
+      }
       const destinationLocation = await locationsCollection.findOne({ id: target, storyId: storyId });
       if (destinationLocation) {
         const { _id, ...locationData } = destinationLocation;
         // Ensure image field is present
         locationData.image = getAbsoluteProxiedImageUrl(request, locationData.image || ROOM_IMAGE_PLACEHOLDER);
-        console.log(`>>> Examine exit successful: ${destinationLocation.id} <<<`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`>>> Examine exit successful: ${destinationLocation.id} <<<`);
+        }
         const contentArr = [
           locationData.image ? {
             type: 'image',
@@ -164,20 +183,26 @@ export async function POST(request: NextRequest) {
         });
       } else {
         // Should not happen if exit ID was in location exits list
-        console.error(`Inconsistency: Exit location ${target} (story ${storyId}) not found in locations collection.`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(`Inconsistency: Exit location ${target} (story ${storyId}) not found in locations collection.`);
+        }
         return NextResponse.json({ success: false, error: 'Internal error: Exit location data missing' }, { status: 500 });
       }
     }
 
     // 5. Target not found as item or exit
-    console.log(`>>> Target ${target} not found as item or exit for player ${userId} in location ${location.id}. <<<`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`>>> Target ${target} not found as item or exit for player ${userId} in location ${location.id}. <<<`);
+    }
     return NextResponse.json({
       success: false,
       error: 'You don\'t see that here to examine'
     });
 
   } catch (error) {
-    console.error('Error in examine handler (Database):', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Error in examine handler (Database):', error);
+    }
     let errorMessage = 'Failed to process examine command due to an internal error.';
     if (error instanceof Error) {
       errorMessage = error.message;

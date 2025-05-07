@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+import fetch from "node-fetch";
 
 const API_BASE = 'http://localhost:3000/api/game/stories';
 const SPACE_ADVENTURE_ID = '878e1472-4788-4944-98dd-98d6873a771b';

@@ -46,10 +46,11 @@
 
 ## 9. Win Path Design & Milestones
 
-- [ ] Phase 1: Ensure a Basic Win Path Exists
+- [x] Phase 1: Ensure a Basic Win Path Exists
   - Always generate a "collect all required items and reach the goal room" path.
-  - Make this explicit in the story/game data and OpenAPI spec.
-  - Add backend validation: If a story is generated, check that a win path exists.
+  - This is now explicit in the story/game data and OpenAPI spec.
+  - Backend validation: If a story is generated, the backend checks that a win path exists (all required artifacts are present and the goal room is reachable).
+  - Win state is enforced: Player is marked as winner when all required artifacts are collected and the goal room is reached (see take, move, and challenge handlers).
 
 - [ ] Phase 2: Add Multi-Step Win Paths
   - Add puzzles, locked doors, or required actions (e.g., "use key on door").
@@ -62,6 +63,8 @@
 - [ ] Phase 4: Dynamic/Procedural Win Paths
   - Allow the win condition to be partially randomized or agent-driven.
   - E.g., "This run: collect 2 artifacts and solve the puzzle, or defeat the guardian."
+
+**Note:** Win path validation and win state logic are fully enforced in the backend as of the current implementation. See `stories/route.ts`, `takeHandler.ts`, `moveHandler.ts`, and `challenge/solve/route.ts` for details.
 
 See assistant notes for more details and options.
 
