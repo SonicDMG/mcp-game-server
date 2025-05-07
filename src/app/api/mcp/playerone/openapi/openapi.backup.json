@@ -1,0 +1,969 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "MCPlayerOne Game API",
+    "version": "1.0.1",
+    "description": "API for interacting with the MCP text adventure game. Allows starting games, getting state, moving, taking items, examining things, and viewing leaderboards."
+  },
+  "servers": [
+    {
+      "url": "/api/game",
+      "description": "Relative path to the game API endpoints"
+    }
+  ],
+  "paths": {
+    "/api/game/move": {
+      "post": {
+        "summary": "movePlayer",
+        "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.",
+        "operationId": "movePlayer",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, and target Location identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MoveInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Move successful. Returns the details of the new location.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/take": {
+      "post": {
+        "summary": "takeItem",
+        "description": "Allows the player to pick up a specified item from their current location.",
+        "operationId": "takeItem",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, and target Item identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TakeInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item taken successfully. Returns the updated inventory.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/examine": {
+      "post": {
+        "summary": "examineTarget",
+        "description": "Gets a detailed description of a specific item or feature in the player's current location.",
+        "operationId": "examineTarget",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, and target Item/Feature identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ExamineInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Examination successful. Returns details about the target.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/look": {
+      "post": {
+        "summary": "lookAround",
+        "description": "Gets details about the player's current location (description, items, exits).",
+        "operationId": "lookAround",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserStoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/state": {
+      "post": {
+        "summary": "getGameState",
+        "description": "Retrieves the current state of the game (player and location) for a specific user and story.",
+        "operationId": "getGameState",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserStoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current game state retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/start": {
+      "post": {
+        "summary": "startGame",
+        "description": "Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.",
+        "operationId": "startGame",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User and Story identifiers.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserStoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Game started or state retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/challenge/solve": {
+      "post": {
+        "summary": "solveChallenge",
+        "description": "Submits a solution to a challenge and awards the artifact if correct.",
+        "operationId": "solveChallenge",
+        "tags": ["Game Actions"],
+        "requestBody": {
+          "description": "User, Story, Challenge, and Solution.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChallengeSolveInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Challenge solution result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/kill": {
+      "post": {
+        "summary": "killPlayer",
+        "description": "Attempts to 'kill' another player in the same room.",
+        "operationId": "killPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, and story ID.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PlayerActionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kill action result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/loot": {
+      "post": {
+        "summary": "lootPlayer",
+        "description": "Allows a player to loot items from a killed player in the same room.",
+        "operationId": "lootPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, story ID, and items to loot.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LootActionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loot action result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/help": {
+      "post": {
+        "summary": "helpPlayer",
+        "description": "Attempts to 'help' (revive) another player in the same room.",
+        "operationId": "helpPlayer",
+        "tags": ["Player Actions"],
+        "requestBody": {
+          "description": "Acting player, target player, and story ID.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PlayerActionInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Help action result.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/leaderboard": {
+      "get": {
+        "summary": "getLeaderboard",
+        "description": "Retrieves the leaderboard data (player progress) for a specific story.",
+        "operationId": "getLeaderboard",
+        "tags": ["Game Info"],
+        "parameters": [
+          {
+            "name": "storyId",
+            "in": "query",
+            "required": true,
+            "description": "The ID of the story for which to retrieve the leaderboard.",
+            "schema": { "type": "string" },
+            "example": "dragon_lair"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/LeaderboardEntry" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/game/stories": {
+      "get": {
+        "summary": "listStories",
+        "description": "Retrieves a list of all available game stories that can be played. Returns an empty array if none are found.",
+        "operationId": "listStories",
+        "tags": ["Game Setup"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A list of available game stories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StoryRecord"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+             "content": {
+               "application/json": {
+                 "schema": {
+                   "$ref": "#/components/schemas/ErrorResponse"
+                 }
+               }
+             }
+          }
+        }
+      },
+      "post": {
+        "summary": "createGame",
+        "description": "Generates a new game story, locations, items, and cover image based on a provided theme using AI services (Langflow, EverArt). The maximum number of rooms per story is limited by the server (MAX_ROOMS_PER_STORY).",
+        "operationId": "createGame",
+        "tags": ["Game Setup"],
+        "requestBody": {
+          "description": "Theme for generation and optional story metadata.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoryInputThemeBased"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Story created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateStoryResponseThemeBased"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "409": { 
+             "description": "Conflict - A story with the same ID (provided or generated) already exists.",
+             "content": {
+               "application/json": {
+                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+               }
+             }
+           },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/game/stories/{storyId}": {
+      "get": {
+        "summary": "getStoryById",
+        "description": "Retrieves the details of a specific story using its logical ID.",
+        "operationId": "getStoryById",
+        "tags": ["Game Setup"],
+        "parameters": [
+          {
+            "name": "storyId",
+            "in": "path",
+            "required": true,
+            "description": "The unique logical ID of the story to retrieve.",
+            "schema": {
+              "type": "string"
+            },
+             "example": "mystic_library"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Story details retrieved successfully.",
+            "content": {
+              "application/json": {
+                 "schema": { "$ref": "#/components/schemas/StoryRecord" }
+              }
+            }
+          },
+           "400": { "$ref": "#/components/responses/BadRequest" },
+           "404": { "$ref": "#/components/responses/NotFound" },
+           "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "summary": "deleteStory",
+        "description": "Deletes a specific story and all associated data (locations, items, player states) from the database.",
+        "operationId": "deleteStory",
+        "tags": ["Game Setup"],
+        "parameters": [
+          {
+            "name": "storyId",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the story to delete.",
+            "schema": {
+              "type": "string"
+            },
+             "example": "my_generated_story"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Story and associated data deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                   "type": "object",
+                   "properties": {
+                     "success": { "type": "boolean", "example": true },
+                     "message": { "type": "string", "example": "Story 'my_generated_story' and all associated data deleted successfully." }
+                   }
+                 }
+              }
+            }
+          },
+           "400": { "$ref": "#/components/responses/BadRequest" },
+           "404": { "$ref": "#/components/responses/NotFound" },
+           "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/game/stories/status": {
+      "get": {
+        "summary": "getStoryCreationStatus",
+        "description": "Polls the creation status of a story by storyId. Agents should use this endpoint after creating a story to check if it is ready. If status is 'pending', continue polling. If 'done', the story is ready. If 'error', inform the user and suggest retrying.",
+        "operationId": "getStoryCreationStatus",
+        "tags": ["Game Setup"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "description": "The storyId to check creation status for.",
+            "schema": { "type": "string" },
+            "example": "mystic_library"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status and metadata for the story.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["pending", "done", "error"], "description": "Current creation status." },
+                    "hint": { "type": "string", "description": "Next step or progress message for the agent/user." },
+                    "message": { "type": "string", "description": "Progress or error message." },
+                    "storyId": { "type": "string" },
+                    "title": { "type": "string" },
+                    "description": { "type": "string" },
+                    "imageUrl": { "type": "string", "format": "uri", "nullable": true },
+                    "startingLocation": { "type": "string" },
+                    "requiredArtifacts": { "type": "array", "items": { "type": "string" } },
+                    "version": { "type": "string" },
+                    "theme": { "type": "string" }
+                  },
+                  "required": ["status", "hint", "message", "storyId", "title", "description", "version"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid storyId.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Story not found.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserStoryInput": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "The unique identifier for the player.",
+            "example": "user123"
+          },
+          "storyId": {
+            "type": "string",
+            "description": "The unique identifier for the story.",
+            "example": "dragon_lair"
+          }
+        },
+        "required": ["userId", "storyId"]
+      },
+      "MoveInput": {
+        "allOf": [
+          { "$ref": "#/components/schemas/UserStoryInput" },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "The ID of the location the player wants to move to.",
+                "example": "guard_chamber"
+              }
+            },
+             "required": ["target"]
+          }
+        ]
+      },
+      "TakeInput": {
+         "allOf": [
+          { "$ref": "#/components/schemas/UserStoryInput" },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "The ID of the item the player wants to take.",
+                "example": "rusty_sword"
+              }
+            },
+             "required": ["target"]
+          }
+        ]
+      },
+      "ExamineInput": {
+          "allOf": [
+          { "$ref": "#/components/schemas/UserStoryInput" },
+          {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "The ID of the item or feature the player wants to examine.",
+                "example": "rusty_sword"
+              }
+            },
+             "required": ["target"]
+          }
+        ]
+      },
+      "PlayerState": {
+        "type": "object",
+        "description": "Represents the state of a player within a story.",
+        "properties": {
+          "_id": { "type": "string", "description": "Internal document ID (storyId_userId).", "example": "dragon_lair_user123" },
+          "userId": { "type": "string", "example": "user123" },
+          "storyId": { "type": "string", "example": "dragon_lair" },
+          "currentLocation": { "type": "string", "description": "ID of the player's current location.", "example": "dragon_entrance" },
+          "inventory": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of item IDs in the player's inventory.",
+            "example": ["rusty_sword"]
+          },
+           "discoveredLocations": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of location IDs the player has visited.",
+            "example": ["dragon_entrance", "guard_chamber"]
+          },
+          "gameProgress": {
+            "type": "object",
+            "properties": {
+              "itemsFound": { "type": "array", "items": { "type": "string" }, "example": ["rusty_sword", "dragon_scale"]},
+              "puzzlesSolved": { "type": "array", "items": { "type": "string" }, "example": ["gate_puzzle"]},
+              "storyProgress": { "type": "number", "format": "int32", "example": 50 }
+            }
+          }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "description": "Represents a location within a story. If an image is present, both a top-level 'image' and 'alt' field and a 'content' array are included. The content array contains a type: 'image' object first, followed by a type: 'text' object.",
+        "properties": {
+          "id": { "type": "string", "description": "Unique ID for the location within the story.", "example": "dragon_entrance" },
+          "storyId": { "type": "string", "example": "dragon_lair" },
+          "name": { "type": "string", "example": "Dragon Entrance" },
+          "description": { "type": "string", "example": "You stand before a dark cave entrance..." },
+          "items": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of item IDs currently present in the location.",
+            "example": ["rusty_sword"] 
+          },
+           "features": { 
+             "type": "array", 
+             "items": { 
+               "type": "object", 
+               "properties": {
+                 "id": {"type": "string", "example": "large_door"},
+                 "name": {"type": "string", "example": "Large Door"},
+                 "description": {"type": "string", "example": "A heavy oak door..."}
+               }
+             }, 
+             "description": "List of examinable features in the location."
+          },
+          "exits": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "List of location IDs accessible from this location.",
+            "example": ["guard_chamber"]
+          },
+           "requirements": {
+             "type": "object",
+             "properties": {
+               "item": { "type": "string", "nullable": true, "description": "Item ID required to enter.", "example": "silver_key" },
+               "condition": { "type": "string", "nullable": true, "description": "Condition ID (e.g., puzzle) required to enter.", "example": "gate_puzzle" }
+             }
+           },
+          "image": { "type": "string", "description": "URL of the image for the location, if present.", "nullable": true },
+          "alt": { "type": "string", "description": "Alt text for the image, if present.", "nullable": true },
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/ImageContent" },
+                { "$ref": "#/components/schemas/TextContent" }
+              ]
+            },
+            "description": "Array with image and text content for the location."
+          }
+        }
+      },
+      "GameStateResponse": {
+        "type": "object",
+        "properties": {
+           "success": { "type": "boolean", "example": true },
+           "storyId": { "type": "string", "description": "The unique identifier for the story." },
+           "userId": { "type": "string", "description": "The unique identifier for the user/player." },
+           "message": { "type": "string", "nullable": true, "example": "Welcome back!" },
+           "player": { "$ref": "#/components/schemas/PlayerState" },
+           "location": { "$ref": "#/components/schemas/Location" }
+        }
+      },
+       "LeaderboardEntry": {
+         "type": "object",
+         "properties": {
+            "id": { "type": "string", "description": "User ID.", "example": "player123" },
+            "name": { "type": "string", "example": "player123" },
+            "avatarUrl": { "type": "string", "format": "url", "example": "https://api.dicebear.com/..." },
+            "artifactsFound": { "type": "integer", "example": 3 },
+            "puzzlesSolved": { "type": "integer", "example": 1 },
+            "progress": { "type": "integer", "description": "Overall story progress percentage.", "example": 75 }
+         }
+       },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "A message describing the error."
+          },
+          "hint": {
+             "type": "string",
+             "nullable": true,
+             "description": "An optional hint for the user/agent."
+          }
+        },
+        "required": ["success", "error"]
+      },
+      "StoryRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "description": "Internal or legacy story identifier (may duplicate storyId)" },
+          "storyId": { "type": "string", "description": "Unique logical story identifier (echoed at top level for agent workflows).", "example": "mystic_library" },
+          "title": { "type": "string", "example": "The Mystic Library", "description": "Short, punchy, creative title. No prefixes or bylines." },
+          "description": { "type": "string", "example": "An ancient library filled with magical secrets." },
+          "version": { "type": "string", "example": "1.1" },
+          "theme": { "type": "string", "description": "Theme used for generation (optional)." },
+          "playerCount": { "type": "integer" },
+          "totalArtifactsFound": { "type": "integer" },
+          "killedCount": { "type": "integer" },
+          "image": { "type": "string", "description": "URL of the story cover image, if present.", "nullable": true },
+          "alt": { "type": "string", "description": "Alt text for the story image, if present.", "nullable": true },
+          "startingLocation": { "type": "string", "example": "entrance_hall" },
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ImageContent" }
+              ]
+            },
+            "description": "Array with image and text content for the story."
+          }
+        },
+        "required": [
+          "storyId",
+          "title",
+          "description",
+          "version",
+          "theme",
+          "playerCount",
+          "totalArtifactsFound",
+          "killedCount",
+          "startingLocation"
+        ]
+      },
+      "CreateStoryInputThemeBased": {
+        "type": "object",
+        "description": "Input for creating a story using theme-based generation. Title must be short, punchy, and creative, with no prefixes or bylines.",
+        "properties": {
+          "theme": { 
+            "type": "string", 
+            "description": "The core theme to guide world generation (e.g., 'haunted library')."
+          },
+          "id": { 
+            "type": "string", 
+            "description": "Optional unique ID for the story. If omitted, a UUID will be generated."
+          },
+          "title": { 
+            "type": "string", 
+            "description": "Optional title for the story. If omitted, a default will be generated from the theme. The title should be short, punchy, creative, and fun. Do NOT include prefixes like 'Story:' or 'Game:'. Do NOT include byline-style text, explanations, or anything in parentheses. The title should be 2-5 words, memorable, and exciting—not boring or overly literal. Output only the title, nothing else. Examples: 'Flaming Carrot Rampage', 'Quantum Pickle Quest', 'Banana Bandit Blitz'."
+          },
+          "description": { 
+            "type": "string", 
+            "description": "Optional description/premise. If omitted, a default will be generated."
+          },
+          "version": { 
+            "type": "string", 
+            "description": "Optional version string. Defaults to '1.0'."
+          },
+          "maxRooms": {
+            "type": "integer",
+            "description": "Maximum number of rooms to generate for the story (must be less than or equal to the server limit).",
+            "maximum": 6
+          }
+        },
+        "required": ["theme"]
+      },
+      "CreateStoryResponseThemeBased": {
+        "type": "object",
+        "description": "Response after successfully creating a story via theme-based generation.\n\nAgents should check the 'status' field. If 'status' is 'done', the story is ready. If not, agents should display the 'hint' to the user and may poll for progress. The 'hint' field provides actionable next steps or context for the user or agent.",
+        "properties": {
+          "status": { "type": "string", "description": "Status of the story creation process. 'done' means ready; other values may indicate in-progress or error." },
+          "hint": { "type": "string", "description": "A hint or next step for the user or agent." },
+          "message": { "type": "string" },
+          "storyId": { "type": "string" },
+          "title": { "type": "string" },
+          "theme": { "type": "string" },
+          "storyDbId": { "type": "string", "description": "Internal Astra DB document ID." },
+          "locationsGenerated": { "type": "integer" },
+          "itemsGenerated": { "type": "integer" },
+          "startingLocationId": { "type": "string" },
+          "imageUrl": { 
+            "type": "string", 
+            "format": "uri", 
+            "nullable": true, 
+            "description": "URL of the generated image, or null/undefined if failed."
+          }
+        },
+        "required": ["status", "hint", "message", "storyId", "title", "theme", "storyDbId", "locationsGenerated", "itemsGenerated", "startingLocationId"]
+      },
+      "PlayerActionInput": {
+        "type": "object",
+        "properties": {
+          "playerId": { "type": "string", "description": "The acting player's ID." },
+          "targetId": { "type": "string", "description": "The target player's ID." },
+          "storyId": { "type": "string", "description": "The story ID." }
+        },
+        "required": ["playerId", "targetId", "storyId"]
+      },
+      "PlayerActionResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "targetStatus": { "type": "string", "description": "The updated status of the target player.", "enum": ["playing", "winner", "killed"] }
+        },
+        "required": ["success", "message", "targetStatus"]
+      },
+      "LootActionInput": {
+        "type": "object",
+        "properties": {
+          "playerId": { "type": "string", "description": "The acting player's ID." },
+          "targetId": { "type": "string", "description": "The target (killed) player's ID." },
+          "storyId": { "type": "string", "description": "The story ID." },
+          "items": { "type": "array", "items": { "type": "string" }, "description": "Array of item IDs to loot." }
+        },
+        "required": ["playerId", "targetId", "storyId", "items"]
+      },
+      "LootActionResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "actorInventory": { "type": "array", "items": { "type": "string" }, "description": "Updated inventory of the looter." },
+          "targetInventory": { "type": "array", "items": { "type": "string" }, "description": "Updated inventory of the killed player." }
+        },
+        "required": ["success", "message", "actorInventory", "targetInventory"]
+      },
+      "ContextDetails": {
+        "type": "object",
+        "description": "Structured context for a kill action, for use by agents or UI.",
+        "properties": {
+          "theme": { "type": "string", "description": "The story's description or title." },
+          "room": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          },
+          "actor": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "description": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "description": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TextContent": {
+        "type": "object",
+        "required": ["type", "text"],
+        "properties": {
+          "type": { "type": "string", "enum": ["text"] },
+          "text": { "type": "string", "description": "JSON stringified object with all metadata, including storyId." }
+        }
+      },
+      "ImageContent": {
+        "type": "object",
+        "required": ["type", "image", "alt"],
+        "properties": {
+          "type": { "type": "string", "enum": ["image"] },
+          "image": { "type": "string", "format": "uri", "description": "URL of the image." },
+          "alt": { "type": "string", "description": "Alt text for the image." }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "description": "Represents an item. If an image is present, both a top-level 'image' and 'alt' field and a 'content' array are included.",
+        "properties": {
+          "image": { "type": "string", "description": "URL of the image for the item, if present.", "nullable": true },
+          "alt": { "type": "string", "description": "Alt text for the item image, if present.", "nullable": true },
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/ImageContent" },
+                { "$ref": "#/components/schemas/TextContent" }
+              ]
+            },
+            "description": "Array with image and text content for the item."
+          }
+        }
+      },
+      "ChallengeSolveInput": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "storyId": { "type": "string" },
+          "challengeId": { "type": "string" },
+          "solution": { "type": "string" }
+        },
+        "required": ["userId", "storyId", "challengeId", "solution"]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request - The request was malformed or missing required parameters.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+       "Forbidden": {
+        "description": "Forbidden - The action is not allowed (e.g., unmet requirements).",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found - The requested resource (player, story, location, item) could not be found.",
+         "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal Server Error - Something went wrong on the server.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    }
+  }
+} 

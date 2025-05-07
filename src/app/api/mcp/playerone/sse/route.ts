@@ -245,26 +245,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Helper to get the correct array key for a tool's response from OpenAPI
-  function getArrayKeyForTool(toolId: string): string {
-    const endpoint = endpointMap[toolId];
-    if (!endpoint) return 'content';
-    const methods = openapiSpec.paths[endpoint.route];
-    if (!methods) return 'content';
-    const op = methods[endpoint.method.toLowerCase()];
-    if (!op || !op.responses) return 'content';
-    // Try to find the 200/201/2XX response
-    const resp = op.responses['200'] || op.responses['201'] || Object.values(op.responses).find((r) => r && typeof r === 'object' && 'content' in r && r.content && (r.content as Record<string, unknown>)['application/json']);
-    if (!resp || !resp.content || !(resp.content['application/json']) || !(resp.content['application/json'].schema)) return 'content';
-    const schema = resp.content['application/json'].schema as Record<string, unknown>;
-    if (schema.type === 'object' && schema.properties && typeof schema.properties === 'object') {
-      for (const [key, prop] of Object.entries(schema.properties as Record<string, unknown>)) {
-        if (typeof prop === 'object' && prop !== null && (prop as { type?: string }).type === 'array') return key;
-      }
-    }
-    return 'content';
-  }
-
   // 3.5) tools/call (proxy to tool endpoint)
   if (method === 'tools/call') {
     console.log('[MCP][SSE][POST][BRANCH] tools/call received, params:', params);
@@ -319,62 +299,15 @@ export async function POST(req: NextRequest) {
         return new Response(null, { status: 200 });
       }
       const result = await apiRes.json();
-      // --- Wrap array result in object ---
-      let finalResult = result;
+      // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
+      // This matches the behavior of the earlier openapi.json, which always returned a content array.
+      let finalResult;
       if (Array.isArray(result)) {
-        // Special-case transformations for known tools
-        if (toolName === 'listStories') {
-          // Ensure every story record has startingLocation and only text content
-          const fixedStories = result.map((story: Record<string, unknown>) => {
-            // Remove or ignore any image content blocks
-            let textContent: unknown[] = [];
-            if (Array.isArray(story.content)) {
-              textContent = story.content.filter((block: unknown) => typeof block === 'object' && block !== null && (block as { type?: string }).type === 'text');
-            }
-            return {
-              ...story,
-              startingLocation: story.startingLocation || '',
-              content: textContent
-            };
-          });
-          finalResult = { content: fixedStories };
-        } else if (toolName === 'getLeaderboard') {
-          finalResult = {
-            content: result.map((entry: Record<string, unknown>, i: number) => ({
-              type: 'text',
-              text: `#${i + 1} ${entry.playerName || entry.userId || 'Player'}: ${entry.score || entry.totalArtifactsFound || 0} pts`
-            }))
-          };
-        } else {
-          // Use the correct key from OpenAPI, fallback to 'content'
-          const key = getArrayKeyForTool(toolName || '');
-          finalResult = { [key]: result };
-        }
+        finalResult = { content: result };
       } else if (typeof result === 'object' && result !== null) {
-        // Object result: transform for known tools
-        if (toolName === 'getStoryById') {
-          finalResult = {
-            content: [
-              {
-                type: 'text',
-                text: `${(result as Record<string, unknown>).title || ''}${(result as Record<string, unknown>).description ? ': ' + (result as Record<string, unknown>).description : ''}`
-              }
-            ]
-          };
-        } else if ([
-          'deleteStory', 'createGame', 'getStoryCreationStatus', 'movePlayer', 'takeItem', 'examineTarget', 'lookAround', 'getGameState', 'startGame', 'solveChallenge', 'killPlayer', 'lootPlayer', 'helpPlayer'
-        ].includes(toolName)) {
-          // Use the most relevant message or summary
-          const text = (result as Record<string, unknown>).message || (result as Record<string, unknown>).status || (result as Record<string, unknown>).description || (result as Record<string, unknown>).title || JSON.stringify(result);
-          finalResult = {
-            content: [
-              {
-                type: 'text',
-                text: String(text)
-              }
-            ]
-          };
-        }
+        finalResult = { content: [result] };
+      } else {
+        finalResult = { content: [result] };
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
       console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
@@ -434,11 +367,15 @@ export async function POST(req: NextRequest) {
         return new Response(null, { status: 200 });
       }
       const result = await apiRes.json();
-      // --- Wrap array result in object ---
-      let finalResult = result;
+      // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
+      // This matches the behavior of the earlier openapi.json, which always returned a content array.
+      let finalResult;
       if (Array.isArray(result)) {
-        const key = getArrayKeyForTool(toolId || '');
-        finalResult = { [key]: result };
+        finalResult = { content: result };
+      } else if (typeof result === 'object' && result !== null) {
+        finalResult = { content: [result] };
+      } else {
+        finalResult = { content: [result] };
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
       reply(resultMsg);

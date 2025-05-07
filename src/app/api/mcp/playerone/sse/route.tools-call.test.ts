@@ -99,4 +99,42 @@ describe('tools/call handler', () => {
     expect(decoded).toEqual(expect.stringContaining('Tool not found'));
     expect(res.status).toBe(200);
   });
+
+  it('proxies createGame tool call with required theme parameter', async () => {
+    // Arrange
+    const toolName = 'createGame';
+    const toolArgs = { theme: 'haunted library' };
+    endpointMap[toolName] = { route: '/api/game/stories', method: 'POST' };
+    // Mock fetch to return a valid createGame response
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: {
+        get: (header: string) => header === 'content-type' ? 'application/json' : null,
+      },
+      json: async () => ({ storyId: 'generated_story_id', status: 'done', message: 'Game created', title: 'Haunted Library', theme: 'haunted library' })
+    });
+    // Create request
+    const req = createMockRequest({
+      sessionId: 'test-session',
+      method: 'tools/call',
+      params: { name: toolName, arguments: toolArgs }
+    });
+
+    // Act
+    const res = await POST(req);
+
+    // Assert
+    const baseUrl = process.env.API_BASE_URL;
+    expect(fetch).toHaveBeenCalledWith(`${baseUrl}/api/game/stories`, expect.objectContaining({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(toolArgs)
+    }));
+    const lastWriteArg = writer.write.mock.calls[0][0];
+    const decoded = new TextDecoder().decode(lastWriteArg as Uint8Array);
+    expect(decoded).toEqual(expect.stringContaining('Game created'));
+    expect(res.status).toBe(200);
+  });
 }); 

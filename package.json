@@ -34,6 +34,7 @@
     "@types/dagre": "^0.7.52",
     "@types/jest": "^29.5.14",
     "@types/node": "^20",
+    "@types/node-fetch": "^2.6.12",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19",
     "@types/testing-library__jest-dom": "^5.14.9",

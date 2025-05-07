@@ -58,41 +58,68 @@ try {
 
 const rawTools: Tool[] = [];
 export const endpointMap: Record<string, EndpointMapEntry> = {};
+
+// Helper to resolve local $ref in OpenAPI spec
+function resolveRef(ref: string, spec: unknown): unknown {
+  if (typeof ref !== 'string' || !ref.startsWith('#/')) throw new Error('Only local refs supported');
+  const parts = ref.slice(2).split('/');
+  let result: unknown = spec;
+  for (const part of parts) {
+    if (typeof result === 'object' && result !== null && part in result) {
+      result = (result as Record<string, unknown>)[part];
+    } else {
+      throw new Error(`Could not resolve ref: ${ref}`);
+    }
+  }
+  return result;
+}
+
 if (openapiSpec && openapiSpec.paths) {
   for (const [route, methods] of Object.entries(openapiSpec.paths)) {
-    for (const [method, op] of Object.entries(methods as Record<string, OpenAPIMethod>)) {
-      if (!op.operationId) continue;
+    for (const [method, op] of Object.entries(methods as Record<string, unknown>)) {
+      // Type assertion to unknown before casting to expected type to avoid TS overlap errors
+      const opUnknown = op as unknown;
+      if (typeof opUnknown !== 'object' || opUnknown === null || !("operationId" in opUnknown)) continue;
       // Extract input schema (from requestBody if present)
       let inputSchema: Record<string, unknown> = {};
       if (
-        op.requestBody &&
-        op.requestBody.content &&
-        op.requestBody.content['application/json'] &&
-        op.requestBody.content['application/json'].schema
+        (opUnknown as unknown as { requestBody?: unknown }).requestBody &&
+        typeof (opUnknown as unknown as { requestBody: unknown }).requestBody === 'object' &&
+        (opUnknown as unknown as { requestBody: { content?: unknown } }).requestBody.content &&
+        typeof (opUnknown as unknown as { requestBody: { content: unknown } }).requestBody.content === 'object' &&
+        (opUnknown as unknown as { requestBody: { content: { 'application/json'?: unknown } } }).requestBody.content['application/json'] &&
+        typeof (opUnknown as unknown as { requestBody: { content: { 'application/json': unknown } } }).requestBody.content['application/json'] === 'object' &&
+        (opUnknown as unknown as { requestBody: { content: { 'application/json': { schema?: unknown } } } }).requestBody.content['application/json'].schema
       ) {
-        inputSchema = op.requestBody.content['application/json'].schema as Record<string, unknown>;
+        let schema = (opUnknown as unknown as { requestBody: { content: { 'application/json': { schema: unknown } } } }).requestBody.content['application/json'].schema;
+        // If schema is a $ref, resolve it
+        if (typeof schema === 'object' && schema !== null && '$ref' in schema) {
+          schema = resolveRef((schema as { $ref: string }).$ref, openapiSpec);
+        }
+        inputSchema = schema as Record<string, unknown>;
       }
       // Fallback to parameters (for GET, etc.)
-      if ((typeof inputSchema !== 'object' || Object.keys(inputSchema).length === 0) && Array.isArray(op.parameters)) {
+      if ((typeof inputSchema !== 'object' || Object.keys(inputSchema).length === 0) && Array.isArray((opUnknown as unknown as { parameters?: unknown[] }).parameters)) {
         inputSchema = {
           type: 'object',
           properties: {},
           required: [] as string[],
         };
-        for (const param of op.parameters) {
-          if (param && param.name) {
-            (inputSchema.properties as Record<string, unknown>)[param.name] = { type: param.schema?.type || 'string', description: param.description || '' };
-            if (param.required) (inputSchema.required as string[]).push(param.name);
+        for (const param of (opUnknown as unknown as { parameters: unknown[] }).parameters) {
+          if (param && typeof param === 'object' && 'name' in param) {
+            (inputSchema.properties as Record<string, unknown>)[(param as { name: string }).name] = { type: (param as { schema?: { type?: string } }).schema?.type || 'string', description: (param as { description?: string }).description || '' };
+            if ((param as { required?: boolean }).required) (inputSchema.required as string[]).push((param as { name: string }).name);
           }
         }
       }
+      // Ensure inputSchema is always included for agent compatibility (especially for createGame and similar tools)
       rawTools.push({
-        name: op.summary || op.operationId,
-        id: op.operationId,
-        description: op.description || '',
-        inputSchema
+        name: (opUnknown as unknown as { operationId: string }).operationId,
+        id: (opUnknown as unknown as { operationId: string }).operationId,
+        description: (opUnknown as unknown as { description?: string }).description || '',
+        inputSchema // <-- This is intentionally passed through for agent compatibility
       });
-      endpointMap[op.operationId] = { route, method: method.toUpperCase() };
+      endpointMap[(opUnknown as unknown as { operationId: string }).operationId] = { route, method: method.toUpperCase() };
     }
   }
 }
