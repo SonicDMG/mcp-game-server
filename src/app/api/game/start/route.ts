@@ -43,7 +43,7 @@ const storiesCollection = db.collection<StoryRecord>('game_stories');
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV !== 'production') {
-    console.log('>>> ENTERING /api/game/start handler <<< ');
+  console.log('>>> ENTERING /api/game/start handler <<< ');
   }
   interface StartRequestBody {
     userId?: string;
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   try {
     requestBody = await request.json() as StartRequestBody;
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[API /start] Received request body:', JSON.stringify(requestBody)); 
+    console.log('[API /start] Received request body:', JSON.stringify(requestBody)); 
     }
     // Destructure storyId first, handle userId separately
     let { userId } = requestBody;
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Still require storyId
     if (!storyId) {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('>>> Missing storyId, returning 400 <<<');
+      console.log('>>> Missing storyId, returning 400 <<<');
       }
       return NextResponse.json({ success: false, error: 'Story ID is required' }, { status: 400 });
     }
@@ -74,16 +74,16 @@ export async function POST(request: NextRequest) {
       userId = generateFunUsername();
       isNewUser = true;
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`>>> No userId provided, generated fun username: ${userId} <<<`);
+      console.log(`>>> No userId provided, generated fun username: ${userId} <<<`);
       }
     } else {
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`>>> Received userId: ${userId} <<<`);
+       console.log(`>>> Received userId: ${userId} <<<`);
       }
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> Processing start request for userId: ${userId}, storyId: ${storyId} <<<`);
+    console.log(`>>> Processing start request for userId: ${userId}, storyId: ${storyId} <<<`);
     }
 
     // Construct the unique player document ID
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     if (player) {
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`>>> Player ${playerDocId} found. Retrieving state. <<<`);
+      console.log(`>>> Player ${playerDocId} found. Retrieving state. <<<`);
       }
       message = "Welcome back! Resuming your adventure.";
     } else {
@@ -103,26 +103,26 @@ export async function POST(request: NextRequest) {
       if (!userId) {
           // This case should theoretically not be reached due to the generation above, but it's a safeguard.
           if (process.env.NODE_ENV !== 'production') {
-            console.error(">>> Critical error: Player not found and userId is somehow missing. <<<");
+          console.error(">>> Critical error: Player not found and userId is somehow missing. <<<");
           }
           return NextResponse.json({ success: false, error: 'Internal server error: User ID could not be determined.' }, { status: 500 });
       }
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`>>> Player ${playerDocId} not found. Creating new game state. <<<`);
+      console.log(`>>> Player ${playerDocId} not found. Creating new game state. <<<`);
       }
       
       // 2. If player doesn't exist, fetch the story to get starting location
       const story = await storiesCollection.findOne({ id: storyId }); // Find story by its logical ID
       if (!story) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error(`>>> Story with id ${storyId} not found. <<<`);
+        console.error(`>>> Story with id ${storyId} not found. <<<`);
         }
         return NextResponse.json({ success: false, error: `Story '${storyId}' not found.` }, { status: 404 });
       }
       
       if (!story.startingLocation) {
          if (process.env.NODE_ENV !== 'production') {
-           console.error(`>>> Story ${storyId} is missing a startingLocation. <<<`);
+         console.error(`>>> Story ${storyId} is missing a startingLocation. <<<`);
          }
          return NextResponse.json({ success: false, error: `Story '${storyId}' is not configured correctly (missing start).` }, { status: 500 });
       }
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       // Insert the new player document
       const insertResult = await playersCollection.insertOne(newPlayer);
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`>>> New player created with result:`, insertResult);
+      console.log(`>>> New player created with result:`, insertResult);
       }
       
       // Use the newly created player object for the response
@@ -161,12 +161,12 @@ export async function POST(request: NextRequest) {
     const currentLocation = await locationsCollection.findOne({ id: player.currentLocation, storyId: storyId });
     
     if (process.env.NODE_ENV !== 'production') {
-      console.log('>>> DEBUG: Raw currentLocation fetched from DB:', JSON.stringify(currentLocation, null, 2));
+    console.log('>>> DEBUG: Raw currentLocation fetched from DB:', JSON.stringify(currentLocation, null, 2));
     }
 
     if (!currentLocation) {
       if (process.env.NODE_ENV !== 'production') {
-        console.error(`>>> Critical Error: Location ${player.currentLocation} for story ${storyId} not found for player ${playerDocId}. <<<`);
+      console.error(`>>> Critical Error: Location ${player.currentLocation} for story ${storyId} not found for player ${playerDocId}. <<<`);
       }
       // This shouldn't happen if data is consistent, but handle it just in case.
       return NextResponse.json({ success: false, error: 'Internal error: Player\'s current location data is missing.' }, { status: 500 });
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
     const { _id: location_id, ...locationResponse } = currentLocation;
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
+    console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
     }
     return NextResponse.json({
       success: true,
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('Error in start handler:', error);
+    console.error('Error in start handler:', error);
     }
     let errorMessage = 'Failed to start game due to an internal error.';
     const status = 500;
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
     // Handle JSON parsing error specifically
     if (error instanceof SyntaxError) {
         if (process.env.NODE_ENV !== 'production') {
-          console.log('>>> Bad JSON format received <<<');
+        console.log('>>> Bad JSON format received <<<');
         }
         errorMessage = "Invalid request format. Please send valid JSON.";
         return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });

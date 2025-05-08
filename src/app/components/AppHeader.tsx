@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { WinnerSection, KilledSection } from './WinnerBanner';
 import { LeaderboardUser } from './Leaderboard';
 import styles from './AppHeader.module.css';
+import StarfieldCanvas from './StarfieldCanvas';
 
 interface Breadcrumb {
   label: string;
@@ -60,7 +61,12 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
   return (
     <header
       className={`app-header ${styles.headerContainer}`}
+      style={{ position: 'relative', overflow: 'hidden' }}
     >
+      {/* Starfield and Sparkle backgrounds */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', width: '100%', height: 220 }}>
+        <StarfieldCanvas width={1200} height={220} numStars={80} style={{ zIndex: 10000 }} />
+      </div>
       {/* Breadcrumbs row at the top */}
       <div className={styles.breadcrumbsRow}>
         <div className="breadcrumb" style={{ flex: 1, justifyContent: 'flex-start' }}>
