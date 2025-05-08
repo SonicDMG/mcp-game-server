@@ -85,9 +85,6 @@ const RoomGrid = forwardRef<
     };
   });
 
-  // State for saved positions
-  const [savedPositions, setSavedPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
-
   // Memoized dagre layout and node positions
   const layout = useMemo(() => {
     // --- DAGRE graph for full layout ---
@@ -162,7 +159,7 @@ const RoomGrid = forwardRef<
       }
     });
     return { dagreNodes, nodePositions, minX, minY, maxX, maxY, dagreEdges };
-  }, [rooms, rankdir, nodesep, ranksep, savedPositions]);
+  }, [rooms, rankdir, nodesep, ranksep]);
 
   const { dagreNodes, nodePositions, minX, minY, maxX, maxY, dagreEdges } = layout;
   const PADDING = 16;
@@ -205,7 +202,6 @@ const RoomGrid = forwardRef<
           // Optionally: could animate from these positions, but for now, don't use them after load
         }
         // After initial load, clear savedPositions so dagre is always used
-        setSavedPositions(null);
       });
   }, [storyId, setRankdir, setNodesep, setRanksep]);
 
@@ -228,7 +224,6 @@ const RoomGrid = forwardRef<
         ranksep,
       }),
     });
-    setSavedPositions(positions);
     if (onSaveLayout) onSaveLayout();
   };
   // Reset Layout handler
@@ -244,7 +239,6 @@ const RoomGrid = forwardRef<
         ranksep: null,
       }),
     });
-    setSavedPositions(null);
     if (onResetLayout) onResetLayout();
   };
 
