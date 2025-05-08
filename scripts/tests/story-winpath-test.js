@@ -3,9 +3,9 @@
 // story-winpath-test.js: Original win-path scenario test for artifact collection and win logic
 // (Split from story-test.js)
 
-const {
+import {
   post, get, resetGame, getPlayerState, retry, getLocations, debugStoriesAndMetadata, safeApiCall, findPath, moveUserToGoal, pickupArtifacts, delay, GAME_API, BASE_API, setTestStoryLogicalId
-} = require('./test-helpers');
+} from './test-helpers.js';
 
 async function run() {
   const errors = [];

@@ -1,11 +1,14 @@
 'use client';
 import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
 import LeaderboardHUD from '../../MazeMuralGrid';
 import UserDetailCard from '../../UserDetailCard';
 import type { LeaderboardUser } from '../../components/Leaderboard';
 import { Location as GameLocation } from '@/app/api/game/types';
 import AppFooter from '../../components/AppFooter';
 import AppHeader from '../../components/AppHeader';
+import EventFeed from '../../components/EventFeed';
+import mainContentStyles from '../../components/MainContent.module.css';
 
 interface StoryMetadata {
   title: string;
@@ -33,6 +36,8 @@ interface LeaderboardData {
 }
 
 export default function StoryLeaderboardPage() {
+  const params = useParams();
+  const storyId = params.id as string;
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
 
@@ -53,8 +58,9 @@ export default function StoryLeaderboardPage() {
         stats={leaderboardData?.stats || { players: 0, artifacts: '', rooms: '', winners: 0 }}
         winners={leaderboardData?.winners}
         killed={leaderboardData?.killed}
+        eventFeed={<EventFeed storyId={storyId} />}
       />
-      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
+      <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
         <LeaderboardHUD setLeaderboardData={setLeaderboardData} />
         {selectedUser && leaderboardData && (
           <UserDetailCard

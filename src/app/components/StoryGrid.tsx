@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getProxiedImageUrl, Story } from "@/app/api/game/types";
 import { LeaderboardUser } from './Leaderboard';
+import styles from './StoryGrid.module.css';
 
 interface StoryGridProps {
   initialStories: Array<Story & {
@@ -250,18 +251,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
   }, [stories]);
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: 1200,
-        margin: '0 auto',
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: 32,
-        marginTop: 32,
-      }}
-    >
+    <div className={styles.contentContainer}>
       {stories.length === 0 && (
         <div style={{ color: '#aaa', textAlign: 'center', width: '100%' }}>No stories available yet.</div>
       )}

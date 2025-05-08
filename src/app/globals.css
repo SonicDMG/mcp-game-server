@@ -11,6 +11,8 @@
   --progress-bg: #232428;
   --progress-fg: #3b82f6;
   --progress-shadow: transparent;
+  --header-height: 240px;
+  --footer-height: 56px;
 }
 
 @theme inline {
@@ -35,10 +37,20 @@
   }
 }
 
+@media (max-width: 700px) {
+  :root {
+    --header-height: 128px;
+    --footer-height: 48px;
+  }
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
 html, body {
-  min-width: 800px;
-  min-height: 100vh;
   width: 100%;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -49,25 +61,24 @@ html, body {
   font-family: 'Inter', 'Geist', 'Segoe UI', 'Arial', sans-serif;
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+  /* overflow-y: hidden; */
 }
 
 #__next, #__next > div {
-  /* min-height: 100vh; */
-  /* min-width: 100vw; */
-  /* height: 100vh; */
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: flex-start; */
+  /* justify-content: flex-start; */
 }
 
 /* Synthwave HUD styles */
 .hud-frame {
   width: 100%;
-  min-width: 800px;
+  /* min-width: 800px; */
   /* height: 100vh; */
-  max-width: 100%;
+  /* max-width: 100vw; */
   /* max-height: 100vh; */
   display: flex;
   flex-direction: column;
@@ -339,17 +350,27 @@ html, body {
 }
 
 .app-root {
-  min-width: 800px;
+  width: 100%;
+  max-width: 100vw;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: stretch; */
+  /* justify-content: flex-start; */
   background: var(--background);
 }
 
+.app-header,
+.app-footer {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
 .app-header {
-  min-width: 800px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   width: 100%;
   height: 192px;
   padding: 24px 0;
@@ -358,8 +379,6 @@ html, body {
   align-items: center;
   justify-content: center;
   background: var(--background);
-  z-index: 100;
-  position: relative;
 }
 
 .app-logo {
@@ -389,20 +408,6 @@ html, body {
   letter-spacing: 1px;
   margin-bottom: 0;
   text-shadow: 0 0 8px #00eaff44;
-}
-
-.app-footer {
-  width: 100vw;
-  padding: 12px 0 8px 0;
-  text-align: center;
-  color: #a78bfa;
-  font-size: 1rem;
-  background: var(--surface);
-  margin-top: auto;
-  position: sticky;
-  bottom: 0;
-  z-index: 30;
-  border-top: 1.5px solid var(--border);
 }
 
 .breadcrumb-link {
@@ -438,15 +443,6 @@ html, body {
   }
   .app-title {
     font-size: 1rem;
-  }
-  .app-footer {
-    font-size: 0.95rem;
-    padding: 6px 0 2px 0;
-    position: sticky;
-    bottom: 0;
-    z-index: 30;
-    background: var(--surface);
-    border-top: 1.5px solid var(--border);
   }
   .hud-frame {
     padding: 8px 0 16px 0 !important;
@@ -535,14 +531,11 @@ html, body {
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-.app-root, .hud-frame, .leaderboardContainer {
-  min-width: 800px;
-}
-
 .leaderboard-hud-root {
-  min-width: 800px;
+  /* min-width: 800px; */
   width: 100%;
   box-sizing: border-box;
+  max-width: 100vw;
 }
 
 .footer-link {
@@ -557,3 +550,8 @@ html, body {
   color: #fff;
   opacity: 1;
 }
+
+/* Remove the red outline from all elements */
+/* * {
+  outline: 1px solid red !important;
+} */

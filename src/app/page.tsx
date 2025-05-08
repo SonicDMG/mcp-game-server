@@ -5,6 +5,7 @@ import AppFooter from './components/AppFooter';
 import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
 import EventFeed from './components/EventFeed';
+import mainContentStyles from './components/MainContent.module.css';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -111,7 +112,7 @@ export default async function LandingPage() {
         stats={{ players: 0, artifacts: '', rooms: '', winners: 0 }}
         eventFeed={<EventFeed storyId="all" />}
       />
-      <main className="hud-frame leaderboard-bg-gradient" style={{ width: '100vw', padding: '16px 0 32px 0' }}>
+      <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
         <div className="hud-header">
           {/* Removed [Choose a Story] text */}
         </div>

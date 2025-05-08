@@ -1,12 +1,12 @@
 // test-helpers.js: Shared utility functions for all game scenario tests
 // Import this file in your test scripts to avoid code duplication.
 
-const fetch = require('node-fetch');
-const delay = ms => new Promise(res => setTimeout(res, ms));
-const GAME_API = 'http://localhost:3000/api/game';
-const BASE_API = 'http://localhost:3000/api';
+import fetch from 'node-fetch';
+export const delay = ms => new Promise(res => setTimeout(res, ms));
+export const GAME_API = 'http://localhost:3000/api/game';
+export const BASE_API = 'http://localhost:3000/api';
 
-async function post(endpoint, body, apiBase = GAME_API) {
+export async function post(endpoint, body, apiBase = GAME_API) {
   const fullUrl = `${apiBase}${endpoint}`;
   const res = await fetch(fullUrl, {
     method: 'POST',
@@ -24,7 +24,7 @@ async function post(endpoint, body, apiBase = GAME_API) {
   }
 }
 
-async function get(endpoint, apiBase = GAME_API) {
+export async function get(endpoint, apiBase = GAME_API) {
   const fullUrl = `${apiBase}${endpoint}`;
   const res = await fetch(fullUrl);
   if (!res.ok) {
@@ -38,7 +38,7 @@ async function get(endpoint, apiBase = GAME_API) {
   }
 }
 
-async function resetGame(userIdToReset, storyIdToReset) {
+export async function resetGame(userIdToReset, storyIdToReset) {
   const resetEndpoint = '/reset';
   const fullUrl = `${BASE_API}${resetEndpoint}`;
   const res = await fetch(fullUrl, {
@@ -52,11 +52,11 @@ async function resetGame(userIdToReset, storyIdToReset) {
   }
 }
 
-async function getPlayerState(userId, storyId) {
+export async function getPlayerState(userId, storyId) {
   return await post('/state', { userId, storyId }, GAME_API);
 }
 
-async function retry(fn, retries = 3, delayMs = 500) {
+export async function retry(fn, retries = 3, delayMs = 500) {
   let lastErr;
   for (let i = 0; i < retries; i++) {
     try {
@@ -70,10 +70,10 @@ async function retry(fn, retries = 3, delayMs = 500) {
 }
 
 let _testStoryLogicalId = null;
-function setTestStoryLogicalId(id) { _testStoryLogicalId = id; }
-function getTestStoryLogicalId() { return _testStoryLogicalId; }
+export function setTestStoryLogicalId(id) { _testStoryLogicalId = id; }
+export function getTestStoryLogicalId() { return _testStoryLogicalId; }
 
-async function getLocations() {
+export async function getLocations() {
   const storyId = getTestStoryLogicalId();
   if (!storyId) throw new Error('testStoryLogicalId not set');
   return await retry(async () => {
@@ -82,14 +82,14 @@ async function getLocations() {
   });
 }
 
-async function debugStoriesAndMetadata(storyId) {
+export async function debugStoriesAndMetadata(storyId) {
   try {
     await get('/stories', BASE_API);
     await get(`/story-metadata?id=${storyId}`, BASE_API);
   } catch (err) {}
 }
 
-async function safeApiCall(fn, label) {
+export async function safeApiCall(fn, label) {
   try {
     return await fn();
   } catch (err) {
@@ -98,7 +98,7 @@ async function safeApiCall(fn, label) {
   }
 }
 
-function findPath(locations, startId, goalId) {
+export function findPath(locations, startId, goalId) {
   const queue = [[startId]];
   const visited = new Set();
   while (queue.length) {
@@ -120,7 +120,7 @@ function findPath(locations, startId, goalId) {
   return null;
 }
 
-async function moveUserToGoal(userId, storyId, goalRoomId) {
+export async function moveUserToGoal(userId, storyId, goalRoomId) {
   const locations = await getLocations();
   const state = await getPlayerState(userId, storyId);
   const startId = state.location.id;
@@ -133,7 +133,7 @@ async function moveUserToGoal(userId, storyId, goalRoomId) {
   }
 }
 
-async function pickupArtifacts(userId, storyId, requiredArtifacts) {
+export async function pickupArtifacts(userId, storyId, requiredArtifacts) {
   const state = await getPlayerState(userId, storyId);
   const itemsHere = state.location.items || [];
   const inventory = state.player.inventory || [];
@@ -150,23 +150,4 @@ async function pickupArtifacts(userId, storyId, requiredArtifacts) {
       await delay(100);
     }
   }
-}
-
-module.exports = {
-  post,
-  get,
-  resetGame,
-  getPlayerState,
-  retry,
-  getLocations,
-  debugStoriesAndMetadata,
-  safeApiCall,
-  findPath,
-  moveUserToGoal,
-  pickupArtifacts,
-  delay,
-  GAME_API,
-  BASE_API,
-  setTestStoryLogicalId,
-  getTestStoryLogicalId,
-}; 
+} 

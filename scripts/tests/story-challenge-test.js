@@ -3,9 +3,9 @@
 // story-challenge-test.js: Challenge-based artifact acquisition scenario test
 // (Split from story-test.js, with dependency handling)
 
-const {
+import {
   post, get, resetGame, getPlayerState, retry, getLocations, debugStoriesAndMetadata, safeApiCall, findPath, moveUserToGoal, pickupArtifacts, delay, GAME_API, BASE_API, setTestStoryLogicalId
-} = require('./test-helpers');
+} from './test-helpers.js';
 
 // --- Enhanced Challenge Test with Dependency Handling ---
 async function testChallengeArtifactAcquisition() {

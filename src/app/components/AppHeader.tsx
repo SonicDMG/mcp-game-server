@@ -61,7 +61,6 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
   return (
     <header
       className={`app-header ${styles.headerContainer}`}
-      style={{ position: 'relative', overflow: 'hidden' }}
     >
       {/* Starfield and Sparkle backgrounds */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', width: '100%', height: 220 }}>
@@ -82,49 +81,40 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
         </div>
       </div>
       {/* Main header row with logo and banners */}
-      <div className={styles.headerRow} style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
-        {typeof winners !== 'undefined' && <div className={styles.headerLeft}><WinnerSection winners={winners} onUserClick={onUserClick} /></div>}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          {isLanding && (
-            <button onClick={() => setShowClaude(true)} style={{ padding: '8px 16px', borderRadius: 8, background: '#23244a', color: '#fbbf24', border: '2px solid #fbbf24', fontWeight: 700, cursor: 'pointer', fontSize: 15, marginRight: 18 }}>
+      <div className={styles.headerRow}>
+        <div className={styles.headerLeft}>
+          {isLanding ? (
+            <button onClick={() => setShowClaude(true)} className={`${styles.headerButton} ${styles.claudeButton}`}>
               Claude MCP Config
             </button>
-          )}
-          <div className={styles.headerCenter}>
-            <Image src={logoUrl} alt="MCP Logo" width={160} height={160} className="app-logo" style={{ objectFit: 'contain' }} priority />
-          </div>
-          {isLanding && (
-            <button onClick={() => setShowCursor(true)} style={{ padding: '8px 16px', borderRadius: 8, background: '#23244a', color: '#06b6d4', border: '2px solid #06b6d4', fontWeight: 700, cursor: 'pointer', fontSize: 15, marginLeft: 18 }}>
-              Cursor MCP Config
-            </button>
+          ) : (
+            typeof winners !== 'undefined' && <WinnerSection winners={winners} onUserClick={onUserClick} />
           )}
         </div>
-        {typeof killed !== 'undefined' && <div className={styles.headerRight}><KilledSection killed={killed} onUserClick={onUserClick} /></div>}
+        <div className={styles.headerCenter}>
+          <Image src={logoUrl} alt="MCP Logo" width={160} height={160} className="app-logo" priority />
+        </div>
+        <div className={styles.headerRight}>
+          {isLanding ? (
+            <button onClick={() => setShowCursor(true)} className={`${styles.headerButton} ${styles.cursorButton}`}>
+              Cursor MCP Config
+            </button>
+          ) : (
+            typeof killed !== 'undefined' && <KilledSection killed={killed} onUserClick={onUserClick} />
+          )}
+        </div>
       </div>
       {/* Dialogs for configs */}
       {showClaude && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowClaude(false)}>
-          <div style={{ background: '#181a23', borderRadius: 18, padding: '48px 48px 36px 48px', minWidth: 600, maxWidth: '80vw', width: '80vw', maxHeight: '80vh', boxShadow: '0 8px 48px #000a', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div className={styles.headerModalOverlay} onClick={() => setShowClaude(false)}>
+          <div className={styles.headerModal} onClick={e => e.stopPropagation()}>
             {/* Close (X) icon */}
-            <button aria-label="Close" onClick={() => setShowClaude(false)}
-              style={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                background: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                padding: '6px 12px',
-                fontSize: 18,
-                cursor: 'pointer',
-                zIndex: 1001,
-              }}>
+            <button aria-label="Close" onClick={() => setShowClaude(false)} className={styles.headerModalClose}>
               ✕
             </button>
-            <h2 style={{ color: '#fbbf24', marginBottom: 24, fontSize: 32 }}>Claude MCP Config</h2>
+            <h2 className={styles.headerModalTitleClaude}>Claude MCP Config</h2>
             <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
-              <pre style={{ background: '#23244a', color: '#fff', borderRadius: 12, padding: 28, fontSize: 20, overflowX: 'auto', marginBottom: 28, width: '100%', maxWidth: '100%' }}>{CLAUDE_CONFIG}</pre>
+              <pre className={styles.headerModalPreClaude}>{CLAUDE_CONFIG}</pre>
               <button
                 aria-label="Copy config"
                 onClick={() => {
@@ -132,20 +122,7 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
                   setCopiedClaude(true);
                   setTimeout(() => setCopiedClaude(false), 1000);
                 }}
-                style={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 18,
-                  background: 'none',
-                  border: 'none',
-                  color: '#fbbf24',
-                  cursor: 'pointer',
-                  zIndex: 2,
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  outline: 'none',
-                }}
+                className={styles.headerModalCopyClaude}
                 title={copiedClaude ? 'Copied!' : 'Copy config'}
               >
                 {copiedClaude ? (
@@ -168,28 +145,15 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
         </div>
       )}
       {showCursor && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowCursor(false)}>
-          <div style={{ background: '#181a23', borderRadius: 18, padding: '48px 48px 36px 48px', minWidth: 600, maxWidth: '80vw', width: '80vw', maxHeight: '80vh', boxShadow: '0 8px 48px #000a', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div className={styles.headerModalOverlay} onClick={() => setShowCursor(false)}>
+          <div className={styles.headerModal} onClick={e => e.stopPropagation()}>
             {/* Close (X) icon */}
-            <button aria-label="Close" onClick={() => setShowCursor(false)}
-              style={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                background: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                padding: '6px 12px',
-                fontSize: 18,
-                cursor: 'pointer',
-                zIndex: 1001,
-              }}>
+            <button aria-label="Close" onClick={() => setShowCursor(false)} className={styles.headerModalClose}>
               ✕
             </button>
-            <h2 style={{ color: '#06b6d4', marginBottom: 24, fontSize: 32 }}>Cursor MCP Config</h2>
+            <h2 className={styles.headerModalTitleCursor}>Cursor MCP Config</h2>
             <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
-              <pre style={{ background: '#23244a', color: '#fff', borderRadius: 12, padding: 28, fontSize: 20, overflowX: 'auto', marginBottom: 28, width: '100%', maxWidth: '100%' }}>{CURSOR_CONFIG}</pre>
+              <pre className={styles.headerModalPreCursor}>{CURSOR_CONFIG}</pre>
               <button
                 aria-label="Copy config"
                 onClick={() => {
@@ -197,20 +161,7 @@ const AppHeader: React.FC<AppHeaderProps> = (props) => {
                   setCopiedCursor(true);
                   setTimeout(() => setCopiedCursor(false), 1000);
                 }}
-                style={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 18,
-                  background: 'none',
-                  border: 'none',
-                  color: '#06b6d4',
-                  cursor: 'pointer',
-                  zIndex: 2,
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  outline: 'none',
-                }}
+                className={styles.headerModalCopyCursor}
                 title={copiedCursor ? 'Copied!' : 'Copy config'}
               >
                 {copiedCursor ? (
