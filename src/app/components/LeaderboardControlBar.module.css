@@ -1,0 +1,107 @@
+.controlBar {
+  margin: 8px 0 12px 0;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: rgba(35,36,74,0.7);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 1px 6px #23244a33;
+  width: fit-content;
+  min-height: 0;
+}
+
+.layoutGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-right: 1px solid #23244a;
+  padding-right: 12px;
+}
+
+.sliderGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-right: 1px solid #23244a;
+  padding: 0 12px;
+}
+
+.sliderLabel {
+  color: #a7a7ff;
+  font-size: 0.98rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.saveGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-left: 12px;
+  min-width: 48px;
+}
+
+.statusMessage {
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 0.98rem;
+  margin-bottom: 2px;
+  text-align: center;
+  min-height: 18px;
+}
+
+.saveButton, .resetButton {
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  font-size: 1.1rem;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+}
+
+.saveButton {
+  background: #06b6d4;
+  color: #fff;
+  border-color: #06b6d4;
+}
+
+.resetButton {
+  background: #23244a;
+  color: #a7a7ff;
+  border-color: #3b82f6;
+}
+
+.layoutButton {
+  background: #23244a;
+  color: #a7a7ff;
+  border: 1.5px solid #3b82f6;
+  border-radius: 5px;
+  padding: 2px 10px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  font-size: 0.98rem;
+  min-height: 0;
+  min-width: 0;
+}
+
+.layoutButtonActive {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.slider {
+  margin: 0 2px;
+  vertical-align: middle;
+  height: 18px;
+} 

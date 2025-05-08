@@ -11,6 +11,7 @@ import UserListModal from './UserListModal';
 import ZoomedItemModal from './ZoomedItemModal';
 import styles from './Leaderboard.module.css';
 import Confetti from 'react-confetti';
+import LeaderboardControlBar from './LeaderboardControlBar';
 
 export interface LeaderboardUser {
   id: string;
@@ -59,8 +60,13 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);
   const [userListModal, setUserListModal] = useState<{ room: string; users: LeaderboardUser[] } | null>(null);
   const [zoomedRoom, setZoomedRoom] = useState<{ image: string; name: string; description: string; users: LeaderboardUser[] } | null>(null);
+  const [rankdir, setRankdir] = useState<'LR' | 'TB'>('LR');
+  const [nodesep, setNodesep] = useState<number>(60);
+  const [ranksep, setRanksep] = useState<number>(100);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const prevKilledCount = useRef(users.filter(u => u.status === 'killed').length);
   const killedCount = users.filter(u => u.status === 'killed').length;
+  const roomGridRef = useRef<{ saveLayout: () => void; resetLayout: () => void }>(null);
 
   useEffect(() => {
     if (killedCount > prevKilledCount.current) {
@@ -92,6 +98,24 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
     style.innerHTML = `@keyframes shake { 0% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); } 20%, 40%, 60%, 80% { transform: translateX(8px); } 100% { transform: translateX(0); } }`;
     document.head.appendChild(style);
   }
+
+  // Save and reset handlers (to be implemented in RoomGrid)
+  const handleSaveLayout = () => {
+    if (roomGridRef.current) roomGridRef.current.saveLayout();
+  };
+  const handleResetLayout = () => {
+    if (roomGridRef.current) roomGridRef.current.resetLayout();
+  };
+
+  // These are called from RoomGrid after the API call completes
+  const handleSaveStatus = () => {
+    setSaveStatus('Layout saved!');
+    setTimeout(() => setSaveStatus(null), 2000);
+  };
+  const handleResetStatus = () => {
+    setSaveStatus('Layout reset!');
+    setTimeout(() => setSaveStatus(null), 2000);
+  };
 
   return (
     <div className={styles.leaderboardContainer}>
@@ -143,9 +167,21 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
                   <b>Goal:</b> Collect all artifacts and reach the final room.
                 </div>
               )}
+              <LeaderboardControlBar
+                rankdir={rankdir}
+                setRankdir={setRankdir}
+                nodesep={nodesep}
+                setNodesep={setNodesep}
+                ranksep={ranksep}
+                setRanksep={setRanksep}
+                onSave={handleSaveLayout}
+                onReset={handleResetLayout}
+                status={saveStatus}
+              />
             </div>
             <div style={{ flex: 1, height: '100%', width: '100%' }}>
               <RoomGrid
+                ref={roomGridRef}
                 rooms={story.rooms}
                 users={users}
                 goalRoom={story.goalRoom}
@@ -154,6 +190,15 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
                 }}
                 setSelectedUser={setSelectedUser}
                 setUserListModal={setUserListModal}
+                rankdir={rankdir}
+                nodesep={nodesep}
+                ranksep={ranksep}
+                onSaveLayout={handleSaveStatus}
+                onResetLayout={handleResetStatus}
+                storyId={story.roomOrder && story.roomOrder.length > 0 ? story.roomOrder[0] : story.title}
+                setRankdir={setRankdir}
+                setNodesep={setNodesep}
+                setRanksep={setRanksep}
               />
             </div>
           </div>

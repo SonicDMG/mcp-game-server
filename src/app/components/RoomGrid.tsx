@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useMemo } from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl } from '../api/game/types';
 import { LeaderboardUser } from './Leaderboard';
@@ -14,6 +14,15 @@ interface RoomGridProps {
   setZoomedImage: (img: string, name: string, description: string, roomId: string) => void;
   setSelectedUser: (user: LeaderboardUser) => void;
   setUserListModal: (modal: { room: string; users: LeaderboardUser[] } | null) => void;
+  rankdir?: 'LR' | 'TB';
+  nodesep?: number;
+  ranksep?: number;
+  onSaveLayout?: () => void;
+  onResetLayout?: () => void;
+  storyId: string;
+  setRankdir?: (v: 'LR' | 'TB') => void;
+  setNodesep?: (v: number) => void;
+  setRanksep?: (v: number) => void;
 }
 
 const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png";
@@ -25,7 +34,12 @@ const MAX_MAP_COLS = 3;
 const CARD_WIDTH = 140;
 const CARD_HEIGHT = 120;
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedImage, setSelectedUser, setUserListModal }) => {
+const RoomGrid = forwardRef<
+  { saveLayout: () => void; resetLayout: () => void },
+  RoomGridProps
+>(({
+  rooms, users, goalRoom, setZoomedImage, setSelectedUser, setUserListModal, rankdir = 'LR', nodesep = 60, ranksep = 100, onSaveLayout, onResetLayout, storyId, setRankdir, setNodesep, setRanksep
+}, ref) => {
   // Step 2: Remap coordinates to fit within MAX_MAP_COLS columns
   const rootId = rooms[0]?.id;
   const visited = new Set();
@@ -70,37 +84,87 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
       cy: y * CELL_SIZE + CELL_SIZE / 2,
     };
   });
-  // --- DAGRE graph for full layout ---
-  const g = new dagre.graphlib.Graph();
-  g.setGraph({ rankdir: 'LR', nodesep: 60, ranksep: 100 });
-  g.setDefaultEdgeLabel(() => ({}));
-  // Add nodes (no fixed positions)
-  rooms.forEach(room => {
-    g.setNode(room.id, { width: CARD_WIDTH, height: CARD_HEIGHT });
-  });
-  // Add all edges
-  rooms.forEach(room => {
-    if (!room.exits) return;
-    room.exits.forEach(exit => {
-      g.setEdge(room.id, exit.targetLocationId);
+
+  // State for saved positions
+  const [savedPositions, setSavedPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
+
+  // Memoized dagre layout and node positions
+  const layout = useMemo(() => {
+    // --- DAGRE graph for full layout ---
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir, nodesep, ranksep });
+    g.setDefaultEdgeLabel(() => ({}));
+    // Add nodes (no fixed positions)
+    rooms.forEach(room => {
+      g.setNode(room.id, { width: CARD_WIDTH, height: CARD_HEIGHT });
     });
-  });
-  dagre.layout(g);
-  // Get node positions
-  const dagreNodes: Record<string, dagre.Node> = {};
-  g.nodes().forEach((id: string) => {
-    const node = g.node(id);
-    dagreNodes[id] = node;
-  });
-  // Calculate bounding box for all nodes
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  Object.values(dagreNodes).forEach((node) => {
-    if (!node) return;
-    minX = Math.min(minX, node.x - CARD_WIDTH / 2);
-    minY = Math.min(minY, node.y - CARD_HEIGHT / 2);
-    maxX = Math.max(maxX, node.x + CARD_WIDTH / 2);
-    maxY = Math.max(maxY, node.y + CARD_HEIGHT / 2);
-  });
+    // Add all edges
+    rooms.forEach(room => {
+      if (!room.exits) return;
+      room.exits.forEach(exit => {
+        g.setEdge(room.id, exit.targetLocationId);
+      });
+    });
+    dagre.layout(g);
+    // Get node positions
+    const dagreNodes: Record<string, dagre.Node> = {};
+    g.nodes().forEach((id: string) => {
+      const node = g.node(id);
+      dagreNodes[id] = node;
+    });
+    // Always use dagre's output for node positions
+    const nodePositions: Record<string, { x: number; y: number }> = {};
+    rooms.forEach(room => {
+      const node = dagreNodes[room.id];
+      if (node) nodePositions[room.id] = { x: node.x, y: node.y };
+    });
+    // Calculate bounding box for all nodes
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    Object.values(nodePositions).forEach((pos) => {
+      if (!pos) return;
+      minX = Math.min(minX, pos.x - CARD_WIDTH / 2);
+      minY = Math.min(minY, pos.y - CARD_HEIGHT / 2);
+      maxX = Math.max(maxX, pos.x + CARD_WIDTH / 2);
+      maxY = Math.max(maxY, pos.y + CARD_HEIGHT / 2);
+    });
+    // Get edge paths (only unique, source < target)
+    const PADDING = 16;
+    const dagreEdges: React.ReactNode[] = [];
+    const renderedPairs = new Set<string>();
+    g.edges().forEach((e: dagre.Edge) => {
+      // Only render one line per unique connection
+      const source = String(e.v);
+      const target = String(e.w);
+      const pairKey = source < target ? `${source}|${target}` : `${target}|${source}`;
+      if (renderedPairs.has(pairKey)) return;
+      renderedPairs.add(pairKey);
+      const edge = g.edge(e);
+      if (edge && edge.points && edge.points.length > 1) {
+        // Offset all points by -minX, -minY, +PADDING
+        const offsetPoints = edge.points.map(pt => ({
+          x: pt.x - minX + PADDING,
+          y: pt.y - minY + PADDING,
+        }));
+        let d = `M${offsetPoints[0].x},${offsetPoints[0].y}`;
+        for (let i = 1; i < offsetPoints.length; i++) {
+          d += ` L${offsetPoints[i].x},${offsetPoints[i].y}`;
+        }
+        dagreEdges.push(
+          <path
+            key={`${source}->${target}`}
+            d={d}
+            stroke="#4f46e5"
+            strokeWidth={3}
+            fill="none"
+            opacity={0.7}
+          />
+        );
+      }
+    });
+    return { dagreNodes, nodePositions, minX, minY, maxX, maxY, dagreEdges };
+  }, [rooms, rankdir, nodesep, ranksep, savedPositions]);
+
+  const { dagreNodes, nodePositions, minX, minY, maxX, maxY, dagreEdges } = layout;
   const PADDING = 16;
   const LEFT_MARGIN = 4;
   const svgWidth = Math.max(0, maxX - minX) + PADDING * 2;
@@ -124,41 +188,71 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
     return () => window.removeEventListener('resize', handleResize);
   }, [svgWidth, svgHeight]);
 
-  // Get edge paths (only unique, source < target)
-  const dagreEdges: React.ReactNode[] = [];
-  const renderedPairs = new Set<string>();
-  g.edges().forEach((e: dagre.Edge) => {
-    // Only render one line per unique connection
-    const source = String(e.v);
-    const target = String(e.w);
-    const pairKey = source < target ? `${source}|${target}` : `${target}|${source}`;
-    if (renderedPairs.has(pairKey)) return;
-    renderedPairs.add(pairKey);
-    const edge = g.edge(e);
-    if (edge && edge.points && edge.points.length > 1) {
-      // Offset all points by -minX, -minY, +PADDING
-      const offsetPoints = edge.points.map(pt => ({
-        x: pt.x - minX + PADDING,
-        y: pt.y - minY + PADDING,
-      }));
-      let d = `M${offsetPoints[0].x},${offsetPoints[0].y}`;
-      for (let i = 1; i < offsetPoints.length; i++) {
-        d += ` L${offsetPoints[i].x},${offsetPoints[i].y}`;
-      }
-      dagreEdges.push(
-        <path
-          key={`${source}->${target}`}
-          d={d}
-          stroke="#4f46e5"
-          strokeWidth={3}
-          fill="none"
-          opacity={0.7}
-        />
-      );
-    }
-  });
   // Track non-adjacent exits for each room
   const nonAdjacentExits: Record<string, string[]> = {};
+
+  // Fetch saved layout on mount
+  useEffect(() => {
+    if (!storyId) return;
+    fetch(`/api/game/room-positions?storyId=${storyId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.positions) {
+          // Set initial slider states from saved layout
+          if (data.rankdir && setRankdir) setRankdir(data.rankdir);
+          if (typeof data.nodesep === 'number' && setNodesep) setNodesep(data.nodesep);
+          if (typeof data.ranksep === 'number' && setRanksep) setRanksep(data.ranksep);
+          // Optionally: could animate from these positions, but for now, don't use them after load
+        }
+        // After initial load, clear savedPositions so dagre is always used
+        setSavedPositions(null);
+      });
+  }, [storyId, setRankdir, setNodesep, setRanksep]);
+
+  // Save Layout handler
+  const saveLayout = async () => {
+    // Save current node positions and settings
+    const positions: Record<string, { x: number; y: number }> = {};
+    rooms.forEach(room => {
+      const node = dagreNodes[room.id];
+      if (node) positions[room.id] = { x: node.x, y: node.y };
+    });
+    await fetch('/api/game/room-positions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        storyId,
+        positions,
+        rankdir,
+        nodesep,
+        ranksep,
+      }),
+    });
+    setSavedPositions(positions);
+    if (onSaveLayout) onSaveLayout();
+  };
+  // Reset Layout handler
+  const resetLayout = async () => {
+    await fetch('/api/game/room-positions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        storyId,
+        positions: {},
+        rankdir: null,
+        nodesep: null,
+        ranksep: null,
+      }),
+    });
+    setSavedPositions(null);
+    if (onResetLayout) onResetLayout();
+  };
+
+  useImperativeHandle(ref, () => ({
+    saveLayout,
+    resetLayout,
+  }));
+
   return (
     <div ref={containerRef} className={styles.roomGridContainer}>
       <div
@@ -179,16 +273,16 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
           {dagreEdges}
         </svg>
         {rooms.map((loc) => {
-          const node = dagreNodes[loc.id];
-          if (!node) return null;
+          const pos = nodePositions[loc.id];
+          if (!pos) return null;
           const isGoal = goalRoom && loc.id === goalRoom;
           return (
             <div
               key={loc.id}
               style={{
                 position: 'absolute',
-                left: node.x - CARD_WIDTH / 2 - minX + PADDING + LEFT_MARGIN,
-                top: node.y - CARD_HEIGHT / 2 - minY + PADDING,
+                left: pos.x - CARD_WIDTH / 2 - minX + PADDING + LEFT_MARGIN,
+                top: pos.y - CARD_HEIGHT / 2 - minY + PADDING,
                 width: CARD_WIDTH,
                 border: isGoal ? '2.5px solid #ffd700' : '2px solid #333',
                 boxShadow: isGoal ? '0 0 16px 2px #ffd70055' : undefined,
@@ -240,6 +334,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
       </div>
     </div>
   );
-};
+});
+RoomGrid.displayName = "RoomGrid";
 
 export default RoomGrid; 
