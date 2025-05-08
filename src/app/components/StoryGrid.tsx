@@ -104,6 +104,19 @@ const bumpAnimStyle = `
 }
 `;
 
+// Utility to clean up story titles (duplicated from backend for frontend use)
+function cleanTitle(title: string): string {
+  // Remove leading prefixes
+  title = title.replace(/^(Story:|Game:|Title:|The Adventure of)\s*/i, '');
+  // Remove anything in parentheses (byline-style)
+  title = title.replace(/\s*\(.*?\)\s*/g, '');
+  // Truncate at the first colon, if present
+  const colonIdx = title.indexOf(":");
+  if (colonIdx !== -1) title = title.slice(0, colonIdx);
+  // Trim whitespace
+  return title.trim();
+}
+
 export default function StoryGrid({ initialStories }: StoryGridProps) {
   const [stories, setStories] = useState(initialStories);
   const [newStoryIds, setNewStoryIds] = useState<Set<string>>(new Set());
@@ -341,7 +354,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                   }}
                 />
               )}
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{story.title}</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{cleanTitle(story.title)}</div>
               <div
                 style={{
                   fontSize: '1rem',

@@ -40,6 +40,19 @@ interface LeaderboardProps {
 
 const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png"; // Place this image in your public/images/ directory or use a remote URL
 
+// Utility to clean up story titles (duplicated from backend for frontend use)
+function cleanTitle(title: string): string {
+  // Remove leading prefixes
+  title = title.replace(/^(Story:|Game:|Title:|The Adventure of)\s*/i, '');
+  // Remove anything in parentheses (byline-style)
+  title = title.replace(/\s*\(.*?\)\s*/g, '');
+  // Truncate at the first colon, if present
+  const colonIdx = title.indexOf(":");
+  if (colonIdx !== -1) title = title.slice(0, colonIdx);
+  // Trim whitespace
+  return title.trim();
+}
+
 export default function Leaderboard({ story, users }: LeaderboardProps) {
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
@@ -97,7 +110,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
           <div className={styles.leftColumn}>
             <Image
               src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
-              alt={story.title}
+              alt={cleanTitle(story.title)}
               width={320}
               height={220}
               className={styles.storyImage}
@@ -122,7 +135,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
           {/* Right: Info and Map */}
           <div className={styles.rightContent}>
             <div className={styles.titleDescriptionContainer}>
-              <div className={styles.storyTitle}>{story.title}</div>
+              <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
               <div className={styles.storyDescription}>{story.description}</div>
               {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
                 <div style={{ color: '#a7a7ff', fontSize: '1.08rem', marginBottom: 22 }}>
@@ -155,7 +168,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
         {zoomedImage && (
           <ZoomedItemModal
             image={zoomedImage}
-            name={story.title}
+            name={cleanTitle(story.title)}
             description={story.description}
             onClose={() => setZoomedImage(null)}
           />
