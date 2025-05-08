@@ -149,7 +149,7 @@ export function LeaderboardHUD({ setLeaderboardData }: LeaderboardHUDProps) {
 
   // console.log('[LeaderboardHUD Render] Checking loading state:', { storyId, loading, storyExists: !!story });
   if (!storyId || storyId === 'undefined' || loading || !story) {
-    return <div style={{ color: '#fff', padding: '2rem' }}>Loading leaderboard…</div>;
+    return null;
   }
 
   return (

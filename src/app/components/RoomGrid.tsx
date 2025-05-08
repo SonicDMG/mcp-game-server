@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl } from '../api/game/types';
 import { LeaderboardUser } from './Leaderboard';
 import type { Location as GameLocation } from '../api/game/types';
 import RoomUserList from './RoomUserList';
 import dagre from 'dagre';
+import styles from './RoomGrid.module.css';
 
 interface RoomGridProps {
   rooms: GameLocation[];
@@ -104,6 +105,25 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
   const LEFT_MARGIN = 4;
   const svgWidth = Math.max(0, maxX - minX) + PADDING * 2;
   const svgHeight = Math.max(0, maxY - minY) + PADDING * 2;
+
+  // Responsive scaling logic
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    function handleResize() {
+      if (containerRef.current) {
+        const parentWidth = containerRef.current.offsetWidth;
+        const parentHeight = containerRef.current.offsetHeight || window.innerHeight * 0.6;
+        const widthScale = parentWidth / svgWidth;
+        const heightScale = parentHeight / svgHeight;
+        setScale(Math.min(widthScale, heightScale, 1));
+      }
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [svgWidth, svgHeight]);
+
   // Get edge paths (only unique, source < target)
   const dagreEdges: React.ReactNode[] = [];
   const renderedPairs = new Set<string>();
@@ -140,94 +160,83 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
   // Track non-adjacent exits for each room
   const nonAdjacentExits: Record<string, string[]> = {};
   return (
-    <div style={{
-      width: '100%',
-      overflowX: 'auto',
-      maxWidth: '100vw',
-      boxSizing: 'border-box',
-    }}>
-      <div style={{
-        position: 'relative',
-        width: svgWidth,
-        height: svgHeight,
-        border: '1.5px solid #23244a',
-        borderRadius: 12,
-        boxShadow: '0 2px 16px #23244a33',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{
-          position: 'relative',
+    <div ref={containerRef} className={styles.roomGridContainer}>
+      <div
+        style={{
           width: svgWidth,
           height: svgHeight,
-          boxSizing: 'border-box',
-        }}>
-          <svg
-            width={svgWidth}
-            height={svgHeight}
-            style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, pointerEvents: 'none', background: 'none' }}
-          >
-            {dagreEdges}
-          </svg>
-          {rooms.map((loc) => {
-            const node = dagreNodes[loc.id];
-            if (!node) return null;
-            const isGoal = goalRoom && loc.id === goalRoom;
-            return (
-              <div
-                key={loc.id}
-                style={{
-                  position: 'absolute',
-                  left: node.x - CARD_WIDTH / 2 - minX + PADDING + LEFT_MARGIN,
-                  top: node.y - CARD_HEIGHT / 2 - minY + PADDING,
-                  width: CARD_WIDTH,
-                  border: isGoal ? '2.5px solid #ffd700' : '2px solid #333',
-                  boxShadow: isGoal ? '0 0 16px 2px #ffd70055' : undefined,
-                  borderRadius: 8,
-                  padding: 10,
-                  background: '#181c2a',
-                  minWidth: 140,
-                  minHeight: 120,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  boxSizing: 'border-box',
-                  alignSelf: 'stretch',
-                  zIndex: 2,
-                }}
-              >
-                <Image
-                  src={getProxiedImageUrl(loc.image || ROOM_IMAGE_PLACEHOLDER)}
-                  alt={loc.name}
-                  width={64}
-                  height={64}
-                  style={{ objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in', width: 64, height: 'auto' }}
-                  onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER, loc.name, loc.description, loc.id)}
-                  unoptimized
-                />
-                <div style={{ color: '#a7a7ff', fontWeight: 600, marginBottom: 4, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{loc.name}</div>
-                {/* Non-adjacent exit icon and tooltip */}
-                {nonAdjacentExits[loc.id] && nonAdjacentExits[loc.id].length > 0 && (
-                  <div style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer' }} title={
-                    'Non-adjacent exits to: ' + nonAdjacentExits[loc.id].map(
-                      id => rooms.find(r => r.id === id)?.name || id
-                    ).join(', ')
-                  }>
-                    <span role="img" aria-label="non-adjacent exits" style={{ fontSize: 18 }}>🔗</span>
-                  </div>
-                )}
-                <div style={{ fontSize: 12, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
-                  <RoomUserList
-                    users={users.filter(u => u.room === loc.id)}
-                    loc={loc}
-                    setSelectedUser={setSelectedUser}
-                    setUserListModal={setUserListModal}
-                  />
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          position: 'relative',
+        }}
+      >
+        <svg
+          width={svgWidth}
+          height={svgHeight}
+          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, pointerEvents: 'none', background: 'none' }}
+        >
+          {dagreEdges}
+        </svg>
+        {rooms.map((loc) => {
+          const node = dagreNodes[loc.id];
+          if (!node) return null;
+          const isGoal = goalRoom && loc.id === goalRoom;
+          return (
+            <div
+              key={loc.id}
+              style={{
+                position: 'absolute',
+                left: node.x - CARD_WIDTH / 2 - minX + PADDING + LEFT_MARGIN,
+                top: node.y - CARD_HEIGHT / 2 - minY + PADDING,
+                width: CARD_WIDTH,
+                border: isGoal ? '2.5px solid #ffd700' : '2px solid #333',
+                boxShadow: isGoal ? '0 0 16px 2px #ffd70055' : undefined,
+                borderRadius: 8,
+                padding: 10,
+                background: '#181c2a',
+                minWidth: 140,
+                minHeight: 120,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                boxSizing: 'border-box',
+                alignSelf: 'stretch',
+                zIndex: 2,
+              }}
+            >
+              <Image
+                src={getProxiedImageUrl(loc.image || ROOM_IMAGE_PLACEHOLDER)}
+                alt={loc.name}
+                width={64}
+                height={64}
+                style={{ objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in', width: 64, height: 'auto' }}
+                onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER, loc.name, loc.description, loc.id)}
+                unoptimized
+              />
+              <div style={{ color: '#a7a7ff', fontWeight: 600, marginBottom: 4, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{loc.name}</div>
+              {/* Non-adjacent exit icon and tooltip */}
+              {nonAdjacentExits[loc.id] && nonAdjacentExits[loc.id].length > 0 && (
+                <div style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer' }} title={
+                  'Non-adjacent exits to: ' + nonAdjacentExits[loc.id].map(
+                    id => rooms.find(r => r.id === id)?.name || id
+                  ).join(', ')
+                }>
+                  <span role="img" aria-label="non-adjacent exits" style={{ fontSize: 18 }}>🔗</span>
                 </div>
+              )}
+              <div style={{ fontSize: 12, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
+                <RoomUserList
+                  users={users.filter(u => u.room === loc.id)}
+                  loc={loc}
+                  setSelectedUser={setSelectedUser}
+                  setUserListModal={setUserListModal}
+                />
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
