@@ -56,6 +56,8 @@ const ZoomedItemModal: React.FC<ZoomedItemModalProps> = ({ image, name, descript
           boxShadow: '0 8px 32px #000a',
           background: '#222',
           marginRight: 32,
+          width: 800,
+          height: 'auto',
         }}
       />
       <div style={{ flex: 1, color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>

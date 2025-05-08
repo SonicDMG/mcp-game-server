@@ -54,6 +54,8 @@ export const WinnerSection: React.FC<{
             width={32}
             height={32}
             className={styles.avatar}
+            style={{ width: 32, height: 'auto' }}
+            unoptimized
           />
           <span className={`${styles.userName} ${styles.winnerName}`} onClick={() => onUserClick(winner)}>
             {winner.id}
@@ -85,6 +87,8 @@ export const KilledSection: React.FC<{
               width={32}
               height={32}
               className={`${styles.avatar} ${styles.killedAvatar}`}
+              style={{ width: 32, height: 'auto' }}
+              unoptimized
             />
             <span className={styles.killedSkullOverlay} role="img" aria-label="eliminated">&times;</span>
           </div>

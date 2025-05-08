@@ -195,7 +195,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, users, goalRoom, setZoomedIm
                 alt={loc.name}
                 width={64}
                 height={64}
-                style={{ objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in' }}
+                style={{ objectFit: 'cover', borderRadius: 4, marginBottom: 8, cursor: 'zoom-in', width: 64, height: 'auto' }}
                 onClick={() => setZoomedImage(loc.image || ROOM_IMAGE_PLACEHOLDER, loc.name, loc.description, loc.id)}
                 unoptimized
               />

@@ -52,7 +52,7 @@ const UserListModal: React.FC<UserListModalProps> = ({ room, users, setSelectedU
                 alt="avatar"
                 width={24}
                 height={24}
-                style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer' }}
+                style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer', width: 24, height: 'auto' }}
                 onClick={() => setSelectedUser(user)}
                 unoptimized
               />

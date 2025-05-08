@@ -64,6 +64,8 @@ const ItemCollage: React.FC<ItemCollageProps> = ({ items, collectedItemIds, requ
               border,
               background: '#222',
               marginBottom: 2,
+              width: 40,
+              height: 'auto',
               transition: 'box-shadow 0.2s, border 0.2s',
             }}
             onClick={() => setZoomedItem({ image: item.image || '/images/item-placeholder.png', name: item.name, description: item.description })}

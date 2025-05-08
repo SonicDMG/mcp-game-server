@@ -34,7 +34,7 @@ const ZoomedImageModal: React.FC<ZoomedImageModalProps> = ({ image, onClose }) =
         height={1080}
         style={{
           width: '100vw',
-          height: '100vh',
+          height: 'auto',
           objectFit: 'contain',
           borderRadius: 0,
           boxShadow: '0 8px 32px #000a',

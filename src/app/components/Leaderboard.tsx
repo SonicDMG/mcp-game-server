@@ -114,6 +114,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
               width={320}
               height={220}
               className={styles.storyImage}
+              style={{ width: 320, height: 'auto' }}
               onClick={() => setZoomedImage(story.image || ROOM_IMAGE_PLACEHOLDER)}
               unoptimized
             />

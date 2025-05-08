@@ -160,7 +160,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
                         background: '#222',
                         marginBottom: 6,
                         width: 48,
-                        height: 48,
+                        height: 'auto',
                         objectFit: 'cover',
                         border: isRequired ? '2px solid #ffd700' : '2px solid #3b82f6',
                         boxShadow: isRequired

@@ -33,9 +33,9 @@ const RoomUserList: React.FC<RoomUserListProps> = ({ users, loc, setSelectedUser
             <Image
               src={getProxiedImageUrl(avatarUrl(user.id))}
               alt="avatar"
-              width={20}
-              height={20}
-              style={{ borderRadius: 4, marginRight: 4, background: '#222', cursor: 'pointer' }}
+              width={24}
+              height={24}
+              style={{ borderRadius: 4, marginRight: 8, background: '#222', cursor: 'pointer', width: 24, height: 'auto' }}
               onClick={() => setSelectedUser(user)}
               unoptimized
             />

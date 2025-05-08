@@ -331,6 +331,8 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                     borderRadius: 12, 
                     marginBottom: 16, 
                     objectFit: 'cover', 
+                    width: 160, 
+                    height: 'auto', // maintain aspect ratio
                   }}
                   onError={e => {
                     const target = e.target as HTMLImageElement;
@@ -350,7 +352,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                     objectFit: 'cover',
                     filter: 'grayscale(1)',
                     width: 160,
-                    height: 100,
+                    height: 'auto', // maintain aspect ratio
                   }}
                 />
               )}
