@@ -1018,6 +1018,38 @@
             "solution": { "type": "string" }
           },
           "required": ["userId", "storyId", "challengeId", "solution"]
+        },
+        "Challenge": {
+          "type": "object",
+          "description": "Represents a challenge in the game, such as a riddle, puzzle, or quest.",
+          "properties": {
+            "id": { "type": "string", "description": "Unique ID for the challenge." },
+            "type": { "type": "string", "enum": ["npc", "creature", "obstacle", "hidden_area"], "description": "Type of challenge." },
+            "name": { "type": "string", "description": "Name of the challenge." },
+            "description": { "type": "string", "description": "Description of the challenge." },
+            "locationId": { "type": "string", "description": "ID of the location where the challenge occurs." },
+            "artifactId": { "type": "string", "description": "ID of the artifact awarded for solving the challenge." },
+            "challengeType": { "type": "string", "enum": ["riddle", "combat", "puzzle", "quest", "discovery", "ritual"], "description": "Subtype of the challenge." },
+            "themeTag": { "type": "string", "description": "Theme tag for the challenge." },
+            "requirements": {
+              "type": "object",
+              "properties": {
+                "item": { "type": "string", "nullable": true },
+                "items": { "type": "array", "items": { "type": "string" }, "nullable": true }
+              },
+              "nullable": true
+            },
+            "solvedBy": { "type": "array", "items": { "type": "string" }, "description": "User IDs who have solved this challenge.", "nullable": true },
+            "solution": { "type": "string", "description": "Solution to the challenge, if applicable.", "nullable": true },
+            "completionCriteria": { "type": "string", "description": "Criteria for completing the challenge, if not a simple solution.", "nullable": true },
+            "expectedAction": { "type": "string", "description": "Expected action to solve the challenge, if applicable.", "nullable": true },
+            "hints": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Hints to help solve the challenge. Agents should present these one-by-one as users attempt to solve."
+            }
+          },
+          "required": ["id", "type", "name", "description", "locationId", "artifactId", "challengeType", "themeTag", "hints"]
         }
       },
       "responses": {

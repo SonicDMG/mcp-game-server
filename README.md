@@ -132,5 +132,42 @@ Pull requests are welcome! Open an issue, fork, and help us build the wildest wo
 
 ---
 
+## 📑 Error & Status Code Reference (Addendum)
+
+This section documents the main error and status codes used by the MCP Game Server API and SSE/JSON-RPC interface, for quick reference:
+
+### HTTP Status Codes
+| Code | When Issued | Meaning |
+|------|-------------|---------|
+| 200  | Successful request (may include errors in body for game logic) | OK |
+| 400  | Malformed request, missing/invalid parameters | Bad Request |
+| 403  | Action not allowed (e.g., unmet requirements) | Forbidden |
+| 404  | Resource not found (player, story, location, item) | Not Found |
+| 409  | Conflict (e.g., story with same ID exists) | Conflict |
+| 500  | Internal server error | Server Error |
+
+### JSON-RPC Error Codes (SSE/Tool Proxy)
+| Code     | When Issued | Meaning |
+|----------|-------------|---------|
+| -32000   | Generic server error (proxy failure, non-JSON response, etc.) | Server error (JSON-RPC 2.0 reserved) |
+| -32601   | Tool or method not found | Method not found (JSON-RPC 2.0) |
+| -32602   | Invalid parameters for a tool/method | Invalid params (JSON-RPC 2.0) |
+| -32603   | Internal JSON-RPC error | Internal error (JSON-RPC 2.0) |
+
+### Game Logic/Response Fields
+| Field      | When Present | Meaning |
+|------------|--------------|---------|
+| success    | All responses | true if operation succeeded, false otherwise |
+| error      | On failure    | Error message for the user/agent |
+| hint       | Sometimes     | Optional hint for the user/agent |
+| needsPlayer| Player not found | Indicates the client should call /start |
+
+### Notes
+- Game logic errors (e.g., wrong answer, missing item) may return HTTP 200 with `success: false` and an `error` message in the body.
+- JSON-RPC error codes are used in SSE and tool proxying for agent compatibility.
+- See the OpenAPI spec for full schema details.
+
+---
+
   Thanks for visiting, explorer! 
   May your mazes be twisty and your artifacts shiny. 🟪🟦🟩🟧🟨🟫

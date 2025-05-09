@@ -69,12 +69,14 @@ export async function POST(request: NextRequest) {
         }
         // Return challenge info in the response if any are found
         if (triggeredChallenges.length > 0) {
+          // Always include hints in triggeredChallenges for agent use
           return NextResponse.json({
             ...playerState,
             storyId,
             userId: playerId,
-            triggeredChallenges,
+            triggeredChallenges: triggeredChallenges.map(c => ({ ...c })), // ensure hints included
             message: `You encounter a challenge: ${triggeredChallenges.map(c => c.name).join(', ')}`
+            // Agents: Present hints one-by-one as users attempt to solve
           });
         }
         break;
@@ -167,7 +169,9 @@ export async function POST(request: NextRequest) {
         if (!solved) {
           return NextResponse.json({
             error: 'Challenge not completed. Try again or check your answer/requirements.',
-            hint: challenge.description
+            hint: challenge.description,
+            challenge: challenge // Include challenge with hints for agent use
+            // Agents: Present hints one-by-one as users attempt to solve
           }, { status: 200 });
         }
         // Award artifact
@@ -198,7 +202,9 @@ export async function POST(request: NextRequest) {
           success: true,
           message: `Challenge completed! You have earned the artifact: ${challenge.artifactId}`,
           artifactId: challenge.artifactId,
-          inventory: playerState.inventory
+          inventory: playerState.inventory,
+          challenge: challenge // Include challenge with hints for agent use
+          // Agents: Present hints one-by-one as users attempt to solve
         });
       }
 

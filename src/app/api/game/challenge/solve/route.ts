@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
     if (!isCorrect) {
       return NextResponse.json({
         success: false,
-        error: 'Incorrect solution. Try again!'
+        error: 'Incorrect solution. Try again!',
+        challenge: challenge,
       }, { status: 200 });
     }
     // Award artifact if not already in inventory
@@ -135,7 +136,8 @@ export async function POST(request: NextRequest) {
           win: true,
           artifact,
           challengeId,
-          solved: true
+          solved: true,
+          challenge: challenge,
         });
       }
     }
@@ -145,7 +147,8 @@ export async function POST(request: NextRequest) {
       message: 'Challenge solved! You have been awarded the artifact.',
       artifact,
       challengeId,
-      solved: true
+      solved: true,
+      challenge: challenge,
     });
   } catch (error) {
     console.error('Error in /api/game/challenge/solve:', error);

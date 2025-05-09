@@ -91,12 +91,14 @@ export async function POST(request: NextRequest) {
       );
     }
     if (triggeredChallenges.length > 0) {
+      // Always include hints in triggeredChallenges for agent use
       return NextResponse.json({
         success: true,
         storyId: storyId,
         userId: userId,
-        triggeredChallenges,
+        triggeredChallenges: triggeredChallenges.map(c => ({ ...c })), // ensure hints included
         message: `You have triggered a challenge: ${triggeredChallenges.map(c => c.name).join(', ')}`
+        // Agents: Present hints one-by-one as users attempt to solve
       });
     }
 
