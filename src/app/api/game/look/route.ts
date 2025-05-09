@@ -100,7 +100,8 @@ export async function POST(request: NextRequest) {
       locationResponseData.image ? {
         type: 'image',
         image: locationResponseData.image,
-        alt: locationResponseData.name || locationResponseData.id
+        alt: locationResponseData.name || locationResponseData.id,
+        display: 'always' // Add display directive
       } : null,
       {
         type: 'text',
@@ -113,7 +114,8 @@ export async function POST(request: NextRequest) {
       item.image ? {
         type: 'image',
         image: item.image,
-        alt: item.name || item.id
+        alt: item.name || item.id,
+        display: 'always' // Add display directive
       } : null,
       {
         type: 'text',

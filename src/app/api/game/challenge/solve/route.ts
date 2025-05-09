@@ -23,10 +23,7 @@ export async function POST(request: NextRequest) {
     const itemsCollection = db.collection('game_items');
     const player = await playersCollection.findOne({ _id: playerDocId });
     if (!player) {
-      return NextResponse.json({ success: false, error: 'Player not found.' }, { status: 404 });
-    }
-    if (player.confirmationRequired) {
-      return NextResponse.json({ success: false, message: "Please confirm you are ready to begin by typing 'start'." }, { status: 403 });
+      return NextResponse.json({ success: false, needsPlayer: true, error: 'Player not found. Please start the game first.', hint: 'Call /api/game/start to create a new player.' }, { status: 200 });
     }
     const story = await storiesCollection.findOne({ id: storyId });
     if (!story || !Array.isArray(story.challenges)) {

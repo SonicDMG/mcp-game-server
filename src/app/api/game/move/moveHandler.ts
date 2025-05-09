@@ -50,10 +50,7 @@ export async function handleMoveAction(
   const playerDocId = `${storyId}_${userId}`;
   const player = await services.playersCollection.findOne({ _id: playerDocId });
   if (!player) {
-    return { status: 404, body: { success: false, error: 'Player not found. Please start the game first.' } };
-  }
-  if (player.confirmationRequired) {
-    return { status: 403, body: { success: false, message: "Please confirm you are ready to begin by typing 'start'." } };
+    return { status: 200, body: { success: false, needsPlayer: true, error: 'Player not found. Please start the game first.', hint: 'Call /api/game/start to create a new player.' } };
   }
   if (player.storyId !== storyId) {
     return { status: 400, body: { success: false, error: 'Player story mismatch.' } };

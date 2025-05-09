@@ -141,8 +141,7 @@ export async function POST(request: NextRequest) {
           itemsFound: [],
           puzzlesSolved: [],
           storyProgress: 0
-        },
-        confirmationRequired: true
+        }
       };
       
       // Insert the new player document
@@ -155,8 +154,8 @@ export async function POST(request: NextRequest) {
       player = newPlayer; 
       // Adjust welcome message based on whether the user ID was generated
       message = userId === generateFunUsername() 
-          ? `Welcome, new adventurer (User ID: ${userId})! Your journey in "${story.title}" begins now.\n\nType 'start' when you are ready to begin your adventure.` 
-          : `Welcome to "${story.title}"! Your adventure begins now.\n\nType 'start' when you are ready to begin your adventure.`;
+          ? `Welcome, new adventurer (User ID: ${userId})! Your journey in "${story.title}" begins now.` 
+          : `Welcome to "${story.title}"! Your adventure begins now.`;
     }
 
     // 4. Fetch the player's current location details (either existing or starting)

@@ -47,7 +47,6 @@ export interface PlayerState {
     storyProgress: number;
   };
   status?: 'playing' | 'winner' | 'killed';
-  confirmationRequired?: boolean;
 }
 
 export interface GameResponse {

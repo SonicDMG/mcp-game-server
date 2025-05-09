@@ -17,8 +17,8 @@ export async function GET(
     
     if (!playerState) {
       return NextResponse.json(
-        { error: 'Failed to get player state' },
-        { status: 404 }
+        { success: false, needsPlayer: true, error: 'Player not found. Please start the game first.', hint: 'Call /api/game/start to create a new player.' },
+        { status: 200 }
       );
     }
 

@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     // 1. Find the player
     const player = await playersCollection.findOne({ _id: playerDocId });
     if (!player) {
-      console.log(`>>> Player ${playerDocId} not found, returning 404 <<<`);
-      return NextResponse.json({ success: false, error: 'Player not found. Please start the game first.' }, { status: 404 });
+      console.log(`>>> Player ${playerDocId} not found, returning needsPlayer 200 <<<`);
+      return NextResponse.json({ success: false, needsPlayer: true, error: 'Player not found. Please start the game first.', hint: 'Call /api/game/start to create a new player.' }, { status: 200 });
     }
 
     // Ensure player belongs to the correct story (safety check)
