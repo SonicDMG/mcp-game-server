@@ -812,6 +812,10 @@
               "type": "string",
               "description": "The ID of the goal room. To win, a player must collect all requiredArtifacts and reach this room. Backend validates that a win path exists after world generation."
             },
+            "finalTask": {
+              "$ref": "#/components/schemas/FinalTask",
+              "description": "(Optional) Defines the final epic task required to win. If present, players must bring all requiredArtifacts to finalTask.locationId and perform the specified action to win."
+            },
             "theme": { "type": "string", "description": "Theme used for generation (optional)." },
             "image": { "type": "string", "description": "URL of the story cover image, if present.", "nullable": true },
             "alt": { "type": "string", "description": "Alt text for the story image, if present.", "nullable": true },
@@ -827,6 +831,18 @@
             }
           },
           "required": ["id", "title", "description", "startingLocation", "version"]
+        },
+        "FinalTask": {
+          "type": "object",
+          "description": "Describes the final epic task required to win the story. Players must bring all requiredArtifacts to the specified location and perform the action described in instructions.",
+          "properties": {
+            "locationId": { "type": "string", "description": "The location where the final task is performed (usually the goal room)." },
+            "requiredArtifacts": { "type": "array", "items": { "type": "string" }, "description": "All item IDs needed for the final task (should match or be a subset of requiredArtifacts)." },
+            "instructions": { "type": "string", "description": "What the player must do to complete the final task (e.g., 'Place all three relics on the altar and recite the incantation.')." },
+            "completionCriteria": { "type": "string", "description": "(Optional) How the system knows the task is complete (e.g., 'Player must have all three artifacts in inventory and use them at the altar.')." },
+            "hints": { "type": "array", "items": { "type": "string" }, "description": "2–4 thematic hints to help the player complete the final task." }
+          },
+          "required": ["locationId", "requiredArtifacts", "instructions", "hints"]
         },
         "CreateStoryInputThemeBased": {
           "type": "object",

@@ -52,7 +52,7 @@ export async function handleTakeAction(
   }
   // Construct playerDocId using the provided storyId
   const playerDocId = `${storyId}_${userId}`;
-  const story = await services.storiesCollection.findOne({ id: storyId }) as (Story & { _id: string; requiredArtifacts?: string[]; goalRoomId?: string });
+  const story = await services.storiesCollection.findOne({ id: storyId }) as (Story & { _id: string; requiredArtifacts?: string[]; goalRoomId?: string; finalTask?: { locationId: string; requiredArtifacts: string[]; hints: string[] } });
   if (!story) {
     return { status: 500, body: { success: false, error: 'Internal server error: Story data missing' } };
   }
@@ -148,30 +148,58 @@ export async function handleTakeAction(
     return { ...itemData, image: (typeof getAbsoluteProxiedImageUrl !== 'undefined' && getAbsoluteProxiedImageUrl) ? getAbsoluteProxiedImageUrl(request ?? { headers: { get: () => null } }, itemData.image || '/images/item-placeholder.png') : itemData.image };
   });
 
-  // --- WIN CONDITION CHECK (added) ---
-  if (story && story.goalRoomId && story.requiredArtifacts) {
-    const inGoalRoom = player.currentLocation === story.goalRoomId;
-    const hasAllArtifacts = story.requiredArtifacts.every((artifactId: string) => player.inventory.includes(artifactId));
-    if (inGoalRoom && hasAllArtifacts) {
-      await services.playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
-      await services.eventsCollection.insertOne({
-        storyId,
-        type: 'win',
-        message: `${userId} has won the game!`,
-        actor: userId,
-        timestamp: new Date().toISOString(),
-      });
-      return {
-        status: 200,
-        body: {
-          success: true,
+  // --- WIN CONDITION CHECK (updated for finalTask) ---
+  if (story) {
+    if (story.finalTask) {
+      const inFinalTaskRoom = player.currentLocation === story.finalTask.locationId;
+      const hasAllFinalArtifacts = story.finalTask.requiredArtifacts.every((artifactId: string) => player.inventory.includes(artifactId));
+      if (inFinalTaskRoom && hasAllFinalArtifacts) {
+        await services.playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
+        await services.eventsCollection.insertOne({
           storyId,
-          userId,
-          message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
-          win: true,
-          inventory: inventoryWithImages,
-        }
-      };
+          type: 'win',
+          message: `${userId} has completed the final task and won the game!`,
+          actor: userId,
+          timestamp: new Date().toISOString(),
+        });
+        return {
+          status: 200,
+          body: {
+            success: true,
+            storyId,
+            userId,
+            message: 'Congratulations! You have completed the final epic task and won the game!',
+            win: true,
+            inventory: inventoryWithImages,
+            finalTask: story.finalTask,
+            hint: story.finalTask.hints?.[0] || undefined
+          }
+        };
+      }
+    } else if (story.goalRoomId && story.requiredArtifacts) {
+      const inGoalRoom = player.currentLocation === story.goalRoomId;
+      const hasAllArtifacts = story.requiredArtifacts.every((artifactId: string) => player.inventory.includes(artifactId));
+      if (inGoalRoom && hasAllArtifacts) {
+        await services.playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
+        await services.eventsCollection.insertOne({
+          storyId,
+          type: 'win',
+          message: `${userId} has won the game!`,
+          actor: userId,
+          timestamp: new Date().toISOString(),
+        });
+        return {
+          status: 200,
+          body: {
+            success: true,
+            storyId,
+            userId,
+            message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
+            win: true,
+            inventory: inventoryWithImages,
+          }
+        };
+      }
     }
   }
   return {

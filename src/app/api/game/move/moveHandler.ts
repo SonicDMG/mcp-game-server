@@ -99,29 +99,57 @@ export async function handleMoveAction(
   }
   // Win condition check
   const story = await services.storiesCollection.findOne({ id: storyId });
-  if (story && story.goalRoomId && story.requiredArtifacts) {
-    const inGoalRoom = targetLocationId === story.goalRoomId;
-    const hasAllArtifacts = story.requiredArtifacts.every((artifactId: string) => updatedPlayer.inventory.includes(artifactId));
-    if (inGoalRoom && hasAllArtifacts) {
-      await services.playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
-      await services.eventsCollection.insertOne({
-        storyId,
-        type: 'win',
-        message: `${userId} has won the game!`,
-        actor: userId,
-        timestamp: new Date().toISOString(),
-      });
-      return {
-        status: 200,
-        body: {
-          success: true,
+  if (story) {
+    if (story.finalTask) {
+      const inFinalTaskRoom = targetLocationId === story.finalTask.locationId;
+      const hasAllFinalArtifacts = story.finalTask.requiredArtifacts.every((artifactId: string) => updatedPlayer.inventory.includes(artifactId));
+      if (inFinalTaskRoom && hasAllFinalArtifacts) {
+        await services.playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
+        await services.eventsCollection.insertOne({
           storyId,
-          userId,
-          location: destinationLocation,
-          message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
-          win: true
-        }
-      };
+          type: 'win',
+          message: `${userId} has completed the final task and won the game!`,
+          actor: userId,
+          timestamp: new Date().toISOString(),
+        });
+        return {
+          status: 200,
+          body: {
+            success: true,
+            storyId,
+            userId,
+            location: destinationLocation,
+            message: 'Congratulations! You have completed the final epic task and won the game!',
+            win: true,
+            finalTask: story.finalTask,
+            hint: story.finalTask.hints?.[0] || undefined
+          }
+        };
+      }
+    } else if (story.goalRoomId && story.requiredArtifacts) {
+      const inGoalRoom = targetLocationId === story.goalRoomId;
+      const hasAllArtifacts = story.requiredArtifacts.every((artifactId: string) => updatedPlayer.inventory.includes(artifactId));
+      if (inGoalRoom && hasAllArtifacts) {
+        await services.playersCollection.updateOne({ _id: player._id }, { $set: { status: 'winner' } });
+        await services.eventsCollection.insertOne({
+          storyId,
+          type: 'win',
+          message: `${userId} has won the game!`,
+          actor: userId,
+          timestamp: new Date().toISOString(),
+        });
+        return {
+          status: 200,
+          body: {
+            success: true,
+            storyId,
+            userId,
+            location: destinationLocation,
+            message: 'Congratulations! You have collected all required artifacts and reached the goal. You win!',
+            win: true
+          }
+        };
+      }
     }
   }
   return {

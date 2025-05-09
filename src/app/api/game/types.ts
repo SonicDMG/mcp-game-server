@@ -8,6 +8,7 @@ export interface Story {
   image?: string;
   challenges?: Challenge[];
   goalRoomId?: string;
+  finalTask?: FinalTask;
 }
 
 export interface GameItem {
@@ -82,6 +83,14 @@ export interface LangflowWorldResponse {
   items: Omit<GameItem, 'storyId'>[];
   challenges?: Challenge[];
   requiredArtifacts?: string[];
+}
+
+export interface FinalTask {
+  locationId: string;
+  requiredArtifacts: string[];
+  instructions: string;
+  completionCriteria?: string;
+  hints: string[];
 }
 
 // Utility functions moved to src/lib/utils.ts
