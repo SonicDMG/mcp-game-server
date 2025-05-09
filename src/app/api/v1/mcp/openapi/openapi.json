@@ -15,7 +15,7 @@
       "/api/game/start": {
         "post": {
           "summary": "Start Game / Get Initial State",
-          "description": "Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.",
+          "description": "Starts a new game session for a user in a specific story or retrieves the existing state if the user has already started.\n\nNOTE: Agents should present only the canonical challenges and objectives from the 'goals' field in the response. Do not invent new goals based on theme or pop culture references.",
           "operationId": "startGame",
           "tags": ["Game Actions"],
           "requestBody": {
@@ -49,7 +49,7 @@
       "/api/game/state": {
         "post": {
           "summary": "Get Current Game State",
-          "description": "Retrieves the current state of the game (player and location) for a specific user and story. Requires `userId` and `storyId`. Obtain `storyId` using the `listStories` tool. Obtain `userId` from the result of `startGame` (for new players) or user input (for resuming). NOTE: The current MCP tool definition for `getGameState` may be faulty and might not accept the required `userId` and `storyId` parameters, potentially only accepting `random_string`. A correctly defined tool *must* send `userId` and `storyId`.",
+          "description": "Retrieves the current state of the game (player and location) for a specific user and story. Requires `userId` and `storyId`. Obtain `storyId` using the `listStories` tool. Obtain `userId` from the result of `startGame` (for new players) or user input (for resuming). NOTE: The current MCP tool definition for `getGameState` may be faulty and might not accept the required `userId` and `storyId` parameters, potentially only accepting `random_string`. A correctly defined tool *must* send `userId` and `storyId`.\n\nNOTE: Agents should present only the canonical challenges and objectives from the 'goals' field in the response. Do not invent new goals based on theme or pop culture references.",
           "operationId": "getGameState",
           "tags": ["Game Actions"],
           "requestBody": {
@@ -123,7 +123,7 @@
        "/api/game/move": {
         "post": {
           "summary": "Move Player",
-          "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+          "description": "Moves the player to a new location specified by the target ID, if it's a valid exit from the current location and requirements are met.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.\n\nNOTE: Agents should not take in-game actions unless explicitly instructed by the user. The agent's role is to assist, explain, and respond to user commands, not to play the game autonomously.",
           "operationId": "movePlayer",
           "tags": ["Game Actions"],
           "requestBody": {
@@ -164,7 +164,7 @@
       "/api/game/take": {
         "post": {
           "summary": "Take Item",
-          "description": "Allows the player to pick up a specified item from their current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+          "description": "Allows the player to pick up a specified item from their current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.\n\nNOTE: Agents should not take in-game actions unless explicitly instructed by the user. The agent's role is to assist, explain, and respond to user commands, not to play the game autonomously.",
           "operationId": "takeItem",
           "tags": ["Game Actions"],
           "requestBody": {
@@ -209,7 +209,7 @@
       "/api/game/examine": {
         "post": {
           "summary": "Examine Target",
-          "description": "Gets a detailed description of a specific item or feature in the player's current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+          "description": "Gets a detailed description of a specific item or feature in the player's current location.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.\n\nNOTE: Agents should not take in-game actions unless explicitly instructed by the user. The agent's role is to assist, explain, and respond to user commands, not to play the game autonomously.",
           "operationId": "examineTarget",
           "tags": ["Game Actions"],
            "requestBody": {
@@ -250,7 +250,7 @@
       "/api/game/challenge/solve": {
         "post": {
           "summary": "Solve Challenge",
-          "description": "Submits a solution to a challenge (e.g., riddle, puzzle, quest) and awards the artifact if correct.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.",
+          "description": "Submits a solution to a challenge (e.g., riddle, puzzle, quest) and awards the artifact if correct.\nIMPORTANT: Do NOT call this endpoint unless the user has explicitly instructed you to take this action in the game world. Only act on direct user commands.\n\nNOTE: Agents should not take in-game actions unless explicitly instructed by the user. The agent's role is to assist, explain, and respond to user commands, not to play the game autonomously.\n\nNOTE: Only challenge IDs present in the story's 'challenges' array are valid for this endpoint. Do NOT use item IDs from 'location.items' as challenge IDs.",
           "operationId": "solveChallenge",
           "tags": ["Game Actions"],
           "requestBody": {
@@ -696,7 +696,7 @@
         },
         "Location": {
           "type": "object",
-          "description": "Represents a location within a story. If an image is present, both a top-level 'image' and 'alt' field and a 'content' array are included. The content array contains a type: 'image' object first, followed by a type: 'text' object.",
+          "description": "Represents a location within a story. If an image is present, both a top-level 'image' and 'alt' field and a 'content' array are included. The content array contains a type: 'image' object first, followed by a type: 'text' object.\n\nNOTE: The 'items' array contains item IDs only. These are not challenges and should not be used as challenge IDs for the solveChallenge endpoint.",
           "properties": {
             "id": { "type": "string", "description": "Unique ID for the location within the story.", "example": "dragon_entrance" },
             "storyId": { "type": "string", "example": "dragon_lair" },

@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
     if (!player) {
       return NextResponse.json({ success: false, error: 'Player not found.' }, { status: 404 });
     }
+    if (player.confirmationRequired) {
+      return NextResponse.json({ success: false, message: "Please confirm you are ready to begin by typing 'start'." }, { status: 403 });
+    }
     if (player.storyId !== storyId) {
       return NextResponse.json({ success: false, error: 'Player story mismatch.' }, { status: 400 });
     }

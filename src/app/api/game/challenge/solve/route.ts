@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
     if (!player) {
       return NextResponse.json({ success: false, error: 'Player not found.' }, { status: 404 });
     }
+    if (player.confirmationRequired) {
+      return NextResponse.json({ success: false, message: "Please confirm you are ready to begin by typing 'start'." }, { status: 403 });
+    }
     const story = await storiesCollection.findOne({ id: storyId });
     if (!story || !Array.isArray(story.challenges)) {
       return NextResponse.json({ success: false, error: 'Story or challenges not found.' }, { status: 404 });

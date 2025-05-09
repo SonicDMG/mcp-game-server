@@ -52,6 +52,9 @@ export async function handleMoveAction(
   if (!player) {
     return { status: 404, body: { success: false, error: 'Player not found. Please start the game first.' } };
   }
+  if (player.confirmationRequired) {
+    return { status: 403, body: { success: false, message: "Please confirm you are ready to begin by typing 'start'." } };
+  }
   if (player.storyId !== storyId) {
     return { status: 400, body: { success: false, error: 'Player story mismatch.' } };
   }

@@ -30,6 +30,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Confirmation required gating
+    if (playerState.confirmationRequired) {
+      if (action === 'start') {
+        playerState.confirmationRequired = false;
+        await updatePlayerState(playerState);
+        return NextResponse.json({
+          success: true,
+          message: "Your adventure has begun! You may now explore, move, and interact. Good luck!",
+          playerState
+        });
+      } else {
+        return NextResponse.json({
+          success: false,
+          message: "Please confirm you are ready to begin by typing 'start'."
+        }, { status: 403 });
+      }
+    }
+
     // Process different actions
     switch (action) {
       case 'move': {

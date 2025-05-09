@@ -56,9 +56,8 @@ export async function POST(request: NextRequest) {
     if (process.env.NODE_ENV !== 'production') {
     console.log('[API /start] Received request body:', JSON.stringify(requestBody)); 
     }
-    // Destructure storyId first, handle userId separately
-    let { userId } = requestBody;
-    const { storyId } = requestBody;
+    // Destructure userId and storyId
+    const { userId, storyId } = requestBody;
 
     // Still require storyId
     if (!storyId) {
@@ -68,17 +67,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Story ID is required' }, { status: 400 });
     }
 
-    // Generate userId if missing
-    let isNewUser = false;
+    // If userId is missing, prompt for username
     if (!userId) {
-      userId = generateFunUsername();
-      isNewUser = true;
-      if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> No userId provided, generated fun username: ${userId} <<<`);
-      }
+      return NextResponse.json({
+        success: false,
+        needsUsername: true,
+        message: "Please enter your desired username to begin playing."
+      }, { status: 200 });
     } else {
       if (process.env.NODE_ENV !== 'production') {
-       console.log(`>>> Received userId: ${userId} <<<`);
+        console.log(`>>> Received userId: ${userId} <<<`);
       }
     }
 
@@ -92,12 +90,15 @@ export async function POST(request: NextRequest) {
     // 1. Check if player already exists
     let player = await playersCollection.findOne({ _id: playerDocId });
     let message = "Welcome back!";
+    let story: StoryRecord | null = null;
 
     if (player) {
       if (process.env.NODE_ENV !== 'production') {
       console.log(`>>> Player ${playerDocId} found. Retrieving state. <<<`);
       }
       message = "Welcome back! Resuming your adventure.";
+      // Fetch story for goals
+      story = await storiesCollection.findOne({ id: storyId });
     } else {
       // Ensure we generated a user ID if the player wasn't found and no ID was given
       if (!userId) {
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
       }
       
       // 2. If player doesn't exist, fetch the story to get starting location
-      const story = await storiesCollection.findOne({ id: storyId }); // Find story by its logical ID
+      story = await storiesCollection.findOne({ id: storyId }); // Find story by its logical ID
       if (!story) {
         if (process.env.NODE_ENV !== 'production') {
         console.error(`>>> Story with id ${storyId} not found. <<<`);
@@ -140,7 +141,8 @@ export async function POST(request: NextRequest) {
           itemsFound: [],
           puzzlesSolved: [],
           storyProgress: 0
-        }
+        },
+        confirmationRequired: true
       };
       
       // Insert the new player document
@@ -152,9 +154,9 @@ export async function POST(request: NextRequest) {
       // Use the newly created player object for the response
       player = newPlayer; 
       // Adjust welcome message based on whether the user ID was generated
-      message = isNewUser 
-          ? `Welcome, new adventurer (User ID: ${userId})! Your journey in "${story.title}" begins now.` 
-          : `Welcome to "${story.title}"! Your adventure begins now.`;
+      message = userId === generateFunUsername() 
+          ? `Welcome, new adventurer (User ID: ${userId})! Your journey in "${story.title}" begins now.\n\nType 'start' when you are ready to begin your adventure.` 
+          : `Welcome to "${story.title}"! Your adventure begins now.\n\nType 'start' when you are ready to begin your adventure.`;
     }
 
     // 4. Fetch the player's current location details (either existing or starting)
@@ -177,6 +179,18 @@ export async function POST(request: NextRequest) {
     const { _id: player_id, ...playerResponse } = player;
     const { _id: location_id, ...locationResponse } = currentLocation;
 
+    // Prepare goals/objectives summary from story
+    let goals = undefined;
+    if (story) {
+      goals = {
+        challenges: Array.isArray(story.challenges)
+          ? story.challenges.map(c => ({ id: c.id, name: c.name, description: c.description }))
+          : [],
+        requiredArtifacts: story.requiredArtifacts || [],
+        goalRoomId: story.goalRoomId || null
+      };
+    }
+
     if (process.env.NODE_ENV !== 'production') {
     console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
     }
@@ -186,7 +200,8 @@ export async function POST(request: NextRequest) {
       userId: userId,
       message: message,
       player: playerResponse,
-      location: locationResponse
+      location: locationResponse,
+      goals
     });
 
   } catch (error) {

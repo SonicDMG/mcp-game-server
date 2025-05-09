@@ -7,6 +7,7 @@ export interface Story {
   requiredArtifacts?: string[];
   image?: string;
   challenges?: Challenge[];
+  goalRoomId?: string;
 }
 
 export interface GameItem {
@@ -46,6 +47,7 @@ export interface PlayerState {
     storyProgress: number;
   };
   status?: 'playing' | 'winner' | 'killed';
+  confirmationRequired?: boolean;
 }
 
 export interface GameResponse {
