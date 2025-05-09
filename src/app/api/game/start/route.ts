@@ -193,6 +193,7 @@ export async function POST(request: NextRequest) {
     if (process.env.NODE_ENV !== 'production') {
     console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
     }
+
     return NextResponse.json({
       success: true,
       storyId: storyId,

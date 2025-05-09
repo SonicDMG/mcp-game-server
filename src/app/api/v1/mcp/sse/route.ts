@@ -86,11 +86,10 @@ function cleanupClientsAndExit() {
   console.log('[MCP][SSE] Cleaning up all SSE clients...');
   clients.forEach((writer, sessionId) => {
     try {
-      writer.close();
+      removeClient(String(sessionId), 'SIGINT/SIGTERM cleanup');
     } catch (_e) {
       // Ignore errors on close
     }
-    clients.delete(sessionId);
   });
   process.exit(0);
 }
@@ -110,14 +109,16 @@ function getApiBaseUrl(req: NextRequest): string {
 }
 
 // Helper to safely remove a client and close its writer
-function removeClient(sessionId: string) {
+function removeClient(sessionId: string, reason = 'unspecified') {
   const writer = clients.get(sessionId);
   if (writer) {
     try {
+      console.log(`[MCP][SSE][removeClient] Closing writer for session ${sessionId}. Reason: ${reason}`);
       writer.close();
-    } catch (_e) {
-      // Ignore errors on close
+    } catch (e) {
+      console.error(`[MCP][SSE][removeClient] Error closing writer for session ${sessionId}:`, e);
     }
+    console.log(`[MCP][SSE][removeClient] Deleting client for session ${sessionId}. Reason: ${reason}`);
     clients.delete(sessionId);
   }
 }
@@ -140,7 +141,7 @@ export async function GET(req: NextRequest) {
   // Set a TTL for the client (1 hour)
   setTimeout(() => {
     if (clients.has(String(sessionId))) {
-      clients.delete(String(sessionId));
+      removeClient(String(sessionId), 'TTL expired');
       console.log(`[MCP][SSE][cleanup] Session ${sessionId} expired after 1 hour`);
     }
   }, 60 * 60 * 1000); // 1 hour in ms
@@ -151,7 +152,7 @@ export async function GET(req: NextRequest) {
     writer.write(encoder(`event: endpoint\ndata: ${postUrl}\n\n`));
   } catch (err) {
     console.error(`[MCP][SSE][error] Failed to write endpoint event for client ${sessionId}:`, err);
-    clients.delete(String(sessionId));
+    removeClient(String(sessionId), 'Failed to write endpoint event');
   }
 
   // ─── INSERT THESE TWO BLOCKS ─────────────────────────────────────────
@@ -192,7 +193,7 @@ export async function GET(req: NextRequest) {
     } catch (err) {
       console.error(`[MCP][SSE][error] Heartbeat write failed for client ${sessionId}:`, err);
       clearInterval(heartbeat);
-      clients.delete(String(sessionId));
+      removeClient(String(sessionId), 'Heartbeat write failed');
     }
   }, 15000);
 
@@ -241,7 +242,7 @@ export async function POST(req: NextRequest) {
         } else {
           console.error(`[MCP][SSE][error] Write failed for client ${sessionId}:`, err);
         }
-        removeClient(String(sessionId));
+        removeClient(String(sessionId), 'Reply write failed or ResponseAborted');
       }
     }
     // For stateless (no SSE), reply does nothing; handled below
@@ -352,9 +353,10 @@ export async function POST(req: NextRequest) {
       }
       const apiRes = await fetch(`${getApiBaseUrl(req)}${route}`, fetchOptions);
       const contentType = apiRes.headers.get('content-type');
-      if (!apiRes.ok || !contentType || !contentType.includes('application/json')) {
+      if (!contentType || !contentType.includes('application/json')) {
         const text = await apiRes.text();
         console.error('[MCP][SSE][POST][BRANCH] tools/call proxy error response:', text);
+        // Only treat as error if not JSON
         const errorMsg = {
           jsonrpc: '2.0',
           id,
@@ -367,7 +369,25 @@ export async function POST(req: NextRequest) {
           return NextResponse.json(errorMsg, { status: 200 });
         }
       }
-      const result = await apiRes.json();
+      let result;
+      try {
+        result = await apiRes.json();
+        // Always return as result, even if success: false
+      } catch (err) {
+        console.error('[MCP][DEBUG] Error parsing JSON response:', err);
+        const text = await apiRes.text();
+        const errorMsg = {
+          jsonrpc: '2.0',
+          id,
+          error: { code: -32000, message: 'Failed to parse JSON response', detail: text }
+        };
+        if (isSSE && writer) {
+          reply(errorMsg);
+          return new Response(null, { status: 204 });
+        } else {
+          return NextResponse.json(errorMsg, { status: 200 });
+        }
+      }
       // --- Wrap all results in { content: [...] } for Cursor/agent compatibility ---
       // For agent tools, wrap as { type: 'text', text: ... } unless already a valid content type
       function wrapAsTextContent(obj: unknown): { type: string; text?: string; image?: string; alt?: string; display?: string } {
