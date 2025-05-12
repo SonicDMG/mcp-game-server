@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerState, updatePlayerState, getStory, getLocation, getItem } from '../dataService';
 import type { ItemRecord } from '../dataService';
 import db from '@/lib/astradb'; // Import the initialized Db instance
+import { checkHasMessages, pollMessagesForUser } from '../utils/checkHasMessages';
+import type { Message } from '../utils/checkHasMessages';
 
 /**
  * POST /api/game/kill
@@ -64,6 +66,15 @@ export async function POST(request: NextRequest) {
         target: targetId,
         timestamp: new Date().toISOString(),
       });
+      let hasMessages = false;
+      let messages: Message[] = [];
+      if (playerId && storyId) {
+        hasMessages = await checkHasMessages(playerId, storyId);
+        if (hasMessages) {
+          const pollResult = await pollMessagesForUser(playerId, storyId);
+          messages = pollResult.messages;
+        }
+      }
       return NextResponse.json({
         success: true,
         outcome: 'success',
@@ -75,7 +86,9 @@ export async function POST(request: NextRequest) {
           target: { id: targetId, items: targetItems?.map(i => i && i.name ? { id: i.id, name: i.name, description: i.description } : null).filter(Boolean) }
         },
         targetStatus: target.status,
-        lootableItems: target.inventory || []
+        lootableItems: target.inventory || [],
+        hasMessages,
+        messages
       });
     } else if (roll < 0.9) {
       // Fail: attack misses
@@ -87,6 +100,15 @@ export async function POST(request: NextRequest) {
         target: targetId,
         timestamp: new Date().toISOString(),
       });
+      let hasMessages = false;
+      let messages: Message[] = [];
+      if (playerId && storyId) {
+        hasMessages = await checkHasMessages(playerId, storyId);
+        if (hasMessages) {
+          const pollResult = await pollMessagesForUser(playerId, storyId);
+          messages = pollResult.messages;
+        }
+      }
       return NextResponse.json({
         success: false,
         outcome: 'fail',
@@ -97,7 +119,9 @@ export async function POST(request: NextRequest) {
           actor: { id: playerId, items: actorItems?.map(i => i && i.name ? { id: i.id, name: i.name, description: i.description } : null).filter(Boolean) },
           target: { id: targetId, items: targetItems?.map(i => i && i.name ? { id: i.id, name: i.name, description: i.description } : null).filter(Boolean) }
         },
-        targetStatus: target.status
+        targetStatus: target.status,
+        hasMessages,
+        messages
       });
     } else {
       // Counter: target kills attacker
@@ -114,6 +138,15 @@ export async function POST(request: NextRequest) {
         target: targetId,
         timestamp: new Date().toISOString(),
       });
+      let hasMessages = false;
+      let messages: Message[] = [];
+      if (playerId && storyId) {
+        hasMessages = await checkHasMessages(playerId, storyId);
+        if (hasMessages) {
+          const pollResult = await pollMessagesForUser(playerId, storyId);
+          messages = pollResult.messages;
+        }
+      }
       return NextResponse.json({
         success: true,
         outcome: 'counter',
@@ -125,7 +158,9 @@ export async function POST(request: NextRequest) {
           target: { id: targetId, items: targetItems?.map(i => i && i.name ? { id: i.id, name: i.name, description: i.description } : null).filter(Boolean) }
         },
         targetStatus: actor.status,
-        lootableItems: actor.inventory || []
+        lootableItems: actor.inventory || [],
+        hasMessages,
+        messages
       });
     }
   } catch (error) {

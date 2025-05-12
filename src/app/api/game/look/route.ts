@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import DB instance
 import { PlayerState, Location as GameLocation, GameItem, getAbsoluteProxiedImageUrl } from '../types'; // Correct path: ../types
+import { checkHasMessages, pollMessagesForUser } from '../utils/checkHasMessages';
+import type { Message } from '../utils/checkHasMessages';
 
 // Define interfaces for DB records
 interface PlayerRecord extends PlayerState { _id: string; }
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
     });
 
     console.log(`>>> Look successful for userId: ${userId} in location: ${location.id} <<<`);
-    return NextResponse.json({
+    const result = {
       success: true,
       storyId: storyId,
       userId: userId,
@@ -144,7 +146,19 @@ export async function POST(request: NextRequest) {
       players, // List of other players in the same room
       message: location.description,
       hint: 'You can examine specific things you see for more details'
-    });
+    };
+
+    let hasMessages = false;
+    let messages: Message[] = [];
+    if (userId && storyId) {
+      hasMessages = await checkHasMessages(userId, storyId);
+      if (hasMessages) {
+        const pollResult = await pollMessagesForUser(userId, storyId);
+        messages = pollResult.messages;
+      }
+    }
+
+    return NextResponse.json({ ...result, hasMessages, messages }, { status: 200 });
 
   } catch (error) {
     console.error('Error in look handler (Database):', error);

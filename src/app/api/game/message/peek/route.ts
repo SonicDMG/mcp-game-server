@@ -8,21 +8,20 @@ async function getStoryIdForUser(userId: string, storyId: string): Promise<strin
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { userId, storyId, message, id } = body;
+  const { userId, storyId, id } = body;
   const storyDOId = await getStoryIdForUser(userId, storyId);
 
-  // Forward message to DO
-  await fetch(`https://mcplayerone-do-backend.david-gilardi.workers.dev/story/${storyDOId}`, {
+  // Forward peek to DO
+  const peekRes = await fetch(`https://mcplayerone-do-backend.david-gilardi.workers.dev/story/${storyDOId}/peek`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, message }),
+    body: JSON.stringify({ userId }),
   });
-
-  // TODO: Optionally persist to DB here
+  const peekData = await peekRes.json();
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id,
-    result: { success: true }
+    ...peekData
   }, { status: 200, headers: { 'Access-Control-Allow-Origin': '*' } });
 } 

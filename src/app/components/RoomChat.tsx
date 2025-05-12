@@ -6,7 +6,7 @@ export function RoomChat({ roomId }: { roomId: string }) {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket(`wss://mcplayerone-do-backend.david-gilardi.workers.dev/room/${roomId}`);
+    const ws = new WebSocket(`wss://mcplayerone-do-backend.david-gilardi.workers.dev/story/${roomId}`);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {

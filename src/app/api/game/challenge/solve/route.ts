@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb';
 import type { Challenge, GameItem } from '../../types';
+import { checkHasMessages, pollMessagesForUser } from '../../utils/checkHasMessages';
+import type { Message } from '../../utils/checkHasMessages';
 
 /**
  * POST /api/game/challenge/solve
@@ -168,6 +170,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let hasMessages = false;
+    let messages: Message[] = [];
+    if (userId && storyId) {
+      hasMessages = await checkHasMessages(userId, storyId);
+      if (hasMessages) {
+        const pollResult = await pollMessagesForUser(userId, storyId);
+        messages = pollResult.messages;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Challenge solved! You have been awarded the artifact.',
@@ -175,6 +187,8 @@ export async function POST(request: NextRequest) {
       challengeId,
       solved: true,
       challenge: challenge,
+      hasMessages,
+      messages
     });
   } catch (error) {
     console.error('Error in /api/game/challenge/solve:', error);

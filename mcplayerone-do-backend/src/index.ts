@@ -1,4 +1,4 @@
-import { RoomDO } from './do/room';
+import { StoryDO } from './do/story';
 
 /**
  * Welcome to Cloudflare Workers! This is your first Durable Objects application.
@@ -14,10 +14,10 @@ import { RoomDO } from './do/room';
  */
 
 interface Env {
-	RoomDO: DurableObjectNamespace;
+	StoryDO: DurableObjectNamespace;
 }
 
-export { RoomDO };
+export { StoryDO };
 
 export default {
 	/**
@@ -29,10 +29,10 @@ export default {
 	 */
 	async fetch(request: Request, env: Env) {
 		const url = new URL(request.url);
-		if (url.pathname.startsWith('/room/')) {
-			const roomId = url.pathname.split('/')[2];
-			const id = env.RoomDO.idFromName(roomId);
-			const obj = env.RoomDO.get(id);
+		if (url.pathname.startsWith('/story/')) {
+			const storyId = url.pathname.split('/')[2];
+			const id = env.StoryDO.idFromName(storyId);
+			const obj = env.StoryDO.get(id);
 			return obj.fetch(request);
 		}
 		return new Response('Not found', { status: 404 });

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import DB instance
 import { PlayerState, Location as GameLocation, GameItem, getAbsoluteProxiedImageUrl } from '../types'; // Import types
 import type { Challenge } from '../types';
+import { checkHasMessages, pollMessagesForUser } from '../utils/checkHasMessages';
+import type { Message } from '../utils/checkHasMessages';
 
 // Define interfaces for DB records
 interface PlayerRecord extends PlayerState { _id: string; }
@@ -91,13 +93,23 @@ export async function POST(request: NextRequest) {
       );
     }
     if (triggeredChallenges.length > 0) {
-      // Always include hints in triggeredChallenges for agent use
+      let hasMessages = false;
+      let messages: Message[] = [];
+      if (userId && storyId) {
+        hasMessages = await checkHasMessages(userId, storyId);
+        if (hasMessages) {
+          const pollResult = await pollMessagesForUser(userId, storyId);
+          messages = pollResult.messages;
+        }
+      }
       return NextResponse.json({
         success: true,
         storyId: storyId,
         userId: userId,
         triggeredChallenges: triggeredChallenges.map(c => ({ ...c })), // ensure hints included
-        message: `You have triggered a challenge: ${triggeredChallenges.map(c => c.name).join(', ')}`
+        message: `You have triggered a challenge: ${triggeredChallenges.map(c => c.name).join(', ')}`,
+        hasMessages,
+        messages
         // Agents: Present hints one-by-one as users attempt to solve
       });
     }
@@ -127,13 +139,24 @@ export async function POST(request: NextRequest) {
         ].filter(Boolean);
         const image = contentArr[0]?.type === 'image' ? contentArr[0].image : null;
         const alt = contentArr[0]?.type === 'image' ? contentArr[0].alt : null;
+        let hasMessages = false;
+        let messages: Message[] = [];
+        if (userId && storyId) {
+          hasMessages = await checkHasMessages(userId, storyId);
+          if (hasMessages) {
+            const pollResult = await pollMessagesForUser(userId, storyId);
+            messages = pollResult.messages;
+          }
+        }
         return NextResponse.json({
           success: true,
           storyId: storyId,
           userId: userId,
           items: [{ image, alt, content: contentArr }],
           message: itemData.description,
-          hint: itemData.canTake && isItemInLocation ? 'This item can be picked up' : undefined
+          hint: itemData.canTake && isItemInLocation ? 'This item can be picked up' : undefined,
+          hasMessages,
+          messages
         });
       } else {
         // Should not happen if item ID was in inventory/location list
@@ -170,6 +193,15 @@ export async function POST(request: NextRequest) {
         ].filter(Boolean);
         const image = contentArr[0]?.type === 'image' ? contentArr[0].image : null;
         const alt = contentArr[0]?.type === 'image' ? contentArr[0].alt : null;
+        let hasMessages = false;
+        let messages: Message[] = [];
+        if (userId && storyId) {
+          hasMessages = await checkHasMessages(userId, storyId);
+          if (hasMessages) {
+            const pollResult = await pollMessagesForUser(userId, storyId);
+            messages = pollResult.messages;
+          }
+        }
         return NextResponse.json({
           success: true,
           storyId: storyId,
@@ -178,7 +210,9 @@ export async function POST(request: NextRequest) {
           message: `Looking towards ${locationData.name}: ${locationData.description}`,
           hint: locationData.requirements?.item 
                   ? 'This area might require specific items to enter' 
-                  : locationData.items?.length > 0 ? 'You might find items there.' : undefined
+                  : locationData.items?.length > 0 ? 'You might find items there.' : undefined,
+          hasMessages,
+          messages
         });
       } else {
         // Should not happen if exit ID was in location exits list

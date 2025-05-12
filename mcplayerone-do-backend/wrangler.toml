@@ -1,0 +1,15 @@
+name = "mcplayerone-do-backend"
+main = "src/index.ts"
+compatibility_date = "2025-05-10"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = [ "StoryDO" ]
+
+[durable_objects]
+bindings = [
+  { name = "StoryDO", class_name = "StoryDO" }
+]
+
+[observability]
+enabled = true 

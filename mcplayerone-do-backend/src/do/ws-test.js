@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const ws = new WebSocket('wss://mcplayerone-do-backend.david-gilardi.workers.dev/room/testroom');
+const ws = new WebSocket('wss://mcplayerone-do-backend.david-gilardi.workers.dev/story/testroom');
 
 ws.on('open', () => {
   console.log('WebSocket connection opened');
