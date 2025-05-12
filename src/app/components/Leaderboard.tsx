@@ -12,6 +12,7 @@ import ZoomedItemModal from './ZoomedItemModal';
 import styles from './Leaderboard.module.css';
 import Confetti from 'react-confetti';
 import LeaderboardControlBar from './LeaderboardControlBar';
+import { RoomChat } from './RoomChat';
 
 export interface LeaderboardUser {
   id: string;
@@ -54,7 +55,7 @@ function cleanTitle(title: string): string {
   return title.trim();
 }
 
-export default function Leaderboard({ story, users }: LeaderboardProps) {
+export default function Leaderboard({ story, users, roomId }: LeaderboardProps & { roomId: string }) {
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);
@@ -155,6 +156,7 @@ export default function Leaderboard({ story, users }: LeaderboardProps) {
             </div>
             <div className={styles.itemCollage}>
               <ItemCollage items={items} collectedItemIds={collectedItemIds} requiredArtifacts={story.requiredArtifacts || []} setZoomedItem={setZoomedItem} />
+              <RoomChat roomId={roomId} />
             </div>
           </div>
           {/* Right: Info and Map */}

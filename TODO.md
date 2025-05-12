@@ -34,8 +34,8 @@
 - [ ] Add random "sidequests" or events (e.g., tidalwave, creature attack) that can occur during gameplay.
 - [ ] Possibly allow players to talk with each other (chat or message system).
 - [ ] Fix the progress bar for number of items larger than 5 (UI bug).
-- [ ] Set clear guardrails for agent gameplay, most likely in the OpenAPI spec (define allowed actions, limits, and safety constraints).
-- [ ] Thematic NPCs, Challenges, and Artifact Acquisition
+- [x] Set clear guardrails for agent gameplay, most likely in the OpenAPI spec (define allowed actions, limits, and safety constraints).
+- [x] Thematic NPCs, Challenges, and Artifact Acquisition
   - When generating a new story, also generate theme-appropriate NPCs, creatures/obstacles, and hidden areas.
   - Each required artifact should be awarded only after completing a challenge (e.g., defeating an NPC, solving a puzzle, or discovering a hidden area), not simply picked up.
   - Ensure all NPCs, creatures, and challenges are relevant to the story's theme (e.g., no random monsters in a Barbie Beach story).
@@ -75,13 +75,13 @@ See assistant notes for more details and options.
     - Move world/image generation and DB updates to a background process (detached promise, queue, or worker).
     - Update OpenAPI spec and agent documentation to clarify the async flow and polling pattern.
 
-- [ ] Fix item layout in zoomed-in room card
+- [x] Fix item layout in zoomed-in room card
 
-- [ ] If a user kills another player and gains all required items while looting them while in the correct room, they should trigger a win state
+- [x] If a user kills another player and gains all required items while looting them while in the correct room, they should trigger a win state
 
 - [ ] Implement polling for player list changes to show toasts for new players joining a story
 
-- [ ] Replace <img> tags with <Image /> from next/image in StoryGrid.tsx and ZoomedItemModal.tsx for better performance and to resolve Next.js warnings.
+- [x] Replace <img> tags with <Image /> from next/image in StoryGrid.tsx and ZoomedItemModal.tsx for better performance and to resolve Next.js warnings.
 
 ## 10. Testing Improvements
-- [ ] Add integration tests that use a real or test database to verify end-to-end behavior of API handlers and business logic, ensuring correct interaction with the database and external systems. 
+- [x] Add integration tests that use a real or test database to verify end-to-end behavior of API handlers and business logic, ensuring correct interaction with the database and external systems. 

@@ -2,7 +2,7 @@
   width: 100vw;
   min-height: 100vh;
   padding-top: var(--header-height);
-  padding-bottom: var(--footer-height);
+  padding-bottom: 96px;
   box-sizing: border-box;
   /* Retain background and other styles as needed */
 } 

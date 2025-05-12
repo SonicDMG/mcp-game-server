@@ -154,7 +154,7 @@ export function LeaderboardHUD({ setLeaderboardData }: LeaderboardHUDProps) {
 
   return (
     <div className="leaderboard-hud-root">
-      <Leaderboard story={story} users={users} />
+      <Leaderboard story={story} users={users} roomId={storyId} />
     </div>
   );
 }

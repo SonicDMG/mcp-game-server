@@ -603,6 +603,48 @@
             "500": { "$ref": "#/components/responses/InternalError" }
           }
         }
+      },
+      "/api/game/message": {
+        "post": {
+          "summary": "Send Live Player Message",
+          "description": "Sends a live, in-room message from a player to all other players in the same room via Durable Objects. No chat history is stored.",
+          "operationId": "sendPlayerMessage",
+          "tags": ["Game Actions"],
+          "requestBody": {
+            "description": "User, story, and message content.",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": { "type": "string", "description": "Player's unique ID." },
+                    "storyId": { "type": "string", "description": "Story/game ID." },
+                    "message": { "type": "string", "description": "Message text to send." }
+                  },
+                  "required": ["userId", "storyId", "message"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Message sent successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "$ref": "#/components/responses/BadRequest" },
+            "500": { "$ref": "#/components/responses/InternalError" }
+          }
+        }
       }
     },
     "components": {
