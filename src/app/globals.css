@@ -711,8 +711,8 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
 .landing-hero {
   width: 100%;
   max-width: 900px;
-  margin: 0 auto 24px auto;
-  padding: 16px 24px 24px 24px;
+  margin: 0 auto 8px auto;
+  padding: 4px 24px 12px 24px;
   text-align: center;
   display: flex;
   flex-direction: column;

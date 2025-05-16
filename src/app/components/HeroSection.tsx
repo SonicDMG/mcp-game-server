@@ -1,5 +1,10 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-json';
+import 'prismjs/plugins/line-numbers/prism-line-numbers';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
 import styles from "./HeroSection.module.css";
 import headerStyles from "./AppHeader.module.css";
@@ -11,6 +16,15 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
   const [showCursor, setShowCursor] = useState(false);
   const [copiedClaude, setCopiedClaude] = useState(false);
   const [copiedCursor, setCopiedCursor] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    // Highlight code blocks after component mounts and when modals open
+    if (showClaude || showCursor) {
+      Prism.highlightAll();
+    }
+  }, [showClaude, showCursor]);
 
   const getHost = () => (typeof window !== "undefined" ? window.location.origin : "");
   const { CLAUDE_CONFIG, CURSOR_CONFIG } = useMemo(() => {
@@ -74,7 +88,11 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
           <div className={styles["hero-modal"]} onClick={e => e.stopPropagation()}>
             <button aria-label="Close" onClick={() => setShowClaude(false)} className={styles["hero-modal-close"]}>✕</button>
             <h2 className={styles["hero-modal-title"]}>Claude MCP Config</h2>
-            <pre className={styles["hero-modal-pre"]}>{CLAUDE_CONFIG}</pre>
+            <pre className={`${styles["hero-modal-pre"]} line-numbers`}>
+              <code className="language-json">
+                {CLAUDE_CONFIG}
+              </code>
+            </pre>
             <button
               aria-label="Copy config"
               onClick={() => {
@@ -96,7 +114,11 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
           <div className={styles["hero-modal"]} onClick={e => e.stopPropagation()}>
             <button aria-label="Close" onClick={() => setShowCursor(false)} className={styles["hero-modal-close"]}>✕</button>
             <h2 className={styles["hero-modal-title"]}>Cursor MCP Config</h2>
-            <pre className={styles["hero-modal-pre"]}>{CURSOR_CONFIG}</pre>
+            <pre className={`${styles["hero-modal-pre"]} line-numbers`}>
+              <code className="language-json">
+                {CURSOR_CONFIG}
+              </code>
+            </pre>
             <button
               aria-label="Copy config"
               onClick={() => {

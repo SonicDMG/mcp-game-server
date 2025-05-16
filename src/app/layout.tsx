@@ -1,5 +1,6 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Fira_Code } from 'next/font/google';
 import { useEffect } from "react";
 import "./globals.css";
 
@@ -11,6 +12,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const firaCode = Fira_Code({
+  variable: '--font-fira-code',
+  subsets: ['latin'],
+  display: 'swap',
 });
 
 export default function RootLayout({
@@ -26,7 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} antialiased`}
       >
         {children}
       </body>

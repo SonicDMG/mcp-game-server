@@ -110,9 +110,9 @@ export default async function LandingPage() {
   return (
     <div className="relative min-h-screen">
       <AppHeader breadcrumbs={[{ label: 'Home', href: '/' }]} />
-      <div className="pt-4">
+      <div>
         <main className={`hud-frame ${mainContentStyles.mainContent} landing-gradient-bg`}>
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <HeroSection />
             <EventFeed storyId="all" />
             <div id="stories">
