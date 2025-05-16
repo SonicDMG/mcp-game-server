@@ -1,5 +1,6 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
+import { useEffect } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,9 +18,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Remove cz-shortcut-listen attribute after hydration
+  useEffect(() => {
+    document.body.removeAttribute('cz-shortcut-listen');
+  }, []);
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}

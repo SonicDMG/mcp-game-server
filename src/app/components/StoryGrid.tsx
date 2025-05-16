@@ -346,27 +346,14 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                   }}
                 />
               )}
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{cleanTitle(story.title)}</div>
+              <div className={styles.storyTitle} title={cleanTitle(story.title)}>
+  {cleanTitle(story.title)}
+</div>
               <div
-                style={{
-                  fontSize: '1rem',
-                  color: '#a78bfa',
-                  marginBottom: 16,
-                  flexGrow: 1,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxHeight: '2.6em', // ~2 lines
-                  width: '100%',
-                  minHeight: 48,
-                }}
+                className={styles.storyDescription}
                 title={story.description}
               >
-                {story.description.length > 100
-                  ? story.description.slice(0, 100) + '…'
-                  : story.description}
+                {story.description}
               </div>
               <div style={{
                 fontSize: '0.9rem', 

@@ -113,8 +113,14 @@ export default async function LandingPage() {
         eventFeed={<EventFeed storyId="all" />}
       />
       <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
-        <div className="hud-header">
-          {/* Removed [Choose a Story] text */}
+        {/* Modern Hero Section */}
+        <section className="landing-hero">
+          <h1 className="landing-title">Discover New Adventures</h1>
+          <p className="landing-subtitle">Jump into a world of interactive stories, mysteries, and challenges. Play, compete, and become a legend!</p>
+          <a href="#stories" className="landing-cta">Get Started</a>
+        </section>
+        <div className="hud-header" id="stories">
+          {/* StoryGrid header can go here if needed */}
         </div>
         {fetchError && (
           <div style={{ color: 'red', textAlign: 'center', gridColumn: '1 / -1' }}>{fetchError}</div>

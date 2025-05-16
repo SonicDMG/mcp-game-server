@@ -1,9 +1,194 @@
 .contentContainer {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 32px;
-} 
+  padding: 0 24px 64px;
+  box-sizing: border-box;
+}
+
+/* Story Card Styles */
+.storyCard {
+  background: rgba(30, 41, 59, 0.92);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 12px 0 #23244a33;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+.storyCard:hover {
+  box-shadow: 0 8px 32px -4px #3b82f655, 0 1.5px 8px #23244a33;
+  transform: translateY(-4px) scale(1.025);
+  border-color: #3b82f6;
+}
+
+/* Card Image */
+.storyImage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  overflow: hidden;
+}
+.storyImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 0 0 0;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+}
+.storyCard:hover .storyImage img {
+  transform: scale(1.05);
+}
+
+/* Winner Badge */
+.winnerBadge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.89rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 8px #3b82f633;
+  border: 1.5px solid #fff2;
+}
+.winnerBadge::before {
+  content: '🏆';
+  font-size: 1em;
+  margin-right: 4px;
+}
+
+/* Card Content */
+.storyContent {
+  padding: 24px 20px 20px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.storyTitle {
+  font-size: 1.28rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  color: #f8fafc;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  display: block;
+}
+
+.storyDescription {
+  font-size: 1.02rem;
+  color: #cbd5e1;
+  margin: 0 0 18px 0;
+  line-height: 1.5;
+  flex: 1;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.5em;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+
+/* Stats */
+.storyStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-top: 12px;
+}
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.statValue {
+  font-size: 1.13rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.statLabel {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Play Button */
+.playButton {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.03rem;
+  margin-top: 14px;
+}
+.playButton:hover,
+.playButton:focus {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 4px 12px -2px #3b82f644;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 700px) {
+  .contentContainer {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 0 6px 24px;
+  }
+  .storyCard {
+    border-radius: 12px;
+    padding: 0;
+  }
+  .storyContent {
+    padding: 18px 10px 14px 10px;
+  }
+  .storyTitle {
+    font-size: 1.05rem;
+  }
+  .storyDescription {
+    font-size: 0.95rem;
+  }
+  .playButton {
+    font-size: 0.97rem;
+    padding: 10px 10px;
+  }
+}
