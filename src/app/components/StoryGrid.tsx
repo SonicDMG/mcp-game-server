@@ -253,7 +253,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
   return (
     <div className={styles.contentContainer}>
       {stories.length === 0 && (
-        <div style={{ color: '#aaa', textAlign: 'center', width: '100%' }}>No stories available yet.</div>
+        <div className={styles.noStoriesMsg}>No stories available yet.</div>
       )}
       {stories.map((story, index) => {
         const isSkeleton = !story.image;
@@ -261,15 +261,14 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
           return (
             <div
               key={story.id}
-              className="story-card-skeleton"
-              style={{ display: 'flex', justifyContent: 'center', flex: '0 1 320px', minWidth: 320, maxWidth: 320 }}
+              className={`${styles.storyCardSkeletonWrapper} story-card-skeleton`}
               data-testid="story-skeleton"
             >
               <div className="story-card-skeleton-image" />
-              <div className="story-card-skeleton-line" style={{ width: '60%' }} />
-              <div className="story-card-skeleton-line" style={{ width: '80%' }} />
-              <div className="story-card-skeleton-line" style={{ width: '40%' }} />
-              <div style={{ marginTop: 24, color: '#a7a7ff', fontSize: 16 }}>Loading…</div>
+              <div className="story-card-skeleton-line" />
+              <div className="story-card-skeleton-line" />
+              <div className="story-card-skeleton-line" />
+              <div className={styles.loadingMsg}>Loading…</div>
             </div>
           );
         }
@@ -277,36 +276,13 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
           <Link
             key={story.id}
             href={`/story/${story.id}`}
-            style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', flex: '0 1 320px', minWidth: 320, maxWidth: 320 }}
+            className={styles.storyCardWrapper}
           >
-            <div
-              className={newStoryIds.has(story.id) ? 'story-card-pop-in' : ''}
-              style={{
-                background: '#23244aee',
-                borderRadius: 16,
-                border: '2.5px solid #3b82f6',
-                boxShadow: '0 4px 24px 0 #3b82f633',
-                padding: 24,
-                width: 320,
-                color: '#f5f6fa',
-                textAlign: 'center',
-                fontWeight: 600,
-                fontSize: '1.1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                transition: 'box-shadow 0.2s, border 0.2s',
-                cursor: 'pointer',
-                height: 420,
-                minWidth: 320,
-                maxWidth: 320,
-                boxSizing: 'border-box',
-                position: 'relative',
-              }}
-            >
+            <div className={styles.storyCardContent + (newStoryIds.has(story.id) ? ' story-card-pop-in' : '')}>
+
               {/* Winner Ribbon */}
               {storyWinners[story.id] && (
-                <div style={ribbonStyle} title="This story has a winner!">
+                <div className={styles.winnerRibbon} title="This story has a winner!">
                   🏆 Winner!
                 </div>
               )}

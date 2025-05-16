@@ -129,7 +129,7 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
           recycle={false}
         />
       )}
-      <div className="main-content" style={{ fontFamily: 'monospace', background: 'none', color: '#fff' }}>
+      <div className={styles.mainContent}>
         <div className={styles.mainLayout}>
           {/* Left: Story Image, StatsPanel, and ItemCollage */}
           <div className={styles.leftColumn}>
@@ -139,7 +139,6 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
               width={320}
               height={220}
               className={styles.storyImage}
-              style={{ width: 320, height: 'auto' }}
               onClick={() => setZoomedImage(story.image || ROOM_IMAGE_PLACEHOLDER)}
               unoptimized
             />
@@ -165,7 +164,7 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
               <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
               <div className={styles.storyDescription}>{story.description}</div>
               {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
-                <div style={{ color: '#a7a7ff', fontSize: '1.08rem', marginBottom: 22 }}>
+                <div className={styles.goalText}>
                   <b>Goal:</b> Collect all artifacts and reach the final room.
                 </div>
               )}
@@ -181,7 +180,7 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
                 status={saveStatus}
               />
             </div>
-            <div style={{ flex: 1, height: '100%', width: '100%' }}>
+            <div className={styles.roomGridWrapper}>
               <RoomGrid
                 ref={roomGridRef}
                 rooms={story.rooms}

@@ -1,5 +1,23 @@
 /* Leaderboard.module.css - Layout and visual styles for AsciiLeaderboard */
 
+.mainContent {
+  font-family: var(--font-mono, monospace);
+  background: none;
+  color: var(--foreground, #fff);
+}
+
+.goalText {
+  color: #a7a7ff;
+  font-size: 1.08rem;
+  margin-bottom: 22px;
+}
+
+.roomGridWrapper {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+}
+
 .headerRow {
   display: flex;
   flex-direction: row;
