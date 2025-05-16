@@ -75,22 +75,7 @@ const skeletonStyle = `
 }
 `;
 
-// Winner ribbon CSS
-const ribbonStyle = {
-  position: 'absolute' as const,
-  top: 12,
-  right: -32,
-  background: 'linear-gradient(90deg, #fbbf24 60%, #f59e42 100%)',
-  color: '#23244a',
-  fontWeight: 900,
-  fontSize: 16,
-  padding: '6px 32px',
-  borderRadius: '16px 0 0 16px',
-  boxShadow: '0 2px 8px #0003',
-  zIndex: 2,
-  letterSpacing: 1,
-  transform: 'rotate(18deg)',
-};
+
 
 // Bump animation CSS
 const bumpAnimStyle = `

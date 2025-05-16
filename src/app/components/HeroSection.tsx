@@ -1,12 +1,10 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import EventFeed from "./EventFeed";
+
 import styles from "./HeroSection.module.css";
 import headerStyles from "./AppHeader.module.css";
 
-interface HeroSectionProps {
-  // You can add props here if you want to pass data, e.g. stats, from the server
-}
+type HeroSectionProps = object;
 
 const HeroSection: React.FC<HeroSectionProps> = () => {
   const [showClaude, setShowClaude] = useState(false);

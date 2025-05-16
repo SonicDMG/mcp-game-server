@@ -1,9 +1,6 @@
 'use client';
 import React from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { WinnerSection, KilledSection } from './WinnerBanner';
-import { LeaderboardUser } from './Leaderboard';
+
 import styles from './AppHeader.module.css';
 
 
@@ -16,7 +13,7 @@ interface AppHeaderProps {
   breadcrumbs: Breadcrumb[];
 }
 
-const getHost = () => (typeof window !== 'undefined' ? window.location.origin : '');
+
 
 
 

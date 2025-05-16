@@ -6,6 +6,7 @@ import StoryGrid from './components/StoryGrid';
 import EventFeed from './components/EventFeed';
 import mainContentStyles from './components/MainContent.module.css';
 import HeroSection from './components/HeroSection';
+import Link from 'next/link';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -114,9 +115,9 @@ export default async function LandingPage() {
           <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ fontWeight: 500 }}>
             powered by <b>Langflow</b>
           </a>
-          <a href="/" className="breadcrumb-link" style={{ fontWeight: 500 }}>
+          <Link href="/" className="breadcrumb-link" style={{ fontWeight: 500 }}>
             Home
-          </a>
+          </Link>
         </div>
         {/* Modern Hero Section */}
         <HeroSection />
