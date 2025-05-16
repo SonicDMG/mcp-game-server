@@ -711,8 +711,8 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
 .landing-hero {
   width: 100%;
   max-width: 900px;
-  margin: 0 auto 48px auto;
-  padding: 40px 24px 48px 24px;
+  margin: 0 auto 24px auto;
+  padding: 16px 24px 24px 24px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -723,39 +723,30 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
 }
 
 .hero-logo-container {
-  margin: 16px 0 24px 0;
+  margin: 8px 0 16px 0;
   display: flex;
   justify-content: center;
   width: 100%;
 }
 
 .hero-logo {
-  width: 400px;
-  height: 400px;
-  max-width: 100%;
+  width: 300px;
   height: auto;
+  max-width: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 0 24px rgba(167, 139, 250, 0.6));
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-.hero-logo:hover {
-  transform: scale(1.05);
-  filter: drop-shadow(0 0 24px rgba(167, 139, 250, 0.7));
+  border-radius: 8px;
 }
 
 .landing-title {
-  font-family: 'Inter', 'Geist', 'Segoe UI', Arial, sans-serif;
-  font-size: 3.5rem;
-  font-weight: 900;
-  margin: 0 0 16px 0;
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
   color: #f8fafc;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.5px;
   line-height: 1.1;
-  text-shadow: 0 2px 12px rgba(167, 139, 250, 0.3);
 }
 
-.gradient-text {
+.landing-title .gradient-text {
   background: linear-gradient(90deg, #a78bfa 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -764,20 +755,19 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
 }
 
 .landing-subtitle {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   color: #cbd5e1;
-  margin: 0 auto 32px auto;
+  margin: 0 auto 16px auto;
   font-weight: 400;
-  line-height: 1.6;
-  max-width: 700px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  line-height: 1.5;
+  max-width: 600px;
 }
 
 .hero-buttons {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .hero-button {
@@ -795,31 +785,34 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
 
 @media (max-width: 768px) {
   .landing-hero {
-    padding: 24px 16px 40px 16px;
-    margin-bottom: 32px;
+    padding: 16px 16px 24px 16px;
+    margin-bottom: 16px;
   }
   
   .hero-logo {
     width: 100%;
-    max-width: 400px;
+    max-width: 280px;
     height: auto;
-    aspect-ratio: 1/1;
+    margin: 4px 0 12px 0;
   }
   
   .landing-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
+    margin-bottom: 2px;
   }
   
   .landing-subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 24px;
+    font-size: 1.1rem;
+    margin: 0 auto 12px auto;
+    line-height: 1.4;
   }
   
   .hero-buttons {
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
     margin: 8px auto 0;
+    gap: 8px;
   }
   
   .hero-button {

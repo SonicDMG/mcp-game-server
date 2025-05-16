@@ -2,11 +2,11 @@ export const dynamic = "force-dynamic";
 import db from '@/lib/astradb'; // Import DB instance
 import { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
+import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
 import EventFeed from './components/EventFeed';
-import mainContentStyles from './components/MainContent.module.css';
 import HeroSection from './components/HeroSection';
-import Link from 'next/link';
+import mainContentStyles from './components/MainContent.module.css';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -108,30 +108,25 @@ export default async function LandingPage() {
 
 
   return (
-    <div className="app-root">
-      <main className={`hud-frame ${mainContentStyles.mainContent} landing-gradient-bg`}>
-        {/* Header is now part of the main content flow */}
-        <div className="header-inline" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 24 }}>
-          <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ fontWeight: 500 }}>
-            powered by <b>Langflow</b>
-          </a>
-          <Link href="/" className="breadcrumb-link" style={{ fontWeight: 500 }}>
-            Home
-          </Link>
-        </div>
-        {/* Modern Hero Section */}
-        <HeroSection />
-        <EventFeed storyId="all" />
-        <div className="hud-header" id="stories">
-          {/* StoryGrid header can go here if needed */}
-        </div>
-        {fetchError && (
-          <div style={{ color: 'red', textAlign: 'center', gridColumn: '1 / -1' }}>{fetchError}</div>
-        )}
-        {!fetchError && (
-          <StoryGrid initialStories={storiesWithStats} />
-        )}
-      </main>
+    <div className="relative min-h-screen">
+      <AppHeader breadcrumbs={[{ label: 'Home', href: '/' }]} />
+      <div className="pt-4">
+        <main className={`hud-frame ${mainContentStyles.mainContent} landing-gradient-bg`}>
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <HeroSection />
+            <EventFeed storyId="all" />
+            <div id="stories">
+              {fetchError ? (
+                <div className="text-red-500 text-center col-span-full">
+                  {fetchError}
+                </div>
+              ) : (
+                <StoryGrid initialStories={storiesWithStats} />
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
       <AppFooter />
     </div>
   );
