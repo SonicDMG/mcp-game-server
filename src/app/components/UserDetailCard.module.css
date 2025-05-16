@@ -1,0 +1,182 @@
+/* UserDetailCard.module.css - Extracted from inline styles in UserDetailCard.tsx */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.card {
+  background: var(--card-bg, #1a1a1a);
+  border-radius: 22px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  min-width: 400px;
+  border: 2.5px solid var(--card-border, #3b82f6);
+  box-shadow: 0 8px 32px #a78bfa33, 0 2px 12px #3b82f644;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.avatar {
+  border-radius: 8px;
+  background: #222;
+  border: 2px solid var(--accent, #3b82f6);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.userInfo {
+  margin-left: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.userId {
+  color: var(--accent, #3b82f6);
+  margin: 0 0 4px 0;
+  font-size: 1.5rem;
+  max-width: 100%;
+  display: block;
+  word-break: break-all;
+}
+
+.dead {
+  color: #ff0000;
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.room {
+  color: #a78bfa;
+  font-size: 1.1rem;
+}
+
+.inventorySection, .progressSection, .goalSection {
+  margin-top: 20px;
+}
+
+.inventoryTitle, .progressTitle {
+  color: #06b6d4;
+  margin: 0 0 12px 0;
+}
+
+.inventoryGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 16px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-height: 56px;
+  max-width: 352px;
+}
+
+.inventoryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: none;
+  width: 80px;
+  height: 100px;
+  margin: 0;
+  padding: 8px 4px 4px 4px;
+  border-radius: 8px;
+}
+
+.inventoryItemRequired {
+  background: rgba(255, 215, 0, 0.08);
+}
+
+.itemImage {
+  border-radius: 6px;
+  background: #222;
+  margin-bottom: 6px;
+  width: 48px;
+  height: auto;
+  object-fit: cover;
+  border: 2px solid var(--accent, #3b82f6);
+  box-shadow: 0 0 8px 2px #3b82f6cc;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.itemImageRequired {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 8px 2px #ffd700cc;
+}
+
+.itemName {
+  color: #a7a7ff;
+  font-size: 12px;
+  width: 72px;
+  text-align: center;
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.15;
+  max-height: 2.3em;
+  word-break: break-word;
+}
+
+.progressBarContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progressBarBg {
+  flex: 1;
+  height: 8px;
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--accent, #3b82f6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.goal {
+  padding: 12px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  color: #10b981;
+  text-align: center;
+  font-weight: 600;
+}
+
+.emptyInventory {
+  color: #666;
+}

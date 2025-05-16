@@ -1,0 +1,77 @@
+.hero-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-modal {
+  background: transparent;
+  color: #e5e7eb;
+  /* border removed for seamless look */
+  border: none !important;
+  box-shadow: none;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  max-width: 90vw;
+  width: 400px;
+  position: relative;
+  animation: fadeIn 0.2s;
+}
+
+.hero-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #a78bfa;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.hero-modal-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #a78bfa;
+  text-align: center;
+}
+
+.hero-modal-pre {
+  background: #27272a;
+  color: #a3e635;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.hero-modal-copy {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0;
+  background: #a78bfa;
+  color: #18181b;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.hero-modal-copy:hover {
+  background: #c4b5fd;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+

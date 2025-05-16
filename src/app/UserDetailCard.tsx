@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getProxiedImageUrl, GameItem } from './api/game/types';
 import styles from './components/WinnerBanner.module.css';
+import userCardStyles from './components/UserDetailCard.module.css';
 
 interface UserDetailCardProps {
   user: {
@@ -40,91 +41,49 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
 
   return (
     <div
-      className="user-detail-overlay"
+      className={userCardStyles.overlay}
       onClick={handleBackgroundClick}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        backdropFilter: 'blur(3px)',
-      }}
     >
       <div
-        className="user-detail-card"
-        style={{
-          background: '#1a1a1a',
-          borderRadius: '12px',
-          padding: '24px',
-          width: '90%',
-          maxWidth: '400px',
-          minWidth: '400px',
-          border: '1px solid #3b82f6',
-          boxShadow: '0 0 20px rgba(59, 130, 246, 0.2)',
-        }}
+        className={userCardStyles.card}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '20px' }}>
+        <div className={userCardStyles.header}>
           <div className={user.status === 'killed' ? styles.killedAvatarWrapper : undefined}>
             <Image
               src={getProxiedImageUrl(avatarUrl(user.id))}
               alt={`${user.id}'s avatar`}
               width={80}
               height={80}
-              style={{
-                borderRadius: '8px',
-                background: '#222',
-                border: '2px solid #3b82f6',
-              }}
+              className={userCardStyles.avatar}
             />
             {user.status === 'killed' && (
-              <span className={styles.killedSkullOverlay} style={{ fontSize: '5rem', color: '#ff0000' }} role="img" aria-label="eliminated">&times;</span>
+              <span className={styles.killedSkullOverlay} style={{ fontSize: '5rem' }} role="img" aria-label="eliminated">&times;</span>
             )}
           </div>
-          <div style={{ marginLeft: '16px', flex: 1, minWidth: 0 }}>
-            <h2 style={{ color: '#3b82f6', margin: '0 0 4px 0', fontSize: '1.5rem',
-              maxWidth: '100%',
-              display: 'block',
-              wordBreak: 'break-all',
-            }}
-            title={user.id}
-            >
+          <div className={userCardStyles.userInfo}>
+            <h2 className={userCardStyles.userId} title={user.id}>
               {user.id}
             </h2>
             {user.status === 'killed' && (
-              <div style={{ color: '#ff0000', fontWeight: 900, fontSize: '1.1rem', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
-                DEAD
-              </div>
+              <div className={userCardStyles.dead}>DEAD</div>
             )}
-            <div style={{ color: '#a78bfa', fontSize: '1.1rem' }}>
+            <div className={userCardStyles.room}>
               Current Room: {user.room}
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#666',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              padding: '4px',
-            }}
+            className={userCardStyles.closeBtn}
           >
             ×
           </button>
         </div>
 
-        <div style={{ marginTop: '20px' }}>
-          <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Inventory</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '18px 16px', alignItems: 'flex-start', justifyContent: 'flex-start', minHeight: 56, maxWidth: 352 }}>
+        <div className={userCardStyles.inventorySection}>
+          <h3 className={userCardStyles.inventoryTitle}>Inventory</h3>
+          <div className={userCardStyles.inventoryGrid}>
             {user.inventory.length === 0 ? (
-              <div style={{ color: '#666' }}>No artifacts collected yet</div>
+              <div className={userCardStyles.emptyInventory}>No artifacts collected yet</div>
             ) : (
               user.inventory.map((itemId, idx) => {
                 const itemObj = items.find(i => i.id === itemId);
@@ -132,18 +91,7 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
                 return (
                   <div
                     key={itemId + '-' + idx}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      background: isRequired ? 'rgba(255, 215, 0, 0.08)' : 'none',
-                      width: 80,
-                      height: 100,
-                      margin: 0,
-                      padding: '8px 4px 4px 4px',
-                      borderRadius: 8,
-                    }}
+                    className={isRequired ? `${userCardStyles.inventoryItem} ${userCardStyles.inventoryItemRequired}` : userCardStyles.inventoryItem}
                     onClick={() => setZoomedItem && itemObj && setZoomedItem({
                       image: itemObj.image || '/images/item-placeholder.png',
                       name: itemObj.name || itemId,
@@ -155,37 +103,12 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
                       alt={itemObj?.name || itemId}
                       width={48}
                       height={48}
-                      style={{
-                        borderRadius: 6,
-                        background: '#222',
-                        marginBottom: 6,
-                        width: 48,
-                        height: 'auto',
-                        objectFit: 'cover',
-                        border: isRequired ? '2px solid #ffd700' : '2px solid #3b82f6',
-                        boxShadow: isRequired
-                          ? '0 0 8px 2px #ffd700cc'
-                          : '0 0 8px 2px #3b82f6cc',
-                        transition: 'box-shadow 0.2s, border 0.2s',
-                      }}
+                      className={isRequired ? `${userCardStyles.itemImage} ${userCardStyles.itemImageRequired}` : userCardStyles.itemImage}
                       title={itemObj?.name || itemId}
                       unoptimized
                     />
                     <span
-                      style={{
-                        color: '#a7a7ff',
-                        fontSize: 12,
-                        width: 72,
-                        textAlign: 'center',
-                        display: 'block',
-                        marginTop: 4,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'normal',
-                        lineHeight: 1.15,
-                        maxHeight: '2.3em', // ~2 lines
-                        wordBreak: 'break-word',
-                      }}
+                      className={userCardStyles.itemName}
                       title={itemObj?.name || itemId}
                     >
                       {itemObj?.name || itemId}
@@ -197,38 +120,23 @@ export default function UserDetailCard({ user, onClose, story, items, setZoomedI
           </div>
         </div>
 
-        <div style={{ marginTop: '20px' }}>
-          <h3 style={{ color: '#06b6d4', margin: '0 0 12px 0' }}>Required Artifact Progress</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ flex: 1, height: '8px', background: '#2a2a2a', borderRadius: '4px' }}>
+        <div className={userCardStyles.progressSection}>
+          <h3 className={userCardStyles.progressTitle}>Required Artifact Progress</h3>
+          <div className={userCardStyles.progressBarContainer}>
+            <div className={userCardStyles.progressBarBg}>
               <div
-                style={{
-                  width: `${progressPercentage}%`,
-                  height: '100%',
-                  background: '#3b82f6',
-                  borderRadius: '4px',
-                  transition: 'width 0.3s ease',
-                }}
+                className={userCardStyles.progressBar}
+                style={{ width: `${progressPercentage}%` }}
               />
             </div>
-            <div style={{ color: '#fff', fontSize: '0.9rem' }}>
+            <div className={userCardStyles.progressText}>
               {requiredCollected.length}/{totalRequired}
             </div>
           </div>
         </div>
 
         {user.reachedGoal && (
-          <div
-            style={{
-              marginTop: '20px',
-              padding: '12px',
-              background: '#2a2a2a',
-              borderRadius: '8px',
-              color: '#10b981',
-              textAlign: 'center',
-              fontWeight: 600,
-            }}
-          >
+          <div className={userCardStyles.goal}>
             🏆 Reached the Goal!
           </div>
         )}

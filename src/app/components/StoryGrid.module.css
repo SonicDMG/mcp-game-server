@@ -3,24 +3,113 @@
   max-width: 1280px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 32px;
-  padding: 0 24px 64px;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 8px 12px 48px;
   box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .contentContainer {
+    padding: 12px 16px 56px;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 640px) {
+  .contentContainer {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 16px 20px 64px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contentContainer {
+    padding: 16px 24px 64px;
+    gap: 32px;
+  }
 }
 
 /* Story Card Styles */
 .storyCard {
   background: rgba(30, 41, 59, 0.92);
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   transition: box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1.5px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 12px 0 #23244a33;
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   min-width: 0;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.storyCardContent {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.storyTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: #f8fafc;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  display: block;
+}
+
+.storyDescription {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 10px 0;
+}
+
+@media (min-width: 480px) {
+  .storyCardContent {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .storyTitle {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+  
+  .storyDescription {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .storyCardContent {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 640px) {
+  .storyCard {
+    max-width: 100%;
+  }
 }
 .storyCard:hover {
   box-shadow: 0 8px 32px -4px #3b82f655, 0 1.5px 8px #23244a33;

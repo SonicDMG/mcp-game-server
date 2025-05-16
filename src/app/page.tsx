@@ -2,10 +2,10 @@ export const dynamic = "force-dynamic";
 import db from '@/lib/astradb'; // Import DB instance
 import { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
-import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
 import EventFeed from './components/EventFeed';
 import mainContentStyles from './components/MainContent.module.css';
+import HeroSection from './components/HeroSection';
 
 // Define DB record interfaces
 interface StoryRecord extends Story { 
@@ -44,6 +44,7 @@ const playersCollection = db.collection<PlayerRecordForStats>('game_players');
 // Removed mockStories array
 
 // Make the component async to fetch data
+
 export default async function LandingPage() {
   let storiesWithStats: StoryWithStats[] = [];
   let fetchError = null;
@@ -104,21 +105,22 @@ export default async function LandingPage() {
     fetchError = "Could not load story details. Please try again later.";
   }
 
+
   return (
     <div className="app-root">
-      <AppHeader
-        logoUrl="/images/logo.png"
-        breadcrumbs={[{ label: 'Home', href: '/' }]}
-        stats={{ players: 0, artifacts: '', rooms: '', winners: 0 }}
-        eventFeed={<EventFeed storyId="all" />}
-      />
-      <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
+      <main className={`hud-frame ${mainContentStyles.mainContent} landing-gradient-bg`}>
+        {/* Header is now part of the main content flow */}
+        <div className="header-inline" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 24 }}>
+          <a href="https://langflow.org/" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ fontWeight: 500 }}>
+            powered by <b>Langflow</b>
+          </a>
+          <a href="/" className="breadcrumb-link" style={{ fontWeight: 500 }}>
+            Home
+          </a>
+        </div>
         {/* Modern Hero Section */}
-        <section className="landing-hero">
-          <h1 className="landing-title">Discover New Adventures</h1>
-          <p className="landing-subtitle">Jump into a world of interactive stories, mysteries, and challenges. Play, compete, and become a legend!</p>
-          <a href="#stories" className="landing-cta">Get Started</a>
-        </section>
+        <HeroSection />
+        <EventFeed storyId="all" />
         <div className="hud-header" id="stories">
           {/* StoryGrid header can go here if needed */}
         </div>

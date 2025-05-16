@@ -1,8 +1,16 @@
 .mainContent {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
-  padding-top: var(--header-height);
-  padding-bottom: 96px;
+  padding: 24px 16px 96px;
   box-sizing: border-box;
-  /* Retain background and other styles as needed */
-} 
+  max-width: 100%;
+  overflow-x: hidden;
+  background: transparent;
+}
+
+/* Mobile-first responsive adjustments */
+@media (min-width: 768px) {
+  .mainContent {
+    padding: 32px 24px 96px;
+  }
+}
