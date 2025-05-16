@@ -264,71 +264,66 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
             className={styles.storyCardWrapper}
           >
             <div className={styles.storyCardContent + (newStoryIds.has(story.id) ? ' story-card-pop-in' : '')}>
-
-              {/* Winner Ribbon */}
-              {storyWinners[story.id] && (
-                <div className={styles.winnerRibbon} title="This story has a winner!">
-                  🏆 Winner!
-                </div>
-              )}
-              {story.image && story.image.trim() ? (
-                <Image 
-                  src={getProxiedImageUrl(story.image)}
-                  alt={story.title}
-                  width={160}
-                  height={100}
-                  priority={index === 0}
-                  style={{ 
-                    borderRadius: 12, 
-                    marginBottom: 16, 
-                    objectFit: 'cover', 
-                    width: 160, 
-                    height: 'auto', // maintain aspect ratio
-                  }}
-                  onError={e => {
-                    const target = e.target as HTMLImageElement;
-                    if (target.src !== placeholderImage) target.src = placeholderImage;
-                  }}
-                />
-              ) : (
-                <Image
-                  src={placeholderImage}
-                  alt="Story Placeholder"
-                  width={160}
-                  height={100}
-                  priority={index === 0}
-                  style={{
-                    borderRadius: 12,
-                    marginBottom: 16,
-                    objectFit: 'cover',
-                    filter: 'grayscale(1)',
-                    width: 160,
-                    height: 'auto', // maintain aspect ratio
-                  }}
-                />
-              )}
-              <div className={styles.storyTitle} title={cleanTitle(story.title)}>
-  {cleanTitle(story.title)}
-</div>
-              <div
-                className={styles.storyDescription}
-                title={story.description}
-              >
-                {story.description}
+              <div className={styles.storyCardImageContainer}>
+                {storyWinners[story.id] && (
+                  <div className={styles.winnerRibbon} title="This story has a winner!">
+                    🏆 Winner!
+                  </div>
+                )}
+                {story.image && story.image.trim() ? (
+                  <Image 
+                    src={getProxiedImageUrl(story.image)}
+                    alt={story.title}
+                    width={200}
+                    height={150}
+                    priority={index === 0}
+                    className={styles.storyCardImage}
+                    onError={e => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== placeholderImage) target.src = placeholderImage;
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src={placeholderImage}
+                    alt="Story Placeholder"
+                    width={200}
+                    height={150}
+                    priority={index === 0}
+                    className={styles.storyCardImage}
+                    style={{
+                      filter: 'grayscale(1)',
+                      opacity: 0.7,
+                    }}
+                  />
+                )}
               </div>
-              <div style={{
-                fontSize: '0.9rem', 
-                color: '#cbd5e1',
-                marginTop: 'auto',
-                paddingTop: 12,
-                borderTop: '1px solid #4a5568',
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-around'
-              }}>
-                <span className={bumpMap[story.id]?.player ? 'stat-bump' : ''}>👤 {story.playerCount}</span>
-                <span className={bumpMap[story.id]?.artifact ? 'stat-bump' : ''}>💎 {story.totalArtifactsFound}</span>
-                <span className={bumpMap[story.id]?.killed ? 'stat-bump' : ''}>💀 {story.killedCount}</span>
+              <div className={styles.storyCardText}>
+                <h3 className={styles.storyCardTitle}>
+                  {cleanTitle(story.title)}
+                </h3>
+                {story.description && (
+                  <p className={styles.storyCardDescription}>
+                    {story.description}
+                  </p>
+                )}
+                <div className={styles.storyCardStats}>
+                  <div className={`${styles.statItem} ${bumpMap[story.id]?.player ? styles.bump : ''}`}>
+                    <span className={styles.statIcon}>👤</span>
+                    <span className={styles.statValue}>{story.playerCount}</span>
+                    <span className={styles.statLabel}>Players</span>
+                  </div>
+                  <div className={`${styles.statItem} ${bumpMap[story.id]?.artifact ? styles.bump : ''}`}>
+                    <span className={styles.statIcon}>💎</span>
+                    <span className={styles.statValue}>{story.totalArtifactsFound}</span>
+                    <span className={styles.statLabel}>Artifacts</span>
+                  </div>
+                  <div className={`${styles.statItem} ${bumpMap[story.id]?.killed ? styles.bump : ''}`}>
+                    <span className={styles.statIcon}>💀</span>
+                    <span className={styles.statValue}>{story.killedCount}</span>
+                    <span className={styles.statLabel}>Defeated</span>
+                  </div>
+                </div>
               </div>
             </div>
           </Link>
