@@ -73,6 +73,88 @@
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* Pixel Art Buttons */
+.pixel-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pixel-button {
+  position: relative;
+  padding: 12px 30px;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  background: #2b2b2b;
+  box-shadow: 
+    4px 0 0 0 #000,
+    0 4px 0 0 #000,
+    4px 4px 0 0 #000,
+    4px 0 0 0 #000 inset,
+    0 4px 0 0 #000 inset;
+  transition: all 0.15s ease;
+  transform: translate(0, 0);
+  overflow: hidden;
+}
+
+.pixel-button-claude {
+  background: #9a6aff;
+  text-shadow: 2px 2px 0 #6c3cd2;
+}
+
+.pixel-button-cursor {
+  background: #00c1ff;
+  text-shadow: 2px 2px 0 #0077b3;
+}
+
+.pixel-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 
+    6px 2px 0 0 #000,
+    2px 6px 0 0 #000,
+    6px 6px 0 0 #000,
+    6px 2px 0 0 #000 inset,
+    2px 6px 0 0 #000 inset;
+}
+
+.pixel-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 
+    2px -2px 0 0 #000,
+    -2px 2px 0 0 #000,
+    2px 2px 0 0 #000,
+    2px -2px 0 0 #000 inset,
+    -2px 2px 0 0 #000 inset;
+}
+
+.pixel-button-text {
+  position: relative;
+  z-index: 2;
+  font-weight: bold;
+}
+
+.pixel-button-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.pixel-button:hover .pixel-button-shine {
+  opacity: 0.8;
+}
+
 /* Prism.js overrides */
 .hero-modal-pre {
   background: #1e1e1e !important;

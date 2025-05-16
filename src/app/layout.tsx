@@ -1,6 +1,7 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Fira_Code } from 'next/font/google';
+import { Press_Start_2P } from 'next/font/google';
 import { useEffect } from "react";
 import "./globals.css";
 
@@ -20,6 +21,13 @@ const firaCode = Fira_Code({
   display: 'swap',
 });
 
+const pressStart2P = Press_Start_2P({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-press-start-2p',
+  display: 'swap',
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,7 +41,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} ${pressStart2P.variable} antialiased`}
       >
         {children}
       </body>

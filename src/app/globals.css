@@ -738,29 +738,48 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
 }
 
 .landing-title {
-  font-size: 2.8rem;
-  font-weight: 800;
-  margin: 0 0 4px 0;
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0 0 8px 0;
   color: #f8fafc;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03em;
   line-height: 1.1;
+  text-shadow: 0 2px 20px rgba(167, 139, 250, 0.3);
 }
 
 .landing-title .gradient-text {
   background: linear-gradient(90deg, #a78bfa 0%, #3b82f6 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-fill-color: transparent;
 }
 
 .landing-subtitle {
-  font-size: 1.2rem;
-  color: #cbd5e1;
-  margin: 0 auto 16px auto;
-  font-weight: 400;
-  line-height: 1.5;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+  margin: 0 auto 12px auto;
+  line-height: 1.4;
+  font-weight: 600;
   max-width: 600px;
+}
+
+.landing-description {
+  font-size: 1.1rem;
+  color: #94a3b8;
+  margin: 0 auto 24px auto;
+  line-height: 1.6;
+  max-width: 600px;
+  font-weight: 400;
+}
+
+.landing-subtitle .gradient-text {
+  background: linear-gradient(90deg, #818cf8 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
 }
 
 .hero-buttons {
@@ -797,14 +816,21 @@ button:hover, .landing-cta:hover, .primary-btn:hover {
   }
   
   .landing-title {
-    font-size: 2.2rem;
-    margin-bottom: 2px;
+    font-size: 2.4rem;
+    margin-bottom: 4px;
+    line-height: 1.1;
   }
   
   .landing-subtitle {
-    font-size: 1.1rem;
-    margin: 0 auto 12px auto;
+    font-size: 1.25rem;
+    margin: 0 auto 8px auto;
     line-height: 1.4;
+  }
+  
+  .landing-description {
+    font-size: 1rem;
+    margin: 0 auto 20px auto;
+    line-height: 1.5;
   }
   
   .hero-buttons {

@@ -52,11 +52,10 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
   return (
     <section className="landing-hero">
       <h1 className="landing-title">
-        <span className="gradient-text">MCP</span> Game Server
+        <span className="gradient-text">Create with AI - Play with MCP</span>
       </h1>
-      <p className="landing-subtitle">
-        Jump into a world of interactive stories, mysteries, and challenges.<br />
-        Play, compete, and become a legend!
+      <p className="landing-description">
+        Build an interactive story using Langflow, then play it in real-time using MCP.
       </p>
       <div className="hero-logo-container">
         <img 
@@ -67,18 +66,20 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
           height={400}
         />
       </div>
-      <div className="hero-buttons">
+      <div className="pixel-buttons">
         <button 
-          className={`${headerStyles.headerButton} ${headerStyles.claudeButton} hero-button`}
+          className="pixel-button pixel-button-claude"
           onClick={() => setShowClaude(true)}
         >
-          Claude
+          <span className="pixel-button-text">Claude</span>
+          <span className="pixel-button-shine"></span>
         </button>
         <button 
-          className={`${headerStyles.headerButton} ${headerStyles.cursorButton} hero-button`}
+          className="pixel-button pixel-button-cursor"
           onClick={() => setShowCursor(true)}
         >
-          Cursor
+          <span className="pixel-button-text">Cursor</span>
+          <span className="pixel-button-shine"></span>
         </button>
       </div>
 
