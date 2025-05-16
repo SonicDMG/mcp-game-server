@@ -14,6 +14,34 @@ interface StoryGridProps {
   }>;
 }
 
+// Type for the previous stats map
+interface StoryStats {
+  playerCount: number;
+  totalArtifactsFound: number;
+  killedCount: number;
+}
+
+// Type for the bump map
+interface BumpMap {
+  player: boolean;
+  artifact: boolean;
+  killed: boolean;
+}
+
+// Type for the previous stats map
+interface StoryStats {
+  playerCount: number;
+  totalArtifactsFound: number;
+  killedCount: number;
+}
+
+// Type for the bump map
+interface BumpMap {
+  player: boolean;
+  artifact: boolean;
+  killed: boolean;
+}
+
 const placeholderImage = "/images/story-placeholder.png";
 
 // Add pop-in animation CSS
@@ -106,13 +134,13 @@ function cleanTitle(title: string): string {
 }
 
 export default function StoryGrid({ initialStories }: StoryGridProps) {
-  const [stories, setStories] = useState(initialStories);
+  const [stories, setStories] = useState<Array<Story & StoryStats>>(initialStories);
   const [newStoryIds, setNewStoryIds] = useState<Set<string>>(new Set());
   const announcedStoryIds = useRef(new Set(initialStories.map(s => s.id)));
 
   // Track previous stats for bump animation
-  const [prevStats, setPrevStats] = useState<{ [id: string]: { playerCount: number; totalArtifactsFound: number; killedCount: number } }>({});
-  const [bumpMap, setBumpMap] = useState<{ [id: string]: { player: boolean; artifact: boolean; killed: boolean } }>({});
+  const [prevStats, setPrevStats] = useState<{ [id: string]: StoryStats }>({});
+  const [bumpMap, setBumpMap] = useState<{ [id: string]: BumpMap }>({});
 
   // Winner state: storyId -> boolean
   const [storyWinners, setStoryWinners] = useState<{ [storyId: string]: boolean }>({});
@@ -185,7 +213,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
   useEffect(() => {
     setStories(prev => {
       const newBumpMap: typeof bumpMap = {};
-      const newPrevStats: typeof prevStats = { ...prevStats };
+      const newPrevStats: { [id: string]: StoryStats } = { ...prevStats };
       for (const story of prev) {
         const prevStat = prevStats[story.id];
         newBumpMap[story.id] = {

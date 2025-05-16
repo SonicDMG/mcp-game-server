@@ -51,54 +51,41 @@ export default async function LandingPage() {
   let fetchError = null;
 
   try {
-    // 1. Fetch all stories
+    // Fetch stories from the API endpoint which already includes stats
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Fetching stories from database...');
+      console.log('Fetching stories from API endpoint...');
     }
-    const stories = await storiesCollection.find({}).toArray();
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/game/stories`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch stories: ${response.statusText}`);
+    }
+    
+    const stories = await response.json();
+    console.log('Raw API response:', JSON.stringify(stories, null, 2));
+    
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`Fetched ${stories.length} stories.`);
+      console.log(`Fetched ${stories.length} stories from API.`);
     }
-
-    if (stories.length > 0) {
-      // 2. Fetch all player data (since aggregate isn't directly supported)
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Fetching all player data for stats calculation...');
-      }
-      // We might want to filter fields later if performance becomes an issue
-      const allPlayers = await playersCollection.find({}).toArray(); 
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`Fetched ${allPlayers.length} total players.`);
-      }
-
-      // 3. Calculate stats in code
-      const statsMap = new Map<string, PlayerStats>();
-
-      for (const player of allPlayers) {
-        if (!player.storyId) continue; // Skip players without storyId
-
-        const currentStats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
-        currentStats.playerCount += 1;
-        currentStats.totalArtifactsFound += player.gameProgress?.itemsFound?.length || 0;
-        if (player.status === 'killed') currentStats.killedCount += 1;
-        statsMap.set(player.storyId, currentStats);
-      }
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`Calculated stats for ${statsMap.size} stories.`);
-      }
-
-      // 4. Combine story data with calculated stats
-      storiesWithStats = stories.map(story => {
-        const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
-        return {
-          ...story,
-          playerCount: stats.playerCount,
-          totalArtifactsFound: stats.totalArtifactsFound,
-          killedCount: stats.killedCount
-        };
-      });
-    } else {
-      storiesWithStats = [];
+    
+    // Map the API response to the expected format
+    storiesWithStats = stories.map((story: any) => {
+      const mapped = {
+        ...story,
+        _id: story.id, // Ensure _id is set for compatibility
+        image: story.image || null,
+        startingLocation: story.startingLocation || "",
+        // Ensure all required fields are present
+        playerCount: story.playerCount || 0,
+        totalArtifactsFound: story.totalArtifactsFound || 0,
+        killedCount: story.killedCount || 0
+      };
+      console.log(`Mapped story ${story.id}:`, JSON.stringify(mapped, null, 2));
+      return mapped;
+    });
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Mapped stories with stats:', JSON.stringify(storiesWithStats, null, 2));
     }
 
   } catch (error) {

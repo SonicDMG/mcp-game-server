@@ -118,28 +118,32 @@ export async function handleTakeAction(
     target: itemId,
     timestamp: new Date().toISOString(),
   });
-  // Check if the item is a required artifact
+
+  // Initialize game progress if it doesn't exist
+  player.gameProgress = player.gameProgress || {};
+  player.gameProgress.itemsFound = player.gameProgress.itemsFound || [];
+  
+  // Track all items found by the player
   let specialMessage = '';
-  if (story.requiredArtifacts && story.requiredArtifacts.includes(itemId)) {
-    specialMessage = ' There is something special about this item...';
-    player.gameProgress = player.gameProgress || {};
-    player.gameProgress.itemsFound = player.gameProgress.itemsFound || [];
-    if (!player.gameProgress.itemsFound.includes(itemId)) {
-      player.gameProgress.itemsFound.push(itemId);
-      await services.playersCollection.updateOne(
-        { _id: player._id },
-        { $set: { 'gameProgress.itemsFound': player.gameProgress.itemsFound } }
-      );
+  if (!player.gameProgress.itemsFound.includes(itemId)) {
+    player.gameProgress.itemsFound.push(itemId);
+    await services.playersCollection.updateOne(
+      { _id: player._id },
+      { $set: { 'gameProgress.itemsFound': player.gameProgress.itemsFound } }
+    );
+    
+    // If this is a required artifact, log a special event
+    if (story.requiredArtifacts && story.requiredArtifacts.includes(itemId)) {
+      specialMessage = ' There is something special about this item...';
+      await services.eventsCollection.insertOne({
+        storyId,
+        type: 'artifact',
+        message: `${userId} picked up required artifact ${itemId}`,
+        actor: userId,
+        target: itemId,
+        timestamp: new Date().toISOString(),
+      });
     }
-    // Log artifact event
-    await services.eventsCollection.insertOne({
-      storyId,
-      type: 'artifact',
-      message: `${userId} picked up required artifact ${itemId}`,
-      actor: userId,
-      target: itemId,
-      timestamp: new Date().toISOString(),
-    });
   }
   // Fetch updated inventory items
   const inventoryItems = (await services.itemsCollection.find({ _id: { $in: player.inventory } }).toArray()) as (GameItem & { _id: string })[];
