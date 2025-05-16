@@ -33,10 +33,10 @@
 /* Story Card Styles */
 
 .storyCardWrapper {
-  background: var(--card-bg, #23244aee);
-  border-radius: 16px;
-  border: 2.5px solid var(--card-border, #3b82f6);
-  box-shadow: 0 4px 24px 0 #3b82f633;
+  background: var(--card-bg, #1a1b3d);
+  border-radius: 12px;
+  border: 1px solid #2d2d5a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 800px;
   color: var(--foreground, #f5f6fa);
@@ -44,7 +44,7 @@
   font-weight: 600;
   font-size: 1.1rem;
   display: flex;
-  transition: box-shadow 0.2s, border 0.2s, transform 0.2s;
+  transition: all 0.2s ease;
   cursor: pointer;
   min-height: 200px;
   box-sizing: border-box;
@@ -68,8 +68,9 @@
 }
 
 .storyCardWrapper:hover {
-  box-shadow: 0 8px 32px -4px #3b82f655, 0 1.5px 8px #23244a33;
+  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.2);
   border-color: #a78bfa;
+  transform: translateY(-2px);
 }
 
 .noStoriesMsg {

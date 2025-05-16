@@ -35,20 +35,22 @@ const skeletonStyle = `
   100% { background-position: 600px 0; }
 }
 .story-card-skeleton {
-  background: #23244aee;
-  border-radius: 16px;
-  border: 2.5px solid #3b82f6;
-  box-shadow: 0 4px 24px 0 #3b82f633;
-  padding: 24px;
-  width: 320px;
-  min-width: 320px;
-  max-width: 320px;
+  background: #1a1b3d;
+  border-radius: 12px;
+  border: 1px solid #2d2d5a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  max-width: 800px;
   color: #f5f6fa;
-  text-align: center;
+  text-align: left;
   font-weight: 600;
   font-size: 1.1rem;
   display: flex;
   flex-direction: column;
+  min-height: 200px;
+  box-sizing: border-box;
+  position: relative;
   align-items: center;
   height: 100%;
   position: relative;

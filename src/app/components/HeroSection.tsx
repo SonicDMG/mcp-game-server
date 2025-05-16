@@ -37,12 +37,35 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
 
   return (
     <section className="landing-hero">
-      <h1 className="landing-title">Discover New Adventures</h1>
-      <p className="landing-subtitle">Jump into a world of interactive stories, mysteries, and challenges. Play, compete, and become a legend!</p>
-      <img src="/images/logo.png" alt="MCP Logo" className="hero-logo" width={120} height={120} />
-      <div className="hero-btns">
-        <button className={headerStyles.headerButton + ' ' + headerStyles.claudeButton} onClick={() => setShowClaude(true)}>Claude</button>
-        <button className={headerStyles.headerButton + ' ' + headerStyles.cursorButton} onClick={() => setShowCursor(true)}>Cursor</button>
+      <h1 className="landing-title">
+        <span className="gradient-text">MCP</span> Game Server
+      </h1>
+      <p className="landing-subtitle">
+        Jump into a world of interactive stories, mysteries, and challenges.<br />
+        Play, compete, and become a legend!
+      </p>
+      <div className="hero-logo-container">
+        <img 
+          src="/images/logo.png" 
+          alt="MCP Logo" 
+          className="hero-logo" 
+          width={400} 
+          height={400}
+        />
+      </div>
+      <div className="hero-buttons">
+        <button 
+          className={`${headerStyles.headerButton} ${headerStyles.claudeButton} hero-button`}
+          onClick={() => setShowClaude(true)}
+        >
+          Claude
+        </button>
+        <button 
+          className={`${headerStyles.headerButton} ${headerStyles.cursorButton} hero-button`}
+          onClick={() => setShowCursor(true)}
+        >
+          Cursor
+        </button>
       </div>
 
       {/* Claude Config Modal */}
