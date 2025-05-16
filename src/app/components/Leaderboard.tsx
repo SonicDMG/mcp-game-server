@@ -161,6 +161,12 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
           {/* Right: Info and Map */}
           <div className={styles.rightContent}>
             <div className={styles.titleDescriptionContainer}>
+              <div className={styles.bannerText}>
+                🏆 {winners.length} Winner{winners.length > 1 ? 's' : ''}
+              </div>
+              <div className={`${styles.bannerText} ${styles.killed}`}>
+                💀 {killed.length} Killed
+              </div>
               <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
               <div className={styles.storyDescription}>{story.description}</div>
               {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (

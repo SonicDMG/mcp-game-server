@@ -346,4 +346,17 @@
   font-size: 1.15rem;
   margin-bottom: 14px;
   text-align: left;
-} 
+}
+
+.bannerText {
+  color: #a7a7ff;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bannerText.killed {
+  color: #ff4444;
+}

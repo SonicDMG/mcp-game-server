@@ -111,6 +111,25 @@
   border: 1.5px solid #fff2;
 }
 
+.killedBanner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.89rem;
+  z-index: 1;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 8px #ef444433;
+  border: 1.5px solid #fff2;
+}
+
 .storyCard {
   /* Removed border, background, border-radius, box-shadow to prevent double border */
   overflow: hidden;

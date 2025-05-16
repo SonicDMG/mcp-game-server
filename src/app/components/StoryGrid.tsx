@@ -351,7 +351,7 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                   <div className={`${styles.statItem} ${bumpMap[story.id]?.killed ? styles.bump : ''}`}>
                     <span className={styles.statIcon}>💀</span>
                     <span className={styles.statValue}>{story.killedCount}</span>
-                    <span className={styles.statLabel}>Defeated</span>
+                    <span className={styles.statLabel}>Killed</span>
                   </div>
                 </div>
               </div>
