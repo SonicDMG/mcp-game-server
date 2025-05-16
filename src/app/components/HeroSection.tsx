@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
+import Image from 'next/image';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-json';
@@ -7,7 +8,6 @@ import 'prismjs/plugins/line-numbers/prism-line-numbers';
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
 import styles from "./HeroSection.module.css";
-import headerStyles from "./AppHeader.module.css";
 
 type HeroSectionProps = object;
 
@@ -16,11 +16,8 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
   const [showCursor, setShowCursor] = useState(false);
   const [copiedClaude, setCopiedClaude] = useState(false);
   const [copiedCursor, setCopiedCursor] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
-    setIsMounted(true);
-    // Highlight code blocks after component mounts and when modals open
+    // Highlight code blocks when modals open
     if (showClaude || showCursor) {
       Prism.highlightAll();
     }
@@ -58,12 +55,14 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
         Build an interactive story using Langflow, then play it in real-time using MCP.
       </p>
       <div className="hero-logo-container">
-        <img 
+        <Image 
           src="/images/logo.png" 
           alt="MCP Logo" 
           className="hero-logo" 
-          width={400} 
-          height={400}
+          width={0}
+          height={0}
+          sizes="100%"
+          priority
         />
       </div>
       <div className="pixel-buttons">

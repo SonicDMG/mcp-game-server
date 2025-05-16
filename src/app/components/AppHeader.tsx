@@ -2,16 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
 interface Breadcrumb {
   label: string;
   href?: string;
 }
 
 export function AppHeader({ breadcrumbs }: { breadcrumbs: Breadcrumb[] }) {
-  const pathname = usePathname();
-  const isHomePage = pathname === '/';
   
   return (
     <header className="w-full bg-gradient-to-r from-[#181a23] to-[#23244a] border-b border-gray-800">
