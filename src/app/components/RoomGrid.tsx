@@ -194,7 +194,78 @@ const RoomGrid: React.FC<RoomGridProps> = ({
                         <div 
                           key={exit.id} 
                           className={`${styles.directionIndicator} ${styles[`direction-${exit.direction.toLowerCase()}`]}`}
+                          data-room-name={`${exit.direction}: ${exit.name}`}
                           title={`${exit.direction}: ${exit.name}`}
+                          onMouseEnter={(e) => {
+                            const tooltip = e.currentTarget.querySelector(`.${styles.directionIndicator}::after`);
+                            if (tooltip) {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const tooltipElement = tooltip as HTMLElement;
+                              
+                              // Position the tooltip opposite to the arrow direction
+                              switch(exit.direction.toLowerCase()) {
+                                case 'north':
+                                  // Arrow points up, show tooltip below
+                                  tooltipElement.style.left = `${rect.left + rect.width / 2}px`;
+                                  tooltipElement.style.top = `${rect.bottom + 10}px`;
+                                  tooltipElement.style.transform = 'translateX(-50%)';
+                                  break;
+                                case 'northeast':
+                                  // Arrow points up-right, show tooltip down-left
+                                  tooltipElement.style.left = `${rect.left - 10}px`;
+                                  tooltipElement.style.top = `${rect.top + rect.height + 10}px`;
+                                  tooltipElement.style.transform = 'translateX(-100%)';
+                                  break;
+                                case 'east':
+                                  // Arrow points right, show tooltip to the left
+                                  tooltipElement.style.left = `${rect.left - 10}px`;
+                                  tooltipElement.style.top = `${rect.top + rect.height / 2}px`;
+                                  tooltipElement.style.transform = 'translateX(-100%) translateY(-50%)';
+                                  break;
+                                case 'southeast':
+                                  // Arrow points down-right, show tooltip up-left
+                                  tooltipElement.style.left = `${rect.left - 10}px`;
+                                  tooltipElement.style.top = `${rect.top - 10}px`;
+                                  tooltipElement.style.transform = 'translateX(-100%) translateY(-100%)';
+                                  break;
+                                case 'south':
+                                  // Arrow points down, show tooltip above
+                                  tooltipElement.style.left = `${rect.left + rect.width / 2}px`;
+                                  tooltipElement.style.top = `${rect.top - 10}px`;
+                                  tooltipElement.style.transform = 'translateX(-50%) translateY(-100%)';
+                                  break;
+                                case 'southwest':
+                                  // Arrow points down-left, show tooltip up-right
+                                  tooltipElement.style.left = `${rect.right + 10}px`;
+                                  tooltipElement.style.top = `${rect.top - 10}px`;
+                                  tooltipElement.style.transform = 'translateY(-100%)';
+                                  break;
+                                case 'west':
+                                  // Arrow points left, show tooltip to the right
+                                  tooltipElement.style.left = `${rect.right + 10}px`;
+                                  tooltipElement.style.top = `${rect.top + rect.height / 2}px`;
+                                  tooltipElement.style.transform = 'translateY(-50%)';
+                                  break;
+                                case 'northwest':
+                                  // Arrow points up-left, show tooltip down-right
+                                  tooltipElement.style.left = `${rect.right + 10}px`;
+                                  tooltipElement.style.top = `${rect.top + rect.height + 10}px`;
+                                  break;
+                              }
+                              
+                              // Show the tooltip
+                              tooltipElement.style.visibility = 'visible';
+                              tooltipElement.style.opacity = '1';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            const tooltip = e.currentTarget.querySelector(`.${styles.directionIndicator}::after`);
+                            if (tooltip) {
+                              const tooltipElement = tooltip as HTMLElement;
+                              tooltipElement.style.visibility = 'hidden';
+                              tooltipElement.style.opacity = '0';
+                            }
+                          }}
                         >
                           <span className={styles.directionArrow}>
                             {getDirectionArrow(exit.direction)}
