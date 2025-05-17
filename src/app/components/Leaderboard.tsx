@@ -11,7 +11,6 @@ import UserListModal from './UserListModal';
 import ZoomedItemModal from './ZoomedItemModal';
 import styles from './Leaderboard.module.css';
 import Confetti from 'react-confetti';
-import LeaderboardControlBar from './LeaderboardControlBar';
 import { RoomChat } from './RoomChat';
 
 export interface LeaderboardUser {
@@ -21,6 +20,9 @@ export interface LeaderboardUser {
   room: string;
   isWinner?: boolean;
   status?: 'playing' | 'winner' | 'killed';
+  name?: string;
+  displayName?: string;
+  username?: string;
 }
 
 interface StoryMetadata {
@@ -61,13 +63,8 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
   const [zoomedItem, setZoomedItem] = useState<{ image: string; name: string; description: string } | null>(null);
   const [userListModal, setUserListModal] = useState<{ room: string; users: LeaderboardUser[] } | null>(null);
   const [zoomedRoom, setZoomedRoom] = useState<{ image: string; name: string; description: string; users: LeaderboardUser[] } | null>(null);
-  const [rankdir, setRankdir] = useState<'LR' | 'TB'>('LR');
-  const [nodesep, setNodesep] = useState<number>(60);
-  const [ranksep, setRanksep] = useState<number>(100);
-  const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const prevKilledCount = useRef(users.filter(u => u.status === 'killed').length);
   const killedCount = users.filter(u => u.status === 'killed').length;
-  const roomGridRef = useRef<{ saveLayout: () => void; resetLayout: () => void }>(null);
 
   useEffect(() => {
     if (killedCount > prevKilledCount.current) {
@@ -100,22 +97,8 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
     document.head.appendChild(style);
   }
 
-  // Save and reset handlers (to be implemented in RoomGrid)
-  const handleSaveLayout = () => {
-    if (roomGridRef.current) roomGridRef.current.saveLayout();
-  };
-  const handleResetLayout = () => {
-    if (roomGridRef.current) roomGridRef.current.resetLayout();
-  };
-
-  // These are called from RoomGrid after the API call completes
-  const handleSaveStatus = () => {
-    setSaveStatus('Layout saved!');
-    setTimeout(() => setSaveStatus(null), 2000);
-  };
-  const handleResetStatus = () => {
-    setSaveStatus('Layout reset!');
-    setTimeout(() => setSaveStatus(null), 2000);
+  const handleZoomImage = (img: string, name: string, description: string, roomId: string) => {
+    setZoomedRoom({ image: img, name, description, users: users.filter(u => u.room === roomId) });
   };
 
   return (
@@ -162,10 +145,10 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
           <div className={styles.rightContent}>
             <div className={styles.titleDescriptionContainer}>
               <div className={styles.bannerText}>
-                🏆 {winners.length} Winner{winners.length > 1 ? 's' : ''}
+                {winners.length} Winner{winners.length > 1 ? 's' : ''}
               </div>
               <div className={`${styles.bannerText} ${styles.killed}`}>
-                💀 {killed.length} Killed
+                {killed.length} Killed
               </div>
               <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
               <div className={styles.storyDescription}>{story.description}</div>
@@ -174,38 +157,16 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
                   <b>Goal:</b> Collect all artifacts and reach the final room.
                 </div>
               )}
-              <LeaderboardControlBar
-                rankdir={rankdir}
-                setRankdir={setRankdir}
-                nodesep={nodesep}
-                setNodesep={setNodesep}
-                ranksep={ranksep}
-                setRanksep={setRanksep}
-                onSave={handleSaveLayout}
-                onReset={handleResetLayout}
-                status={saveStatus}
-              />
             </div>
             <div className={styles.roomGridWrapper}>
               <RoomGrid
-                ref={roomGridRef}
                 rooms={story.rooms}
                 users={users}
                 goalRoom={story.goalRoom}
-                setZoomedImage={(img, name, description, roomId) => {
-                  setZoomedRoom({ image: img, name, description, users: users.filter(u => u.room === roomId) });
-                }}
+                setZoomedImage={handleZoomImage}
                 setSelectedUser={setSelectedUser}
                 setUserListModal={setUserListModal}
-                rankdir={rankdir}
-                nodesep={nodesep}
-                ranksep={ranksep}
-                onSaveLayout={handleSaveStatus}
-                onResetLayout={handleResetStatus}
                 storyId={story.roomOrder && story.roomOrder.length > 0 ? story.roomOrder[0] : story.title}
-                setRankdir={setRankdir}
-                setNodesep={setNodesep}
-                setRanksep={setRanksep}
               />
             </div>
           </div>

@@ -60,6 +60,20 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 768px) {
+  .mainLayout {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+  
+  .leftColumn {
+    flex: 1;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+}
+
 .leftColumn {
   flex: 0 0 340px;
   display: flex;
@@ -339,6 +353,23 @@
   text-align: left;
   margin-bottom: 10px;
   letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .storyTitle {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+  
+  .storyDescription {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .bannerText {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
 }
 
 .storyDescription {

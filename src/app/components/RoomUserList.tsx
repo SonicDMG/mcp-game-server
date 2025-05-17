@@ -57,10 +57,10 @@ const RoomUserList: React.FC<RoomUserListProps> = ({ users, loc, setSelectedUser
               textOverflow: 'ellipsis',
               flex: 1,
             }}
-            title={user.id}
+            title={`ID: ${user.id}${user.username ? `\nUsername: ${user.username}` : ''}${user.displayName ? `\nDisplay Name: ${user.displayName}` : ''}${user.name ? `\nName: ${user.name}` : ''}`}
             onClick={() => setSelectedUser(user)}
           >
-            {user.id}
+            {user.name || user.displayName || user.username || user.id}
           </span>
           <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
             <span role="img" aria-label="items">🎒</span> {user.inventory.length}
