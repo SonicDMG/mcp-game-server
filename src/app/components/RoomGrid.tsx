@@ -36,7 +36,7 @@ interface RoomGridProps {
   setZoomedImage: (img: string, name: string, description: string, roomId: string) => void;
   setSelectedUser: (user: LeaderboardUser) => void;
   setUserListModal: (modal: { room: string; users: LeaderboardUser[] } | null) => void;
-  storyId: string;
+  _storyId?: string; // Prefix with underscore to indicate it's intentionally unused
 }
 
 const ROOM_IMAGE_PLACEHOLDER = "/images/room-placeholder.png";
@@ -51,7 +51,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   setZoomedImage,
   setSelectedUser,
   setUserListModal,
-  storyId,
+  _storyId, // Prefix with underscore to indicate it's intentionally unused
 }) => {
   // Get arrow character for direction
   const getDirectionArrow = (direction: string) => {
@@ -89,15 +89,15 @@ const RoomGrid: React.FC<RoomGridProps> = ({
     }, {});
   }, [users]);
 
-  // Generate avatar URL based on user ID
-  const getAvatarUrl = (userId: string) => 
-    `https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(userId)}`;
-
-  // Get display name for a user
-  const getUserDisplayName = (user: LeaderboardUser): string => {
+  // Get display name for a user (unused but kept for reference)
+  const _getUserDisplayName = (user: LeaderboardUser): string => {
     // Check for any available name properties (some users might have these)
-    return (user as any).name || (user as any).username || (user as any).displayName || user.id;
+    return user.name || user.username || user.displayName || user.id;
   };
+  
+  // Avatar URL generation (unused but kept for reference)
+  const _getAvatarUrl = (userId: string) => 
+    `https://api.dicebear.com/7.x/pixel-art/png?seed=${encodeURIComponent(userId)}`;
 
 
 
@@ -112,11 +112,11 @@ const RoomGrid: React.FC<RoomGridProps> = ({
     }
     
     // Get all connected rooms
-    const exits = room.exits.map((exit: any) => {
+    const exits = room.exits.map((exit) => {
       const targetRoom = rooms.find(r => r.id === exit.targetLocationId);
-      const roomName = targetRoom?.name || `Room ${exit.targetLocationId.slice(0, 4)}`;
+      const roomName = targetRoom?.name || `Room ${exit.targetLocationId?.slice(0, 4) || '????'}`;
       return {
-        id: exit.targetLocationId,
+        id: exit.targetLocationId || '',
         name: roomName,
         image: targetRoom?.image || DEFAULT_ROOM_IMAGE,
         direction: exit.direction || 'exit'
@@ -142,14 +142,8 @@ const RoomGrid: React.FC<RoomGridProps> = ({
     }
   };
 
-  // Handle user click to show user details
-  const handleUserClick = (e: React.MouseEvent, user: LeaderboardUser) => {
-    e.stopPropagation();
-    setSelectedUser(user);
-  };
-
   // Handle showing user list modal
-  const handleShowUserList = (e: React.MouseEvent, roomId: string) => {
+  const _handleShowUserList = (e: React.MouseEvent, roomId: string) => {
     e.stopPropagation();
     const roomUsers = usersByRoom[roomId] || [];
     if (roomUsers.length > 0) {

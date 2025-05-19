@@ -166,7 +166,7 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
                 setZoomedImage={handleZoomImage}
                 setSelectedUser={setSelectedUser}
                 setUserListModal={setUserListModal}
-                storyId={story.roomOrder && story.roomOrder.length > 0 ? story.roomOrder[0] : story.title}
+                _storyId={story.roomOrder && story.roomOrder.length > 0 ? story.roomOrder[0] : story.title}
               />
             </div>
           </div>

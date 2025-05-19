@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import db from '@/lib/astradb'; // Import DB instance
-import { Story, PlayerState } from '@/app/api/game/types'; // Import types
+import type { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
 import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
@@ -25,13 +25,6 @@ interface PlayerRecordForStats extends PlayerState {
   };
 }
 
-// Interface for the calculated player stats per story
-interface PlayerStats {
-  playerCount: number;
-  totalArtifactsFound: number;
-  killedCount: number;
-}
-
 // Interface for the final story data including stats
 interface StoryWithStats extends StoryRecord {
   playerCount: number;
@@ -39,8 +32,9 @@ interface StoryWithStats extends StoryRecord {
   killedCount: number;
 }
 
-const storiesCollection = db.collection<StoryRecord>('game_stories');
-const playersCollection = db.collection<PlayerRecordForStats>('game_players');
+// Mark as unused since they're not directly used in this file
+const _storiesCollection = db.collection<StoryRecord>('game_stories');
+const _playersCollection = db.collection<PlayerRecordForStats>('game_players');
 
 // Removed mockStories array
 
@@ -69,7 +63,7 @@ export default async function LandingPage() {
     }
     
     // Map the API response to the expected format
-    storiesWithStats = stories.map((story: any) => {
+    storiesWithStats = stories.map((story: StoryRecord & { playerCount?: number; totalArtifactsFound?: number; killedCount?: number }) => {
       const mapped = {
         ...story,
         _id: story.id, // Ensure _id is set for compatibility
