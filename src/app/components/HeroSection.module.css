@@ -276,3 +276,10 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+.warp-modal-note {
+  font-size: 13px;
+  color: #a7a7ffcc;
+  margin: 12px 0 8px 0;
+  text-align: left;
+}
+

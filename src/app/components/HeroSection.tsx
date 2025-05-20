@@ -152,6 +152,9 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
             <pre className={styles["hero-modal-pre"]} style={{ userSelect: 'all' }}>
               <code>{SSE_URL}</code>
             </pre>
+            <div className={styles["warp-modal-note"]}>
+              MCP support currently available in <a href="https://www.warp.dev/blog/warp-preview" target="_blank" rel="noopener noreferrer"><strong>WarpPreview</strong></a> only.
+            </div>
             <button
               aria-label="Copy SSE URL"
               onClick={() => {
