@@ -39,6 +39,17 @@ export default function RootLayout({
   }, []);
   return (
     <html lang="en">
+      <head>
+        <meta property="og:title" content="Create with AI - Play with MCP" />
+        <meta property="og:description" content="Build an interactive story using Langflow, then play it in real-time using MCP." />
+        <meta property="og:image" content="https://mcplayerone.onrender.com/og-image.png" />
+        <meta property="og:url" content="https://mcplayerone.onrender.com/" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Create with AI - Play with MCP" />
+        <meta name="twitter:description" content="Build an interactive story using Langflow, then play it in real-time using MCP." />
+        <meta name="twitter:image" content="https://mcplayerone.onrender.com/og-image.png" />
+      </head>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} ${pressStart2P.variable} antialiased`}
