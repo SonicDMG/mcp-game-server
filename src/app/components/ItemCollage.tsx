@@ -17,20 +17,22 @@ interface ItemCollageProps {
 }
 
 const ItemCollage: React.FC<ItemCollageProps> = ({ items, collectedItemIds, requiredArtifacts = [], setZoomedItem }) => (
-  <div style={{
-    background: '#181c2a',
-    borderRadius: 12,
-    padding: 12,
-    boxShadow: '0 2px 12px #0006',
-    minWidth: 240,
-    maxWidth: 320,
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 8,
-    justifyItems: 'center',
-    height: '100%',
-    flex: 1,
-  }}>
+  <div
+    style={{
+      background: '#181c2a',
+      borderRadius: 12,
+      padding: 12,
+      boxShadow: '0 2px 12px #0006',
+      width: '100%',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 8,
+      justifyItems: 'center',
+      height: '100%',
+      flex: 1,
+    }}
+    className="item-collage-responsive"
+  >
     {items.map((item, idx) => {
       const normalizedId = String(item.id).trim().toLowerCase();
       const normalizedRequired = requiredArtifacts.map(id => String(id).trim().toLowerCase());

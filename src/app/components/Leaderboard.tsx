@@ -101,6 +101,9 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
     setZoomedRoom({ image: img, name, description, users: users.filter(u => u.room === roomId) });
   };
 
+  // Responsive: stack everything vertically on mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
   return (
     <div className={styles.leaderboardContainer}>
       {/* Confetti Fanfare */}
@@ -113,8 +116,61 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
         />
       )}
       <div className={styles.mainContent}>
+        {/* Mobile: stack everything vertically in the desired order */}
+        <div className={styles.mobileStack}>
+          <Image
+            src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
+            alt={cleanTitle(story.title)}
+            width={320}
+            height={220}
+            className={styles.storyImage}
+            onClick={() => setZoomedImage(story.image || ROOM_IMAGE_PLACEHOLDER)}
+            unoptimized
+          />
+          <div className={styles.titleDescriptionContainer}>
+            <div className={styles.bannerText}>
+              {winners.length} Winner{winners.length > 1 ? 's' : ''}
+            </div>
+            <div className={`${styles.bannerText} ${styles.killed}`}>
+              {killed.length} Killed
+            </div>
+            <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
+            <div className={styles.storyDescription}>{story.description}</div>
+            {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
+              <div className={styles.goalText}>
+                <b>Goal:</b> Collect all artifacts and reach the final room.
+              </div>
+            )}
+          </div>
+          <div className={styles.statsPanel}>
+            <StatsPanel
+              totalPlayers={totalPlayers}
+              collectedArtifacts={collectedArtifacts}
+              totalArtifacts={totalArtifacts}
+              exploredRooms={exploredRooms}
+              totalRooms={totalRooms}
+              winnersCount={winners.length}
+              killedCount={killed.length}
+            />
+          </div>
+          <div className={styles.itemCollage}>
+            <ItemCollage items={items} collectedItemIds={collectedItemIds} requiredArtifacts={story.requiredArtifacts || []} setZoomedItem={setZoomedItem} />
+          </div>
+          <RoomChat roomId={roomId} />
+          <div className={styles.roomGridWrapper}>
+            <RoomGrid
+              rooms={story.rooms}
+              users={users}
+              goalRoom={story.goalRoom}
+              setZoomedImage={handleZoomImage}
+              setSelectedUser={setSelectedUser}
+              setUserListModal={setUserListModal}
+              _storyId={story.roomOrder && story.roomOrder.length > 0 ? story.roomOrder[0] : story.title}
+            />
+          </div>
+        </div>
+        {/* Desktop: keep the current layout */}
         <div className={styles.mainLayout}>
-          {/* Left: Story Image, StatsPanel, and ItemCollage */}
           <div className={styles.leftColumn}>
             <Image
               src={getProxiedImageUrl(story.image || ROOM_IMAGE_PLACEHOLDER)}
@@ -141,7 +197,6 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
               <RoomChat roomId={roomId} />
             </div>
           </div>
-          {/* Right: Info and Map */}
           <div className={styles.rightContent}>
             <div className={styles.titleDescriptionContainer}>
               <div className={styles.bannerText}>

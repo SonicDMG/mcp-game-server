@@ -542,15 +542,40 @@
   
   .roomContent {
     flex-direction: column;
-  }
-  
-  .exitsContainer {
     width: 100%;
-    margin-top: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
   }
-  
-  .exitsList {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .roomImageContainer {
+    width: 100%;
+    height: 120px;
+    min-width: 0;
+    margin-bottom: 0.5rem;
+  }
+  .roomImage {
+    width: 100%;
+    height: 120px;
+    min-width: 0;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  .playersContainer {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+  }
+}
+@media (max-width: 500px) {
+  .roomCard {
+    padding: 0.5rem;
+    font-size: 0.95rem;
+  }
+  .roomHeader {
+    padding: 0.5rem;
+    font-size: 1rem;
+  }
+  .playersContainer {
+    padding: 0.4rem;
+    font-size: 0.92rem;
   }
 }

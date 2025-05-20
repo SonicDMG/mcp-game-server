@@ -13,4 +13,17 @@
   gap: 6px;
   padding: 12px 16px;
   /* Remove margin-bottom to allow full height fill */
+}
+
+@media (max-width: 500px) {
+  .root {
+    font-size: 12px;
+    padding: 8px 6px;
+    gap: 3px;
+    word-break: break-word;
+  }
+  .root > div {
+    white-space: normal;
+    word-break: break-word;
+  }
 } 
