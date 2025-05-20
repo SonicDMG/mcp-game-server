@@ -50,7 +50,7 @@ export default async function LandingPage() {
       console.log('Fetching stories from API endpoint...');
     }
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/game/stories`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}/api/game/stories`);
     if (!response.ok) {
       throw new Error(`Failed to fetch stories: ${response.statusText}`);
     }
