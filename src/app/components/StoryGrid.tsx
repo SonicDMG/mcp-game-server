@@ -304,8 +304,10 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
                   <Image 
                     src={getProxiedImageUrl(story.image)}
                     alt={story.title}
-                    width={200}
-                    height={150}
+                    width={400}
+                    height={300}
+                    quality={90}
+                    sizes="(max-width: 768px) 100vw, 400px"
                     priority={index === 0}
                     className={styles.storyCardImage}
                     onError={e => {
