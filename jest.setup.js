@@ -1,3 +1,5 @@
+require('dotenv').config({ path: '.env.local' });
+
 const { Request, Response, Headers } = require('node-fetch');
 global.Request = Request;
 global.Response = Response;

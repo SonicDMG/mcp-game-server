@@ -101,9 +101,6 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
     setZoomedRoom({ image: img, name, description, users: users.filter(u => u.room === roomId) });
   };
 
-  // Responsive: stack everything vertically on mobile
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-
   return (
     <div className={styles.leaderboardContainer}>
       {/* Confetti Fanfare */}
