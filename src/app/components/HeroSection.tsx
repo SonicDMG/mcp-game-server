@@ -14,8 +14,10 @@ type HeroSectionProps = object;
 const HeroSection: React.FC<HeroSectionProps> = () => {
   const [showClaude, setShowClaude] = useState(false);
   const [showCursor, setShowCursor] = useState(false);
+  const [showWarp, setShowWarp] = useState(false);
   const [copiedClaude, setCopiedClaude] = useState(false);
   const [copiedCursor, setCopiedCursor] = useState(false);
+  const [copiedWarp, setCopiedWarp] = useState(false);
   useEffect(() => {
     // Highlight code blocks when modals open
     if (showClaude || showCursor) {
@@ -24,7 +26,7 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
   }, [showClaude, showCursor]);
 
   const getHost = () => (typeof window !== "undefined" ? window.location.origin : "");
-  const { CLAUDE_CONFIG, CURSOR_CONFIG } = useMemo(() => {
+  const { CLAUDE_CONFIG, CURSOR_CONFIG, SSE_URL } = useMemo(() => {
     const host = getHost();
     const sseUrl = `${host}/api/v1/mcp/sse`;
     const openapiUrl = `${host}/api/v1/mcp/openapi`;
@@ -43,7 +45,7 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
     \"openapi\": \"${openapiUrl}\"
   }
 }`;
-    return { CLAUDE_CONFIG, CURSOR_CONFIG };
+    return { CLAUDE_CONFIG, CURSOR_CONFIG, SSE_URL: sseUrl };
   }, []);
 
   return (
@@ -78,6 +80,13 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
           onClick={() => setShowCursor(true)}
         >
           <span className="pixel-button-text">Cursor</span>
+          <span className="pixel-button-shine"></span>
+        </button>
+        <button
+          className="pixel-button pixel-button-warp"
+          onClick={() => setShowWarp(true)}
+        >
+          <span className="pixel-button-text">Warp</span>
           <span className="pixel-button-shine"></span>
         </button>
       </div>
@@ -130,6 +139,30 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
               title={copiedCursor ? 'Copied!' : 'Copy config'}
             >
               {copiedCursor ? 'Copied!' : 'Copy config'}
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Warp SSE URL Modal */}
+      {showWarp && (
+        <div className={styles["hero-modal-overlay"]} onClick={() => setShowWarp(false)}>
+          <div className={styles["hero-modal"]} onClick={e => e.stopPropagation()}>
+            <button aria-label="Close" onClick={() => setShowWarp(false)} className={styles["hero-modal-close"]}>✕</button>
+            <h2 className={styles["hero-modal-title"]}>Warp SSE URL</h2>
+            <pre className={styles["hero-modal-pre"]} style={{ userSelect: 'all' }}>
+              <code>{SSE_URL}</code>
+            </pre>
+            <button
+              aria-label="Copy SSE URL"
+              onClick={() => {
+                navigator.clipboard.writeText(SSE_URL);
+                setCopiedWarp(true);
+                setTimeout(() => setCopiedWarp(false), 1000);
+              }}
+              className={styles["hero-modal-copy"]}
+              title={copiedWarp ? 'Copied!' : 'Copy SSE URL'}
+            >
+              {copiedWarp ? 'Copied!' : 'Copy SSE URL'}
             </button>
           </div>
         </div>

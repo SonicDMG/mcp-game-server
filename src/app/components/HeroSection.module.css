@@ -102,6 +102,12 @@
   transition: all 0.15s ease;
   transform: translate(0, 0);
   overflow: hidden;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pixel-button-claude {
@@ -112,6 +118,11 @@
 .pixel-button-cursor {
   background: #00c1ff;
   text-shadow: 2px 2px 0 #0077b3;
+}
+
+.pixel-button-warp {
+  background: linear-gradient(90deg, #ff00cc 0%, #00eaff 100%);
+  text-shadow: 2px 2px 0 #23244a;
 }
 
 .pixel-button:hover {
