@@ -1,9 +1,477 @@
 .contentContainer {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 12px 48px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .contentContainer {
+    padding: 12px 16px 56px;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 640px) {
+  .contentContainer {
+    padding: 16px 20px 64px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contentContainer {
+    padding: 16px 24px 64px;
+    gap: 32px;
+  }
+}
+
+/* Story Card Styles */
+
+.storyCardWrapper {
+  background: var(--card-bg, #1a1b3d);
+  border-radius: 12px;
+  border: 1px solid #2d2d5a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  color: var(--foreground, #f5f6fa);
+  text-align: left;
+  font-weight: 600;
+  font-size: 1.1rem;
+  display: flex;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 200px;
+  box-sizing: border-box;
+  position: relative;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.storyCardContent {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  gap: 16px;
+}
+
+.storyCardImageContainer {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.storyCardWrapper:hover {
+  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.2);
+  border-color: #a78bfa;
+  transform: translateY(-2px);
+}
+
+.noStoriesMsg {
+  color: #aaa;
+  text-align: center;
+  width: 100%;
+}
+
+.storyCardSkeletonWrapper {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 800px;
+}
+
+.loadingMsg {
+  margin-top: 24px;
+  color: #a7a7ff;
+  font-size: 16px;
+}
+
+.winnerRibbon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.89rem;
+  z-index: 1;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 8px #3b82f633;
+  border: 1.5px solid #fff2;
+}
+
+.killedBanner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.89rem;
+  z-index: 1;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 8px #ef444433;
+  border: 1.5px solid #fff2;
+}
+
+.storyCard {
+  /* Removed border, background, border-radius, box-shadow to prevent double border */
+  overflow: hidden;
+  transition: box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.storyCardContent {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.storyCardImageContainer {
+  flex: 0 0 200px;
+  height: 150px;
+  min-width: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.storyCardText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents flex item from overflowing container */
+  margin-top: -8px; /* Compensate for title spacing */
+}
+
+.storyCardTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  max-height: 3.6em;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.storyDescription {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 10px 0;
+}
+
+@media (min-width: 480px) {
+  .storyCardContent {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .storyTitle {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+  
+  .storyDescription {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .storyCardContent {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 640px) {
+  .storyCard {
+    max-width: 100%;
+  }
+}
+
+.storyCard:hover {
+  box-shadow: 0 8px 32px -4px #3b82f655, 0 1.5px 8px #23244a33;
+  transform: translateY(-4px) scale(1.025);
+  border-color: #3b82f6;
+}
+
+/* Card Image */
+.storyImage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  overflow: hidden;
+}
+
+.storyCardImageContainer {
+  position: relative;
+  flex: 0 0 200px;
+  height: 150px;
+  min-width: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.storyCardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.storyCardText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents flex item from overflowing container */
+}
+
+.storyImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 0 0 0;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+}
+
+.storyCard:hover .storyImage img {
+  transform: scale(1.05);
+}
+
+/* Winner Badge */
+.winnerBadge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.89rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 8px #3b82f633;
+  border: 1.5px solid #fff2;
+}
+
+.winnerBadge::before {
+  content: '🏆';
+  font-size: 1em;
+  margin-right: 4px;
+}
+
+/* Card Content */
+.storyContent {
+  padding: 24px 20px 20px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.storyTitle {
+  font-size: 1.28rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  color: #f8fafc;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  display: block;
+}
+
+.storyCardDescription {
+  font-size: 1rem;
+  color: #d1d5db;
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+  text-align: left;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.8em;
+  word-break: break-word;
+  hyphens: auto;
+  /* Fallback for non-WebKit */
+  @supports not (-webkit-line-clamp: 3) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+}
+
+/* Bump Animation */
+@keyframes statBump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.bump {
+  animation: statBump 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Stats */
+.storyCardStats {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 32px;
-} 
+}
+
+.statItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.statItem:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.statIcon {
+  font-size: 1.1em;
+  opacity: 0.9;
+  margin-right: 2px;
+}
+
+.statValue {
+  font-weight: 700;
+  color: #3b82f6;
+  min-width: 20px;
+  text-align: right;
+  margin-right: 2px;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  white-space: nowrap;
+}
+
+.statValue {
+  font-size: 1.13rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Play Button */
+.playButton {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.03rem;
+  margin-top: 14px;
+}
+.playButton:hover,
+.playButton:focus {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 4px 12px -2px #3b82f644;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 700px) {
+  .contentContainer {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 0 6px 24px;
+  }
+  .storyCard {
+    border-radius: 12px;
+    padding: 0;
+  }
+  .storyContent {
+    padding: 18px 10px 14px 10px;
+  }
+  .storyTitle {
+    font-size: 1.05rem;
+  }
+  .storyDescription {
+    font-size: 0.95rem;
+  }
+  .playButton {
+    font-size: 0.97rem;
+    padding: 10px 10px;
+  }
+}

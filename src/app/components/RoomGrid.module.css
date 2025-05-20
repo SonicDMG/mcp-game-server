@@ -4,5 +4,578 @@
   overflow: hidden;
   box-sizing: border-box;
   position: relative;
-  /* Optionally: height: 60vh; */
-} 
+  padding: 1rem;
+}
+
+.roomGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.roomCard {
+  background: #2d2d3a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.roomCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.roomHeader {
+  padding: 1rem;
+  background: #38384a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roomName {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.goalBadge {
+  background: #4caf50;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.roomContent {
+  display: flex;
+  flex: 1;
+  padding: 1rem;
+  gap: 1rem;
+  flex-direction: row;
+  position: relative;
+  min-height: 200px;
+  justify-content: space-between;
+}
+
+.roomImageContainer {
+  width: 60%;
+  min-width: 0;
+  border-radius: 8px;
+  overflow: visible;
+  background: #1e1e2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  position: relative;
+}
+
+.roomImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 2/1;
+  min-height: 150px;
+  border-radius: 8px;
+}
+
+.directionIndicators {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.directionIndicator {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 2;
+}
+
+.directionIndicator:hover {
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 3;
+}
+
+.directionArrow {
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+
+.directionIndicator:hover .directionArrow {
+  transform: scale(1.3);
+}
+
+.directionThumbnail {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  bottom: -5px;
+  right: -5px;
+  border: 2px solid white;
+  background: #1e1e2a;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.directionIndicator:hover .directionThumbnail {
+  transform: scale(3) translate(-25%, -25%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  border-width: 2px;
+  border-color: rgba(255, 255, 255, 0.8);
+  z-index: 20;
+}
+
+.directionIndicator::after {
+  content: attr(data-room-name);
+  position: fixed; /* Keep fixed to escape parent overflow */
+  background: #000000;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  z-index: 1000; /* Very high z-index to ensure it's on top */
+  pointer-events: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  max-width: 300px;
+  width: max-content;
+  text-overflow: clip;
+  overflow: visible;
+  /* Force hardware acceleration */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Position tooltips to the right for left-side indicators */
+.direction-west::after,
+.direction-northwest::after,
+.direction-southwest::after {
+  left: 100%;
+  bottom: 50%;
+  right: auto;
+  top: auto;
+  transform: translateY(50%) translateX(10px);
+  max-width: 300px;
+}
+
+/* Position tooltips to the left for right-side indicators */
+.direction-east::after,
+.direction-northeast::after,
+.direction-southeast::after {
+  right: 100%;
+  left: auto;
+  bottom: 50%;
+  top: auto;
+  transform: translateY(50%) translateX(-10px);
+  max-width: 300px;
+  text-align: right;
+}
+
+/* Bottom tooltip for south indicators */
+.direction-south::after {
+  top: 100%;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(5px);
+  max-width: 90%;
+}
+
+/* Tooltip hover states */
+.directionIndicator:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.directionIndicator:hover.direction-north::after,
+.directionIndicator:hover.direction-northeast::after,
+.directionIndicator:hover.direction-northwest::after {
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.directionIndicator:hover.direction-south::after {
+  transform: translateX(-50%) translateY(10px);
+}
+
+.directionIndicator:hover.direction-east::after,
+.directionIndicator:hover.direction-northeast::after,
+.directionIndicator:hover.direction-southeast::after {
+  transform: translateY(50%) translateX(-15px);
+}
+
+.directionIndicator:hover.direction-west::after,
+.directionIndicator:hover.direction-northwest::after,
+.directionIndicator:hover.direction-southwest::after {
+  transform: translateY(50%) translateX(15px);
+}
+
+/* Bottom tooltip for south indicators */
+.direction-south::after {
+  top: 100%;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+}
+
+/* Hover states */
+.directionIndicator:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.directionIndicator:hover.direction-west::after,
+.directionIndicator:hover.direction-northwest::after,
+.directionIndicator:hover.direction-southwest::after {
+  transform: translateY(50%) translateX(15px);
+}
+
+.directionIndicator:hover.direction-east::after,
+.directionIndicator:hover.direction-northeast::after,
+.directionIndicator:hover.direction-southeast::after {
+  transform: translateY(50%) translateX(-15px);
+}
+
+.directionIndicator:hover.direction-south::after {
+  transform: translateX(-50%) translateY(10px);
+}
+
+.direction-north {
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.direction-south {
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.direction-east {
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.direction-west {
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.playersContainer {
+  width: 35%;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.playersLabel {
+  font-size: 0.8rem;
+  color: #8a8a9a;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.playersList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.playerBadge {
+  background: #3a3a4a;
+  color: #e0e0e0;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.playerName {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.playerNameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  display: inline-block;
+}
+
+.itemCount {
+  color: #a0a0a0;
+  font-size: 0.9em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.playerBadge:hover {
+  background: #4a4a6a;
+}
+
+.playerBadge.killed {
+  opacity: 0.7;
+}
+
+.playerBadge.killed .playerNameText::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: #ff6b6b;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.noPlayers {
+  color: #8a8a9a;
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.exitsLabel {
+  font-size: 0.75rem;
+  color: #8a8a9a;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.exitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.exitBadge {
+  background: rgba(30, 30, 40, 0.8);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border: 2px solid #3a3a4a;
+  cursor: pointer;
+  position: relative;
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.exitBadge:hover {
+  transform: scale(1.1);
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: #4a4a6a;
+}
+
+.roomThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.exitBadge:hover .roomThumbnail {
+  transform: scale(1.1);
+}
+
+.exitsList {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.terminalRoom {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  font-style: italic;
+  padding: 0.3rem 0;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.usersContainer {
+  padding: 0.75rem 1rem;
+  background: #252535;
+  border-top: 1px solid #3a3a4a;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.usersContainer:hover {
+  background: #2f2f3f;
+}
+
+.usersLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #a0a0b0;
+  margin-bottom: 0.5rem;
+}
+
+.moreIndicator {
+  font-size: 0.75rem;
+  color: #6c7dff;
+}
+
+.usersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.userBadge {
+  background: #3a3a4a;
+  color: #e0e0e0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1;
+}
+
+.userBadge:hover {
+  background: #4a4a5a;
+  transform: translateY(-1px);
+}
+
+.userAvatar {
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.userName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deathIcon {
+  color: #ff6b6b;
+  font-size: 0.9em;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.killedUser {
+  opacity: 0.7;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: #ff6b6b;
+}
+
+/* Goal room styling */
+.goalRoom {
+  border: 2px solid #ffd700;
+}
+
+.goalRoom .roomHeader {
+  background: #3d3525;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .roomGrid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .roomContent {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  .roomImageContainer {
+    width: 100%;
+    height: 120px;
+    min-width: 0;
+    margin-bottom: 0.5rem;
+  }
+  .roomImage {
+    width: 100%;
+    height: 120px;
+    min-width: 0;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  .playersContainer {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+  }
+}
+@media (max-width: 500px) {
+  .roomCard {
+    padding: 0.5rem;
+    font-size: 0.95rem;
+  }
+  .roomHeader {
+    padding: 0.5rem;
+    font-size: 1rem;
+  }
+  .playersContainer {
+    padding: 0.4rem;
+    font-size: 0.92rem;
+  }
+}

@@ -72,7 +72,7 @@ const UserListModal: React.FC<UserListModalProps> = ({ room, users, setSelectedU
               }}
               onClick={() => setSelectedUser(user)}
             >
-              {user.id}
+              {user.name || user.displayName || user.username || user.id}
             </span>
             <span style={{ color: color.artifact, marginLeft: 2, fontWeight: 400 }}>
               ({requiredCollected.length} of {requiredArtifacts.length} Artifact{requiredArtifacts.length === 1 ? '' : 's'})

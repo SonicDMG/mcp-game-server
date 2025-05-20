@@ -1,13 +1,13 @@
 'use client';
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+
 import LeaderboardHUD from '../../MazeMuralGrid';
 import UserDetailCard from '../../UserDetailCard';
 import type { LeaderboardUser } from '../../components/Leaderboard';
 import { Location as GameLocation } from '@/app/api/game/types';
 import AppFooter from '../../components/AppFooter';
 import AppHeader from '../../components/AppHeader';
-import EventFeed from '../../components/EventFeed';
+
 import mainContentStyles from '../../components/MainContent.module.css';
 
 interface StoryMetadata {
@@ -36,14 +36,12 @@ interface LeaderboardData {
 }
 
 export default function StoryLeaderboardPage() {
-  const params = useParams();
-  const storyId = params.id as string;
+
+
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
   const [selectedUser, setSelectedUser] = useState<LeaderboardUser | null>(null);
 
-  const handleUserClick = (user: LeaderboardUser) => {
-    setSelectedUser(user);
-  };
+
 
   const handleCloseCard = () => {
     setSelectedUser(null);
@@ -52,13 +50,7 @@ export default function StoryLeaderboardPage() {
   return (
     <div className="app-root">
       <AppHeader
-        logoUrl="/images/logo.png"
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Story' }]}
-        onUserClick={handleUserClick}
-        stats={leaderboardData?.stats || { players: 0, artifacts: '', rooms: '', winners: 0 }}
-        winners={leaderboardData?.winners}
-        killed={leaderboardData?.killed}
-        eventFeed={<EventFeed storyId={storyId} />}
       />
       <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
         <LeaderboardHUD setLeaderboardData={setLeaderboardData} />

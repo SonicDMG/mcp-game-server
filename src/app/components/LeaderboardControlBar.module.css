@@ -12,6 +12,38 @@
   min-height: 0;
 }
 
+@media (max-width: 768px) {
+  .controlBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .layoutGroup,
+  .sliderGroup {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #23244a;
+    padding: 8px 0;
+  }
+  
+  .layoutGroup:last-child,
+  .sliderGroup:last-child {
+    border-bottom: none;
+  }
+  
+  .layoutButton {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .slider {
+    width: 100%;
+    height: 14px;
+  }
+}
+
 .layoutGroup {
   display: flex;
   align-items: center;

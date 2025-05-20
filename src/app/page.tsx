@@ -1,10 +1,11 @@
 export const dynamic = "force-dynamic";
 import db from '@/lib/astradb'; // Import DB instance
-import { Story, PlayerState } from '@/app/api/game/types'; // Import types
+import type { Story, PlayerState } from '@/app/api/game/types'; // Import types
 import AppFooter from './components/AppFooter';
 import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
 import EventFeed from './components/EventFeed';
+import HeroSection from './components/HeroSection';
 import mainContentStyles from './components/MainContent.module.css';
 
 // Define DB record interfaces
@@ -24,13 +25,6 @@ interface PlayerRecordForStats extends PlayerState {
   };
 }
 
-// Interface for the calculated player stats per story
-interface PlayerStats {
-  playerCount: number;
-  totalArtifactsFound: number;
-  killedCount: number;
-}
-
 // Interface for the final story data including stats
 interface StoryWithStats extends StoryRecord {
   playerCount: number;
@@ -38,65 +32,54 @@ interface StoryWithStats extends StoryRecord {
   killedCount: number;
 }
 
-const storiesCollection = db.collection<StoryRecord>('game_stories');
-const playersCollection = db.collection<PlayerRecordForStats>('game_players');
+// Mark as unused since they're not directly used in this file
+const _storiesCollection = db.collection<StoryRecord>('game_stories');
+const _playersCollection = db.collection<PlayerRecordForStats>('game_players');
 
 // Removed mockStories array
 
 // Make the component async to fetch data
+
 export default async function LandingPage() {
   let storiesWithStats: StoryWithStats[] = [];
   let fetchError = null;
 
   try {
-    // 1. Fetch all stories
+    // Fetch stories from the API endpoint which already includes stats
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Fetching stories from database...');
+      console.log('Fetching stories from API endpoint...');
     }
-    const stories = await storiesCollection.find({}).toArray();
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/game/stories`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch stories: ${response.statusText}`);
+    }
+    
+    const stories = await response.json();
+    console.log('Raw API response:', JSON.stringify(stories, null, 2));
+    
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`Fetched ${stories.length} stories.`);
+      console.log(`Fetched ${stories.length} stories from API.`);
     }
-
-    if (stories.length > 0) {
-      // 2. Fetch all player data (since aggregate isn't directly supported)
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Fetching all player data for stats calculation...');
-      }
-      // We might want to filter fields later if performance becomes an issue
-      const allPlayers = await playersCollection.find({}).toArray(); 
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`Fetched ${allPlayers.length} total players.`);
-      }
-
-      // 3. Calculate stats in code
-      const statsMap = new Map<string, PlayerStats>();
-
-      for (const player of allPlayers) {
-        if (!player.storyId) continue; // Skip players without storyId
-
-        const currentStats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
-        currentStats.playerCount += 1;
-        currentStats.totalArtifactsFound += player.gameProgress?.itemsFound?.length || 0;
-        if (player.status === 'killed') currentStats.killedCount += 1;
-        statsMap.set(player.storyId, currentStats);
-      }
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`Calculated stats for ${statsMap.size} stories.`);
-      }
-
-      // 4. Combine story data with calculated stats
-      storiesWithStats = stories.map(story => {
-        const stats = statsMap.get(story.id) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
-        return {
-          ...story,
-          playerCount: stats.playerCount,
-          totalArtifactsFound: stats.totalArtifactsFound,
-          killedCount: stats.killedCount
-        };
-      });
-    } else {
-      storiesWithStats = [];
+    
+    // Map the API response to the expected format
+    storiesWithStats = stories.map((story: StoryRecord & { playerCount?: number; totalArtifactsFound?: number; killedCount?: number }) => {
+      const mapped = {
+        ...story,
+        _id: story.id, // Ensure _id is set for compatibility
+        image: story.image || null,
+        startingLocation: story.startingLocation || "",
+        // Ensure all required fields are present
+        playerCount: story.playerCount || 0,
+        totalArtifactsFound: story.totalArtifactsFound || 0,
+        killedCount: story.killedCount || 0
+      };
+      console.log(`Mapped story ${story.id}:`, JSON.stringify(mapped, null, 2));
+      return mapped;
+    });
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Mapped stories with stats:', JSON.stringify(storiesWithStats, null, 2));
     }
 
   } catch (error) {
@@ -104,25 +87,27 @@ export default async function LandingPage() {
     fetchError = "Could not load story details. Please try again later.";
   }
 
+
   return (
-    <div className="app-root">
-      <AppHeader
-        logoUrl="/images/logo.png"
-        breadcrumbs={[{ label: 'Home', href: '/' }]}
-        stats={{ players: 0, artifacts: '', rooms: '', winners: 0 }}
-        eventFeed={<EventFeed storyId="all" />}
-      />
-      <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
-        <div className="hud-header">
-          {/* Removed [Choose a Story] text */}
-        </div>
-        {fetchError && (
-          <div style={{ color: 'red', textAlign: 'center', gridColumn: '1 / -1' }}>{fetchError}</div>
-        )}
-        {!fetchError && (
-          <StoryGrid initialStories={storiesWithStats} />
-        )}
-      </main>
+    <div className="relative min-h-screen">
+      <AppHeader breadcrumbs={[{ label: 'Home', href: '/' }]} />
+      <div>
+        <main className={`hud-frame ${mainContentStyles.mainContent} landing-gradient-bg`}>
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <HeroSection />
+            <EventFeed storyId="all" />
+            <div id="stories">
+              {fetchError ? (
+                <div className="text-red-500 text-center col-span-full">
+                  {fetchError}
+                </div>
+              ) : (
+                <StoryGrid initialStories={storiesWithStats} />
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
       <AppFooter />
     </div>
   );

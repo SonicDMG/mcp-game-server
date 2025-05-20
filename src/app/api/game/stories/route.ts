@@ -54,10 +54,25 @@ interface CreateStoryInput {
   version?: string;
 }
 
+// Define interface for player record
+interface PlayerRecord {
+  _id: string;
+  id: string;
+  storyId: string;
+  inventory: string[];
+  gameProgress?: {
+    itemsFound: string[];
+    puzzlesSolved: string[];
+    storyProgress: number;
+  };
+  status?: 'playing' | 'winner' | 'killed';
+}
+
 // Get a typed collection instance
 const storiesCollection = db.collection<StoryRecord>('game_stories');
 const locationsCollection = db.collection<LocationRecord>('game_locations');
 const itemsCollection = db.collection<ItemRecord>('game_items');
+const playersCollection = db.collection<PlayerRecord>('game_players');
 
 // Define the structure for story information
 export interface StoryInfo {
@@ -450,15 +465,26 @@ export async function GET(request: NextRequest) {
       }
 
       // Fetch all players for all stories
-      const allPlayers = await db.collection('game_players').find({}).toArray();
+      const allPlayers = await playersCollection.find({}).toArray();
       // Aggregate stats per story
       const statsMap = new Map();
       for (const player of allPlayers) {
         if (!player.storyId) continue;
+        
+        // Debug logging for specific story ID
+        if (player.storyId === 'f6037f04-e785-4800-bbac-fe20b22aea62') {
+          console.log('Player data for DOOM story:', {
+            playerId: player._id,
+            itemsFound: player.gameProgress?.itemsFound,
+            foundCount: player.gameProgress?.itemsFound?.length,
+            status: player.status
+          });
+        }
+
         const stats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
         stats.playerCount += 1;
-        // Use the max number of artifacts found by any player
-        const foundCount = player.gameProgress?.itemsFound?.length || 0;
+        // Find the maximum artifacts found by any player in this story
+        const foundCount = player.inventory?.length || 0;
         stats.totalArtifactsFound = Math.max(stats.totalArtifactsFound, foundCount);
         if (player.status === 'killed') stats.killedCount += 1;
         statsMap.set(player.storyId, stats);
@@ -512,7 +538,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `Story with id ${storyId} not found`}, { status: 404 });
       }
       // Fetch players for this story
-      const players = await db.collection('game_players').find({ storyId }).toArray();
+      const players = await playersCollection.find({ storyId }).toArray();
       const playerCount = players.length;
       const totalArtifactsFound = players.reduce((max, p) => Math.max(max, p.gameProgress?.itemsFound?.length || 0), 0);
       const killedCount = players.filter(p => p.status === 'killed').length;
