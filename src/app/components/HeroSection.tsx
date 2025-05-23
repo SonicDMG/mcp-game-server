@@ -67,6 +67,27 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
           priority
         />
       </div>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
+        <a
+          href="https://github.com/SonicDMG/mcp-game-server/blob/main/README.md#-getting-started"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            background: 'linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '1.25rem',
+            padding: '0.75rem 2.5rem',
+            borderRadius: '9999px',
+            boxShadow: '0 2px 8px rgba(79,70,229,0.15)',
+            textDecoration: 'none',
+            transition: 'background 0.2s',
+            letterSpacing: '0.02em',
+          }}
+        >
+          How to Play
+        </a>
+      </div>
       <div className="pixel-buttons">
         <button 
           className="pixel-button pixel-button-claude"

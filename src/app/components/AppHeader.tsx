@@ -44,6 +44,14 @@ export function AppHeader({ breadcrumbs }: { breadcrumbs: Breadcrumb[] }) {
               </div>
             ))}
           </nav>
+          <a
+            href="https://github.com/SonicDMG/mcp-game-server/blob/main/README.md#-getting-started"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-4 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition-colors"
+          >
+            How to Play
+          </a>
         </div>
       </div>
     </header>
