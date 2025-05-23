@@ -1,16 +1,30 @@
 ![MCP Game Server Logo](public/images/logo.png)
 
-# 🚀 MCP Game Server
+# 🚀 MCPlayerOne
 
 **Turn your imagination into an AI generated game**
 
-Welcome to the **MCP Game Server** — a synthwave, maze-crawling, world-building adventure platform! Create, explore, and compete in wild, AI-generated worlds. Powered by Next.js, [Langflow](https://langflow.org/), and your imagination.
+Welcome to the **MCPlayerOne** — a synthwave, maze-crawling, world-building adventure platform! Create, explore, and play in wild, AI-generated worlds. Powered by Next.js, [Langflow](https://langflow.org/), and your imagination.
+
+![App Screenshot](public/og-image.png)
+<p align="center"><i>Explore your world: Example gameplay</i></p>
 
 ---
 
 ## 🎮 Connect & Play via MCP Tools
-
 You can play instantly by connecting to the public MCP Game Server using your favorite agent tools—no server setup required!
+
+### 🧪 Warp Preview (Terminal)
+1. **Download and install [Warp Preview](https://www.warp.dev/blog/warp-preview)**
+2. **Open Warp Preview**
+3. **Go to `Settings` → `Manage MCP servers` → `+Add`**
+4. **Paste the following into the "SSE endpoint URL" field:**
+   ```
+   https://mcplayerone.onrender.com/api/v1/mcp/sse
+   ```
+5. **Save and connect!**
+   - You can now interact with the MCP Game Server directly from Warp Preview.
+
 
 ### 🖥️ Cursor (AI IDE)
 1. **Install [Cursor IDE](https://www.cursor.so/)**
@@ -56,10 +70,40 @@ You can play instantly by connecting to the public MCP Game Server using your fa
 - **Agent not responding?** Check that you're using the correct SSE endpoint and OpenAPI URL.
 - **Session timeouts?** SSE sessions last for 1 hour of inactivity—just reconnect if needed.
 
+## 🚦 Getting Started
+
+Whether you want to jump right into a game or set up your own server, getting started with MCPlayerOne is easy:
+
+### To Play Instantly
+- Use any of the methods above (Warp Preview, Cursor, Claude, etc.) to connect to the public MCP Game Server.
+
+Once connected, tell the agent you would like to play an MCPlayerOne game. 
+
+<div align="center" style="display: flex; gap: 24px; justify-content: center;">
+  <div>
+    <img src="public/images/claude-example-game-start.png" alt="Start a Game in Claude" width="320" height="320"/>
+    <div align="center"><i>Start an MCPlayerOne Game</i></div>
+  </div>
+  <div>
+    <img src="public/images/claude-example-choose-game.png" alt="Play a Game in Claude" width="320" height="320"/>
+    <div align="center"><i>Pick a Game and Play</i></div>
+  </div>
+</div>
+
+Now, just tell the agent which game you'd like to play and optionally give yourself a username (the agent will choose one for you if you don't).
+
+### Create your own game
+You can also create and generate your own game to play. 
+
+Have fun with it, point it at a website, maybe a GitHub repo, or just give it a theme. The more creative and imaginative you are the more interesting your game. This is where AI generation really shines.
+
+For example, tell the agent something like "Let's create a new MCPlayerOne game, use  github https://github.com/SonicDMG/mcp-game-server for the theme" or "Create a new MCPlayerOne game with a theme based on DOOM playing as a space marine".
+
+Game creation takes about 2-3 minutes so please be patient.
+
 ---
 
 ## 🎲 Gameplay
-Once you're connected, just ask for the available games or create your own. Use your imagination and let AI create a world based on your chosen theme.
 
 ### 🗝️ Available MCP Tools
 These are the main MCP tools you (or your agent) can use to play. Most agents will choose actions based on your input or goals.
@@ -75,14 +119,7 @@ These are the main MCP tools you (or your agent) can use to play. Most agents wi
 | **takeItem**      | Pick up a specified item from the current location.                           |
 | **examineTarget** | Get a detailed description of a specific item or feature in the current room. |
 | **getLeaderboard**| Retrieve the leaderboard data for a specific story.                           |
-| **getStoryById**  | Get the details of a specific story by its logical ID.                        |
-| **deleteStory**   | Delete a specific story and all associated data.  (Try not to do this unless it's your story)  
-
----
-
-## 🖼️ Screenshots
-![App Screenshot](public/images/screenshot.png)
-<p align="center"><i>Explore your world: Example gameplay</i></p>
+| **getStoryById**  | Get the details of a specific story by its logical ID.
 
 ---
 
@@ -122,12 +159,10 @@ Open [http://localhost:3000](http://localhost:3000) to play locally.
 Pull requests are welcome! Open an issue, fork, and help us build the wildest worlds in the metaverse. 
 
 - Star the repo ⭐
-- Add your own ASCII art or emoji!
 
 ---
 
 ## 🔗 Links
-- [GitHub](https://github.com/SonicDMG/mcp-game-server)
 - [Langflow](https://langflow.org/)
 
 ---
