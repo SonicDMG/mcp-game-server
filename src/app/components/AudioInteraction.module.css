@@ -1,0 +1,436 @@
+.audioContainer {
+  background: linear-gradient(135deg, #1a1b23 0%, #2d2e4a 100%);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  min-height: 56px;
+  height: 100%;
+  width: 100%;
+}
+
+.audioMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  position: relative;
+}
+
+.audioContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}
+
+.audioHeader {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.audioTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Status Badge */
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 16px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6366f1;
+}
+
+.statusText {
+  color: #e5e7eb;
+}
+
+/* Status Colors */
+.statusBadge.ready .statusDot {
+  background: #6366f1;
+}
+
+.statusBadge.connecting .statusDot {
+  background: #f59e0b;
+  animation: pulse 1.5s infinite;
+}
+
+.statusBadge.listening .statusDot {
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+.statusBadge.speaking .statusDot {
+  background: #f59e0b;
+  animation: speaking-pulse 0.8s infinite;
+}
+
+/* Action Button */
+.audioAction {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.actionButton {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.actionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.actionButton:active {
+  transform: translateY(0);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.actionButton.active {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.actionButton.active:hover {
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Visual Widget */
+.visualWidget {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.avatarOrb {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.orbCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+
+.orbRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+/* Connected state */
+.avatarOrb.connected .orbCore {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5);
+  animation: orbPulse 2s infinite;
+}
+
+.avatarOrb.connected .orbRing {
+  border-color: rgba(16, 185, 129, 0.5);
+  animation: ripple 2s infinite;
+}
+
+/* Speaking state */
+.avatarOrb.speaking .orbCore {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.6);
+  animation: speaking 0.8s infinite;
+}
+
+.avatarOrb.speaking .orbRing {
+  border-color: rgba(245, 158, 11, 0.6);
+  animation: speakingRing 0.8s infinite;
+}
+
+/* Connecting state */
+.avatarOrb.connecting .orbCore {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  animation: spin 2s linear infinite;
+}
+
+.avatarOrb.connecting .orbRing {
+  border-color: rgba(245, 158, 11, 0.5);
+  animation: spinRing 2s linear infinite;
+}
+
+/* Waveform animation */
+.waveform {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.waveBar {
+  width: 2px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 1px;
+  animation: waveAnimation 1s infinite;
+}
+
+.waveBar:nth-child(1) { animation-delay: 0s; }
+.waveBar:nth-child(2) { animation-delay: 0.1s; }
+.waveBar:nth-child(3) { animation-delay: 0.2s; }
+.waveBar:nth-child(4) { animation-delay: 0.3s; }
+.waveBar:nth-child(5) { animation-delay: 0.4s; }
+
+/* Hover effects */
+.avatarOrb:hover .orbCore {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.avatarOrb:hover .orbRing {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes speaking-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes orbPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes speaking {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  75% {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes speakingRing {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes spinRing {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
+@keyframes waveAnimation {
+  0%, 100% {
+    height: 4px;
+  }
+  50% {
+    height: 12px;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .audioContainer {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .audioMain {
+    gap: 12px;
+  }
+  
+  .audioTitle {
+    font-size: 1rem;
+  }
+  
+  .statusBadge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+  
+  .actionButton {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+  
+  .visualWidget {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .avatarOrb {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .orbCore {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .orbRing {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 500px) {
+  .audioContainer {
+    padding: 10px;
+  }
+  
+  .audioMain {
+    gap: 10px;
+  }
+  
+  .audioTitle {
+    font-size: 0.95rem;
+  }
+  
+  .statusBadge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+  
+  .actionButton {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+  
+  .visualWidget {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .avatarOrb {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .orbCore {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .orbRing {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .waveBar {
+    width: 1.5px;
+    height: 6px;
+  }
+} 

@@ -12,6 +12,7 @@ import ZoomedItemModal from './ZoomedItemModal';
 import styles from './Leaderboard.module.css';
 import Confetti from 'react-confetti';
 import { RoomChat } from './RoomChat';
+import AudioInteraction from './AudioInteraction';
 
 export interface LeaderboardUser {
   id: string;
@@ -125,20 +126,27 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
             unoptimized
           />
           <div className={styles.titleDescriptionContainer}>
-            <div className={styles.bannerText}>
-              {winners.length} Winner{winners.length > 1 ? 's' : ''}
-            </div>
-            <div className={`${styles.bannerText} ${styles.killed}`}>
-              {killed.length} Killed
+            <div className={styles.bannersAndAudioRow}>
+              <div className={styles.bannersSection}>
+                <div className={styles.bannerText}>
+                  {winners.length} Winner{winners.length > 1 ? 's' : ''}
+                </div>
+                <div className={`${styles.bannerText} ${styles.killed}`}>
+                  {killed.length} Killed
+                </div>
+              </div>
+              <div className={styles.audioInteractionSection}>
+                <AudioInteraction storyId={roomId} />
+              </div>
             </div>
             <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
-            <div className={styles.storyDescription}>{story.description}</div>
-            {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
-              <div className={styles.goalText}>
-                <b>Goal:</b> Collect all artifacts and reach the final room.
-              </div>
-            )}
           </div>
+          <div className={styles.storyDescription}>{story.description}</div>
+          {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
+            <div className={styles.goalText}>
+              <b>Goal:</b> Collect all artifacts and reach the final room.
+            </div>
+          )}
           <div className={styles.statsPanel}>
             <StatsPanel
               totalPlayers={totalPlayers}
@@ -195,21 +203,26 @@ export default function Leaderboard({ story, users, roomId }: LeaderboardProps &
             </div>
           </div>
           <div className={styles.rightContent}>
-            <div className={styles.titleDescriptionContainer}>
-              <div className={styles.bannerText}>
-                {winners.length} Winner{winners.length > 1 ? 's' : ''}
-              </div>
-              <div className={`${styles.bannerText} ${styles.killed}`}>
-                {killed.length} Killed
-              </div>
-              <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
-              <div className={styles.storyDescription}>{story.description}</div>
-              {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
-                <div className={styles.goalText}>
-                  <b>Goal:</b> Collect all artifacts and reach the final room.
+            <div className={styles.bannersAndAudioRow}>
+              <div className={styles.bannersSection}>
+                <div className={styles.bannerText}>
+                  {winners.length} Winner{winners.length > 1 ? 's' : ''}
                 </div>
-              )}
+                <div className={`${styles.bannerText} ${styles.killed}`}>
+                  {killed.length} Killed
+                </div>
+              </div>
+              <div className={styles.audioInteractionSection}>
+                <AudioInteraction storyId={roomId} />
+              </div>
             </div>
+            <div className={styles.storyTitle}>{cleanTitle(story.title)}</div>
+            <div className={styles.storyDescription}>{story.description}</div>
+            {story.requiredArtifacts && story.requiredArtifacts.length > 0 && (
+              <div className={styles.goalText}>
+                <b>Goal:</b> Collect all artifacts and reach the final room.
+              </div>
+            )}
             <div className={styles.roomGridWrapper}>
               <RoomGrid
                 rooms={story.rooms}
