@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 
-const AGENT_ID = 'agent_01jy79v8qhes8bk8ervgdwcw71';
-
 export async function GET() {
   try {
+    if (!process.env.ELEVENLABS_AGENT_ID) {
+      throw new Error('ELEVENLABS_AGENT_ID environment variable is not set');
+    }
+    
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${AGENT_ID}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${process.env.ELEVENLABS_AGENT_ID}`,
       {
         headers: {
           'xi-api-key': process.env.ELEVENLABS_API_KEY!,

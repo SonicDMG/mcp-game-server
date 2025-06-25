@@ -87,11 +87,78 @@
   animation: speaking-pulse 0.8s infinite;
 }
 
+.statusBadge.muted .statusDot {
+  background: #6b7280;
+}
+
+.statusBadge.paused .statusDot {
+  background: #f59e0b;
+}
+
 /* Action Button */
 .audioAction {
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  gap: 8px;
+}
+
+/* Control Buttons Container */
+.controlButtons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Control Button */
+.controlButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+}
+
+.controlButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.controlButton:active {
+  transform: scale(0.95);
+}
+
+.controlButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controlButton.muted {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.controlButton.muted:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.controlButton.paused {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+
+.controlButton.paused:hover {
+  background: rgba(245, 158, 11, 0.3);
 }
 
 .actionButton {
@@ -197,6 +264,30 @@
 .avatarOrb.speaking .orbRing {
   border-color: rgba(245, 158, 11, 0.6);
   animation: speakingRing 0.8s infinite;
+}
+
+/* Muted state */
+.avatarOrb.muted .orbCore {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  box-shadow: 0 4px 16px rgba(107, 114, 128, 0.4);
+  opacity: 0.7;
+}
+
+.avatarOrb.muted .orbRing {
+  border-color: rgba(107, 114, 128, 0.5);
+  opacity: 0.7;
+}
+
+/* Paused state */
+.avatarOrb.paused .orbCore {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+  animation: pausedPulse 2s infinite;
+}
+
+.avatarOrb.paused .orbRing {
+  border-color: rgba(245, 158, 11, 0.4);
+  animation: pausedRing 2s infinite;
 }
 
 /* Connecting state */
@@ -337,6 +428,28 @@
   }
   50% {
     height: 12px;
+  }
+}
+
+@keyframes pausedPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes pausedRing {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.6;
   }
 }
 
