@@ -78,7 +78,7 @@
   display: flex;
   gap: 20px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .pixel-button {
@@ -281,5 +281,33 @@
   color: #a7a7ffcc;
   margin: 12px 0 8px 0;
   text-align: left;
+}
+
+.how-to-play-container {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.how-to-play-button {
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
+  padding: 0.75rem 2.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+  text-decoration: none;
+  transition: background 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.how-to-play-button:hover {
+  background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%);
+}
+
+.audio-section {
+  width: 100%;
+  margin: 12px 0 24px 0;
 }
 

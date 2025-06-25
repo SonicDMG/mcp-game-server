@@ -8,6 +8,7 @@ import 'prismjs/plugins/line-numbers/prism-line-numbers';
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
 import styles from "./HeroSection.module.css";
+import AudioInteraction from "./AudioInteraction";
 
 type HeroSectionProps = object;
 
@@ -67,27 +68,22 @@ const HeroSection: React.FC<HeroSectionProps> = () => {
           priority
         />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
+      <div className={styles["how-to-play-container"]}>
         <a
           href="https://github.com/SonicDMG/mcp-game-server/blob/main/README.md#-getting-started"
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            background: 'linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)',
-            color: 'white',
-            fontWeight: 700,
-            fontSize: '1.25rem',
-            padding: '0.75rem 2.5rem',
-            borderRadius: '9999px',
-            boxShadow: '0 2px 8px rgba(79,70,229,0.15)',
-            textDecoration: 'none',
-            transition: 'background 0.2s',
-            letterSpacing: '0.02em',
-          }}
+          className={styles["how-to-play-button"]}
         >
           How to Play
         </a>
       </div>
+      
+      {/* Audio Interaction Component */}
+      <div className={styles["audio-section"]}>
+        <AudioInteraction storyId="demo" />
+      </div>
+      
       <div className="pixel-buttons">
         <button 
           className="pixel-button pixel-button-claude"
