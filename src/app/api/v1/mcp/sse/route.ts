@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
         writer.write(encoder(`data: ${JSON.stringify(msg)}\n\n`));
       } catch (err) {
         if (err && typeof err === 'object' && err.constructor && err.constructor.name === 'ResponseAborted') {
-          console.info(`[MCP][SSE][info] SSE client disconnected (ResponseAborted) for session ${sessionId}`);
+          // Client disconnected - this is normal, no need to log
         } else {
           console.error(`[MCP][SSE][error] Write failed for client ${sessionId}:`, err);
         }
@@ -562,7 +562,7 @@ export async function POST(req: NextRequest) {
 if (typeof process !== 'undefined' && process.on) {
   process.on('unhandledRejection', (reason) => {
     if (reason && typeof reason === 'object' && reason.constructor && reason.constructor.name === 'ResponseAborted') {
-      console.info('[MCP][SSE][info] UnhandledRejection: SSE client disconnected (ResponseAborted)');
+      // SSE client disconnected - this is normal, no need to log
     } else {
       console.error('[MCP][SSE][unhandledRejection]', reason);
     }
