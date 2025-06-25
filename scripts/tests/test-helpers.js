@@ -150,4 +150,11 @@ export async function pickupArtifacts(userId, storyId, requiredArtifacts) {
       await delay(100);
     }
   }
+}
+
+// New alternative: Use unique user IDs per test run to avoid needing reset
+export function generateUniqueUserId(baseId = 'testuser') {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  return `${baseId}_${timestamp}_${random}`;
 } 

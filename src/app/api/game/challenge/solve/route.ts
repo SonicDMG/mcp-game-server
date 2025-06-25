@@ -5,6 +5,119 @@ import { checkHasMessages, pollMessagesForUser } from '../../utils/checkHasMessa
 import type { Message } from '../../utils/checkHasMessages';
 
 /**
+ * Flexible solution matching utility for game challenges
+ * Works across different game themes (fantasy, sci-fi, historical, etc.)
+ * Uses generic linguistic patterns rather than game-specific logic
+ */
+function isFlexibleMatch(playerSolution: string, expectedSolution: string): boolean {
+  const player = playerSolution.trim().toLowerCase();
+  const expected = expectedSolution.trim().toLowerCase();
+  
+  // Debug logging for troubleshooting
+  console.log(`[FlexibleMatch] Comparing: "${player}" vs "${expected}"`);
+  
+  // Strategy 1: Exact match
+  if (player === expected) {
+    console.log(`[FlexibleMatch] ✅ Exact match`);
+    return true;
+  }
+  
+  // Strategy 2: Remove common stop words and compare core concepts
+  const stopWords = [
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+    'use', 'using', 'do', 'does', 'did', 'make', 'makes', 'try', 'tries', 'get', 'gets',
+    'go', 'goes', 'come', 'comes', 'take', 'takes', 'give', 'gives', 'put', 'puts'
+  ];
+  
+  const extractCoreWords = (text: string): string[] => {
+    return text.split(/[\s\-_,.;:!?()]+/)
+      .filter(word => word.length > 2 && !stopWords.includes(word))
+      .map(word => word.replace(/[^\w]/g, '').toLowerCase())
+      .filter(word => word.length > 0);
+  };
+  
+  const expectedCore = extractCoreWords(expected);
+  const playerCore = extractCoreWords(player);
+  
+  // Strategy 3: Check if player captured the essential concepts
+  if (expectedCore.length > 0) {
+    const conceptMatches = expectedCore.filter(expectedWord => 
+      playerCore.some(playerWord => {
+        // Exact match
+        if (playerWord === expectedWord) return true;
+        // Partial match (handles plurals, verb forms, etc.)
+        if (playerWord.includes(expectedWord) && expectedWord.length > 3) return true;
+        if (expectedWord.includes(playerWord) && playerWord.length > 3) return true;
+        // Handle common word variations
+        return areWordsRelated(playerWord, expectedWord);
+      })
+    );
+    
+    // If player matched most key concepts, consider it correct
+    const matchPercentage = conceptMatches.length / expectedCore.length;
+    console.log(`[FlexibleMatch] Concept match: ${conceptMatches.length}/${expectedCore.length} (${Math.round(matchPercentage * 100)}%)`);
+    console.log(`[FlexibleMatch] Expected core: [${expectedCore.join(', ')}]`);
+    console.log(`[FlexibleMatch] Player core: [${playerCore.join(', ')}]`);
+    console.log(`[FlexibleMatch] Concept matches: [${conceptMatches.join(', ')}]`);
+    
+    if (matchPercentage >= 0.6) { // Lowered threshold to be more forgiving
+      console.log(`[FlexibleMatch] ✅ Concept match (${Math.round(matchPercentage * 100)}%)`);
+      return true;
+    }
+  }
+  
+  // Strategy 4: Check if player's answer contains the expected answer as substring
+  if (expected.length > 4 && player.includes(expected)) {
+    console.log(`[FlexibleMatch] ✅ Player contains expected`);
+    return true;
+  }
+  
+  // Strategy 5: Check if expected answer contains player's answer as substring
+  if (player.length > 4 && expected.includes(player)) {
+    console.log(`[FlexibleMatch] ✅ Expected contains player`);
+    return true;
+  }
+  
+  console.log(`[FlexibleMatch] ❌ No match found`);
+  return false;
+}
+
+/**
+ * Checks if two words are linguistically related
+ * Handles common variations without game-specific logic
+ */
+function areWordsRelated(word1: string, word2: string): boolean {
+  // Handle plurals and basic verb forms
+  const normalize = (word: string): string => {
+    // Remove common suffixes and handle compound words
+    return word.replace(/(s|es|ed|ing|er|est|ly|type)$/, '').toLowerCase();
+  };
+  
+  const norm1 = normalize(word1);
+  const norm2 = normalize(word2);
+  
+  // Check if normalized forms match
+  if (norm1 === norm2) return true;
+  
+  // Handle compound words like "water-type" vs "water"
+  if (word1.includes('type') || word2.includes('type')) {
+    const base1 = word1.replace(/[-_]?type$/, '');
+    const base2 = word2.replace(/[-_]?type$/, '');
+    if (base1 === base2 || base1.includes(base2) || base2.includes(base1)) {
+      return true;
+    }
+  }
+  
+  // Check if one is a substring of the other (for longer words)
+  if ((norm1.length > 3 && norm2.includes(norm1)) || 
+      (norm2.length > 3 && norm1.includes(norm2))) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * POST /api/game/challenge/solve
  * Body: { userId, storyId, challengeId, solution }
  * Handles submitting a solution to a challenge (e.g., riddle, puzzle, quest).
@@ -52,25 +165,22 @@ export async function POST(request: NextRequest) {
       }
     }
     // TODO: Add more requirement checks as needed
-    // Compare solution (case-insensitive, trimmed)
+    // Compare solution using flexible matching
+    // Try multiple solution fields for maximum flexibility
     let isCorrect = false;
-    if (challenge.solution) {
-      isCorrect = solution.trim().toLowerCase() === challenge.solution.trim().toLowerCase();
-    } else if (challenge.expectedAction) {
-      // For discovery/action challenges, require the correct action/command
-      if (
-        solution.trim().toLowerCase() === challenge.expectedAction.trim().toLowerCase() &&
-        (!challenge.requirements?.item || player.inventory.includes(challenge.requirements.item)) &&
-        player.currentLocation === challenge.locationId
-      ) {
-        isCorrect = true;
-      } else {
-        return NextResponse.json({
-          success: false,
-          error: 'You must perform the correct action in the right location with the required item to complete this challenge.'
-        }, { status: 400 });
-      }
-    } else if (challenge.completionCriteria) {
+    
+    // Strategy: Try expectedAction first (usually shorter/more specific), then solution, then completionCriteria
+    if (challenge.expectedAction) {
+      isCorrect = isFlexibleMatch(solution, challenge.expectedAction);
+    }
+    
+    // If expectedAction didn't match, try the longer solution text
+    if (!isCorrect && challenge.solution) {
+      isCorrect = isFlexibleMatch(solution, challenge.solution);
+    }
+    
+    // Handle completion criteria for non-text challenges
+    if (!isCorrect && challenge.completionCriteria) {
       // Special logic for other non-text challenges
       if (
         (!challenge.requirements?.item || player.inventory.includes(challenge.requirements.item)) &&
