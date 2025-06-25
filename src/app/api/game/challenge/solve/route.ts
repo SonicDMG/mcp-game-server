@@ -193,7 +193,10 @@ export async function POST(request: NextRequest) {
           error: 'You must be in the correct location and have the required item to complete this challenge.'
         }, { status: 400 });
       }
-    } else {
+    }
+    
+    // If no solution methods are defined at all, return error
+    if (!challenge.expectedAction && !challenge.solution && !challenge.completionCriteria) {
       return NextResponse.json({
         success: false,
         error: 'No solution defined for this challenge.'
