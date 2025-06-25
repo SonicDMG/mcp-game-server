@@ -56,7 +56,6 @@ export default async function LandingPage() {
     }
     
     const stories = await response.json();
-    console.log('Raw API response:', JSON.stringify(stories, null, 2));
     
     if (process.env.NODE_ENV !== 'production') {
       console.log(`Fetched ${stories.length} stories from API.`);
@@ -74,12 +73,12 @@ export default async function LandingPage() {
         totalArtifactsFound: story.totalArtifactsFound || 0,
         killedCount: story.killedCount || 0
       };
-      console.log(`Mapped story ${story.id}:`, JSON.stringify(mapped, null, 2));
+      //console.log(`Mapped story ${story.id}:`, JSON.stringify(mapped, null, 2));
       return mapped;
     });
     
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Mapped stories with stats:', JSON.stringify(storiesWithStats, null, 2));
+      //console.log('Mapped stories with stats:', JSON.stringify(storiesWithStats, null, 2));
     }
 
   } catch (error) {
