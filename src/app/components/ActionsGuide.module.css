@@ -1,0 +1,254 @@
+.actionsGuide {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #0f3460;
+  border-radius: 12px;
+  margin: 16px 0;
+  box-shadow: 0 4px 20px rgba(15, 52, 96, 0.3);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.actionsGuide:hover {
+  box-shadow: 0 6px 25px rgba(15, 52, 96, 0.4);
+}
+
+.toggleButton {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #e94560;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleButton:hover {
+  background: rgba(233, 69, 96, 0.1);
+  color: #ff6b7a;
+}
+
+.toggleIcon {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.toggleText {
+  flex-grow: 1;
+  text-align: left;
+  margin-left: 12px;
+}
+
+.actionCount {
+  font-size: 14px;
+  color: #a0a0a0;
+  font-weight: 400;
+}
+
+.content {
+  padding: 0 20px 20px 20px;
+  border-top: 1px solid #0f3460;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.categoryFilter {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 20px 0;
+  flex-wrap: wrap;
+}
+
+.categoryButton {
+  background: transparent;
+  border: 2px solid #0f3460;
+  border-radius: 20px;
+  padding: 6px 16px;
+  color: #a0a0a0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.categoryButton:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.categoryActive {
+  background: #e94560;
+  border: 2px solid #e94560;
+  border-radius: 20px;
+  padding: 6px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.actionsList {
+  display: grid;
+  gap: 16px;
+}
+
+.actionItem {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.actionItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #1e5f8b;
+}
+
+.actionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.actionIcon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.actionName {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+  flex-grow: 1;
+}
+
+.actionCategory {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.actionDescription {
+  color: #cccccc;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.actionExamples {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 12px;
+  border-left: 3px solid #e94560;
+}
+
+.actionExamples strong {
+  color: #e94560;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.actionExamples ul {
+  margin: 0;
+  padding-left: 16px;
+  list-style-type: none;
+}
+
+.actionExamples li {
+  margin: 4px 0;
+  position: relative;
+}
+
+.actionExamples li::before {
+  content: "▶";
+  color: #e94560;
+  position: absolute;
+  left: -16px;
+  font-size: 10px;
+}
+
+.actionExamples code {
+  background: rgba(233, 69, 96, 0.1);
+  color: #ff6b7a;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  border: 1px solid rgba(233, 69, 96, 0.2);
+}
+
+.helpNote {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.helpNote strong {
+  color: #4caf50;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .toggleButton {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .content {
+    padding: 0 16px 16px 16px;
+  }
+
+  .categoryFilter {
+    gap: 6px;
+  }
+
+  .categoryButton,
+  .categoryActive {
+    font-size: 13px;
+    padding: 5px 12px;
+  }
+
+  .actionItem {
+    padding: 12px;
+  }
+
+  .actionHeader {
+    gap: 10px;
+  }
+
+  .actionName {
+    font-size: 15px;
+  }
+
+  .actionIcon {
+    font-size: 18px;
+    width: 20px;
+  }
+} 

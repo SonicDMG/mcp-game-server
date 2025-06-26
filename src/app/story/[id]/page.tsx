@@ -7,6 +7,7 @@ import type { LeaderboardUser } from '../../components/Leaderboard';
 import { Location as GameLocation } from '@/app/api/game/types';
 import AppFooter from '../../components/AppFooter';
 import AppHeader from '../../components/AppHeader';
+import ActionsGuide from '../../components/ActionsGuide';
 
 import mainContentStyles from '../../components/MainContent.module.css';
 
@@ -53,6 +54,7 @@ export default function StoryLeaderboardPage() {
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Story' }]}
       />
       <main className={`hud-frame leaderboard-bg-gradient ${mainContentStyles.mainContent}`}>
+        <ActionsGuide />
         <LeaderboardHUD setLeaderboardData={setLeaderboardData} />
         {selectedUser && leaderboardData && (
           <UserDetailCard
