@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Enforce MAX_ROOMS_PER_STORY ---
-    const maxRooms = parseInt(process.env.MAX_ROOMS_PER_STORY || '20', 10);
+    const maxRooms = parseInt(process.env.MAX_ROOMS_PER_STORY || '10', 10);
     if (generatedWorld.locations.length > maxRooms) {
         console.error(`POST /api/game/stories - Error: Generated world has ${generatedWorld.locations.length} rooms, which exceeds the maximum allowed (${maxRooms}).`);
         return NextResponse.json({
