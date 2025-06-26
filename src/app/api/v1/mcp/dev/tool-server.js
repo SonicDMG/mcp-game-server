@@ -28,10 +28,20 @@ let openapiManifest = null;
 
 // --- Global Error Handlers ---
 process.on('uncaughtException', (err, origin) => {
+  // Ignore ResponseAborted errors - these are normal when SSE clients disconnect
+  if (err && typeof err === 'object' && err.constructor && err.constructor.name === 'ResponseAborted') {
+    // SSE client disconnected - this is normal, no need to log
+    return;
+  }
   console.error(`[Tool Server] FATAL: Uncaught Exception at: ${origin}, error: ${err.stack || err}`);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
+  // Ignore ResponseAborted errors - these are normal when SSE clients disconnect
+  if (reason && typeof reason === 'object' && reason.constructor && reason.constructor.name === 'ResponseAborted') {
+    // SSE client disconnected - this is normal, no need to log
+    return;
+  }
   console.error('[Tool Server] FATAL: Unhandled Rejection at:', promise, 'reason:', reason);
 });
 // --- End Global Error Handlers ---
