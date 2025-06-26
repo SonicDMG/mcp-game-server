@@ -83,6 +83,7 @@ export interface LangflowWorldResponse {
   items: Omit<GameItem, 'storyId'>[];
   challenges?: Challenge[];
   requiredArtifacts?: string[];
+  finalTask?: FinalTask;
 }
 
 export interface FinalTask {

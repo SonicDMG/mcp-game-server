@@ -3,6 +3,7 @@ import db from '@/lib/astradb'; // Import the initialized Db instance
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 import { generateImageWithPolling } from '@/lib/everartUtils'; // Import the new utility function
 import { callLangflow } from '@/lib/langflow';
+import { FinalTask } from '../types'; // Import FinalTask interface
 
 /**
  * GET/POST /api/game/stories
@@ -24,6 +25,7 @@ interface StoryRecord {
   image?: string; // Add image field from types.ts (implicitly)
   creationStatus?: 'pending' | 'done' | 'error'; // Track story creation progress
   goalRoomId?: string; // The ID of the goal room for win path
+  finalTask?: FinalTask; // The final epic task required to win
 }
 
 interface LocationRecord {
@@ -186,6 +188,18 @@ export async function POST(request: NextRequest) {
       if (process.env.NODE_ENV !== 'production') {
         console.log(`Parsed ${challenges.length} challenges from generated world data.`);
       }
+    }
+
+    // --- NEW: Extract and validate finalTask ---
+    const finalTask = generatedWorld.finalTask && typeof generatedWorld.finalTask === 'object' 
+      ? generatedWorld.finalTask as FinalTask 
+      : undefined;
+    if (finalTask) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Parsed finalTask from generated world data:', JSON.stringify(finalTask, null, 2));
+      }
+    } else {
+      console.log('No finalTask found in generated world data, will use standard win condition.');
     }
 
     // --- Enforce MAX_ROOMS_PER_STORY ---
@@ -351,7 +365,7 @@ export async function POST(request: NextRequest) {
 
     if (generatedImageUrl) {
         console.log(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
-        // --- 10. Update Story Record with Image URL and Challenges ---
+        // --- 10. Update Story Record with Image URL, Challenges, and FinalTask ---
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
             { $set: {
@@ -360,19 +374,20 @@ export async function POST(request: NextRequest) {
                 creationStatus: 'done',
                 goalRoomId: goalRoomId,
                 challenges: challenges, // Store challenges array
+                ...(finalTask ? { finalTask: finalTask } : {}), // Store finalTask if present
                 ...(generatedImageUrl ? { image: generatedImageUrl } : {})
               }
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.log(`Successfully updated story ${storyId} with image URL and challenges.`);
+            console.log(`Successfully updated story ${storyId} with image URL, challenges, and finalTask.`);
         } else {
             // This shouldn't happen if the initial insert succeeded, but log a warning
-            console.warn(`Warning: Failed to update story ${storyId} with image URL and challenges. Update modified count: ${updateResult.modifiedCount}`);
+            console.warn(`Warning: Failed to update story ${storyId} with image URL, challenges, and finalTask. Update modified count: ${updateResult.modifiedCount}`);
         }
     } else {
         console.warn(`Warning: EverArt image generation failed or timed out for story ${storyId}. Story record will not have an image URL.`);
-        // Still update with challenges even if image failed
+        // Still update with challenges and finalTask even if image failed
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
             { $set: {
@@ -380,14 +395,15 @@ export async function POST(request: NextRequest) {
                 requiredArtifacts: requiredArtifacts,
                 creationStatus: 'done',
                 goalRoomId: goalRoomId,
-                challenges: challenges
+                challenges: challenges,
+                ...(finalTask ? { finalTask: finalTask } : {}) // Store finalTask if present
               }
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.log(`Successfully updated story ${storyId} with challenges (no image).`);
+            console.log(`Successfully updated story ${storyId} with challenges and finalTask (no image).`);
         } else {
-            console.warn(`Warning: Failed to update story ${storyId} with challenges (no image). Update modified count: ${updateResult.modifiedCount}`);
+            console.warn(`Warning: Failed to update story ${storyId} with challenges and finalTask (no image). Update modified count: ${updateResult.modifiedCount}`);
         }
     }
 
