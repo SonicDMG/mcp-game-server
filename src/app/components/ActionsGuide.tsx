@@ -47,7 +47,7 @@ const ACTIONS: Action[] = [
     name: 'Solve Challenge',
     command: 'solve',
     description: 'Submit a solution to a puzzle, riddle, or challenge to earn artifacts',
-    examples: ['solve riddle_1 "answer"', 'solve puzzle "solution"'],
+    examples: ['solve riddle_1 &quot;answer&quot;', 'solve puzzle &quot;solution&quot;'],
     icon: '🧩',
     category: 'exploration'
   },
@@ -55,7 +55,7 @@ const ACTIONS: Action[] = [
     name: 'Send Message',
     command: 'message',
     description: 'Send a message to other players in the same room',
-    examples: ['message "Hello everyone!"', 'message "Need help here"'],
+    examples: ['message &quot;Hello everyone!&quot;', 'message &quot;Need help here&quot;'],
     icon: '💬',
     category: 'social'
   },
@@ -173,7 +173,7 @@ export default function ActionsGuide() {
 
           <div className={styles.helpNote}>
             <strong>💡 Pro Tip:</strong> Use specific item names and room IDs as shown in your current location description. 
-            Actions like "move", "take", and "examine" work with the exact names displayed in the game.
+            Actions like &quot;move&quot;, &quot;take&quot;, and &quot;examine&quot; work with the exact names displayed in the game.
           </div>
         </div>
       )}
