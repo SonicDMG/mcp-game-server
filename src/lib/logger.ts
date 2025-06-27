@@ -28,12 +28,9 @@ const logger = winston.createLogger({
       format: json()
     })
   ],
-  // Handle uncaught exceptions and rejections
+  // Handle uncaught exceptions only (rejections handled separately to avoid conflicts)
   exceptionHandlers: [
     new winston.transports.File({ filename: 'logs/exceptions.log' })
-  ],
-  rejectionHandlers: [
-    new winston.transports.File({ filename: 'logs/rejections.log' })
   ]
 });
 
@@ -55,5 +52,21 @@ if (process.env.NODE_ENV !== 'production') {
     )
   }));
 }
+
+// Handle unhandled promise rejections with ResponseAborted filtering
+// This is the single, authoritative rejection handler
+process.on('unhandledRejection', (reason: unknown) => {
+  // Skip ResponseAborted errors - they're normal when SSE connections close
+  if (reason && typeof reason === 'object' && reason.constructor && reason.constructor.name === 'ResponseAborted') {
+    return;
+  }
+  
+  // Log other unhandled rejections to file
+  logger.error('Unhandled Promise Rejection', {
+    rejection: true,
+    error: reason,
+    stack: reason instanceof Error ? reason.stack : undefined
+  });
+});
 
 export default logger; 
