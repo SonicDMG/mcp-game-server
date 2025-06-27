@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 }
 
 async function fetchAndFormatMetadata(storyId: string) {
-  console.log(`Fetching metadata for story: ${storyId}`);
+      console.debug(`Fetching metadata for story: ${storyId}`);
   try {
     // 1. Fetch Story Document
     const story = await storiesCollection.findOne({ id: storyId });

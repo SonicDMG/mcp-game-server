@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Story ID query parameter is required' }, { status: 400 });
     }
 
-    console.log(`Fetching leaderboard data for story: ${storyId}...`);
+    console.debug(`Fetching leaderboard data for story: ${storyId}...`);
 
     // Fetch players for the relevant story using the provided storyId
     const cursor = playersCollection.find({ storyId: storyId });
@@ -40,7 +40,9 @@ export async function GET(request: NextRequest) {
     // cursor.limit(10);
 
     const players = await cursor.toArray();
-    console.log(`Found ${players.length} players for leaderboard.`);
+    if (players.length > 0) {
+      console.debug(`Found ${players.length} players for leaderboard.`);
+    }
 
     // Defensive winner logic
     let goalRoomId: string | undefined;

@@ -30,7 +30,7 @@ function initializeEverartSdk(): boolean {
     }
     try {
         everart = new EverArt(everartApiKey);
-        console.log('[EverArt Utils] EverArt client initialized.');
+        console.info('[EverArt Utils] EverArt client initialized.');
         return true;
     } catch (sdkError) {
         console.error('[EverArt Utils] Failed to initialize EverArt SDK:', sdkError);
@@ -54,7 +54,7 @@ export async function generateImageWithPolling(prompt: string, modelId: string =
     let generationId: string | undefined = undefined;
     let imageUrl: string | undefined = undefined;
 
-    console.log(`[EverArt Utils] Attempting to generate image with prompt: "${prompt}"`);
+    console.info(`[EverArt Utils] Attempting to generate image with prompt: "${prompt}"`);
     try {
         // Call EverArt API to start generation
         const generationResponse: EverArtGenerationResponse = await everart.v1.generations.create(
@@ -62,7 +62,7 @@ export async function generateImageWithPolling(prompt: string, modelId: string =
             prompt,
             'txt2img'
         );
-        console.log('[EverArt Utils] Raw response from EverArt create:', JSON.stringify(generationResponse, null, 2));
+        console.info('[EverArt Utils] Raw response from EverArt create:', JSON.stringify(generationResponse, null, 2));
 
         // Extract generation ID (handle potential array response)
         if (Array.isArray(generationResponse) && generationResponse.length > 0 && generationResponse[0].id) {
@@ -77,16 +77,16 @@ export async function generateImageWithPolling(prompt: string, modelId: string =
 
         // Poll for result if we got an ID
         if (typeof generationId === 'string') {
-            console.log(`[EverArt Utils] EverArt generation started with ID: ${generationId}. Polling for result...`);
+            console.info(`[EverArt Utils] EverArt generation started with ID: ${generationId}. Polling for result...`);
             const startTime = Date.now();
             while (Date.now() - startTime < MAX_POLL_DURATION_MS) {
                 await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
                 const statusCheck = await everart.v1.generations.fetch(generationId);
-                console.log(`[EverArt Utils] Polling status for ${generationId}: ${statusCheck.status}`);
+                console.info(`[EverArt Utils] Polling status for ${generationId}: ${statusCheck.status}`);
 
                 if (statusCheck.status === 'SUCCEEDED') {
                     imageUrl = statusCheck.image_url ?? undefined;
-                    console.log(`[EverArt Utils] EverArt generation ${generationId} succeeded. Image URL: ${imageUrl}`);
+                    console.info(`[EverArt Utils] EverArt generation ${generationId} succeeded. Image URL: ${imageUrl}`);
                     break; // Exit loop
                 } else if (statusCheck.status === 'FAILED' || statusCheck.status === 'CANCELED') {
                     console.error(`[EverArt Utils] EverArt generation ${generationId} failed or was canceled. Status: ${statusCheck.status}`);

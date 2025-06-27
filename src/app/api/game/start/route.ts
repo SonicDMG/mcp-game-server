@@ -43,7 +43,7 @@ const storiesCollection = db.collection<StoryRecord>('game_stories');
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV !== 'production') {
-  console.log('>>> ENTERING /api/game/start handler <<< ');
+  console.debug('>>> ENTERING /api/game/start handler <<< ');
   }
   interface StartRequestBody {
     userId?: string;
@@ -54,16 +54,14 @@ export async function POST(request: NextRequest) {
   try {
     requestBody = await request.json() as StartRequestBody;
     if (process.env.NODE_ENV !== 'production') {
-    console.log('[API /start] Received request body:', JSON.stringify(requestBody)); 
+    console.debug('[API /start] Received request body:', JSON.stringify(requestBody)); 
     }
     // Destructure userId and storyId
     const { userId, storyId } = requestBody;
 
     // Still require storyId
     if (!storyId) {
-      if (process.env.NODE_ENV !== 'production') {
-      console.log('>>> Missing storyId, returning 400 <<<');
-      }
+      console.warn('>>> Missing storyId, returning 400 <<<');
       return NextResponse.json({ success: false, error: 'Story ID is required' }, { status: 400 });
     }
 
@@ -76,12 +74,12 @@ export async function POST(request: NextRequest) {
       }, { status: 200 });
     } else {
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`>>> Received userId: ${userId} <<<`);
+        console.info(`>>> Received userId: ${userId} <<<`);
       }
     }
 
     if (process.env.NODE_ENV !== 'production') {
-    console.log(`>>> Processing start request for userId: ${userId}, storyId: ${storyId} <<<`);
+      console.info(`>>> Processing start request for userId: ${userId}, storyId: ${storyId} <<<`);
     }
 
     // Construct the unique player document ID
@@ -94,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     if (player) {
       if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> Player ${playerDocId} found. Retrieving state. <<<`);
+      console.info(`>>> Player ${playerDocId} found. Retrieving state. <<<`);
       }
       message = "Welcome back! Resuming your adventure.";
       // Fetch story for goals
@@ -109,7 +107,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, error: 'Internal server error: User ID could not be determined.' }, { status: 500 });
       }
       if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> Player ${playerDocId} not found. Creating new game state. <<<`);
+      console.info(`>>> Player ${playerDocId} not found. Creating new game state. <<<`);
       }
       
       // 2. If player doesn't exist, fetch the story to get starting location
@@ -147,7 +145,7 @@ export async function POST(request: NextRequest) {
       // Insert the new player document
       const insertResult = await playersCollection.insertOne(newPlayer);
       if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> New player created with result:`, insertResult);
+      console.info(`>>> New player created with result:`, insertResult);
       }
       
       // Use the newly created player object for the response
@@ -162,7 +160,7 @@ export async function POST(request: NextRequest) {
     const currentLocation = await locationsCollection.findOne({ id: player.currentLocation, storyId: storyId });
     
     if (process.env.NODE_ENV !== 'production') {
-    console.log('>>> DEBUG: Raw currentLocation fetched from DB:', JSON.stringify(currentLocation, null, 2));
+    console.debug('>>> DEBUG: Raw currentLocation fetched from DB:', JSON.stringify(currentLocation, null, 2));
     }
 
     if (!currentLocation) {
@@ -191,7 +189,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-    console.log(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
+    console.info(`>>> Start successful for ${playerDocId}. Current location: ${locationResponse.id} <<<`);
     }
 
     return NextResponse.json({
@@ -219,7 +217,7 @@ export async function POST(request: NextRequest) {
     // Handle JSON parsing error specifically
     if (error instanceof SyntaxError) {
         if (process.env.NODE_ENV !== 'production') {
-        console.log('>>> Bad JSON format received <<<');
+        console.error('>>> Bad JSON format received <<<');
         }
         errorMessage = "Invalid request format. Please send valid JSON.";
         return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });

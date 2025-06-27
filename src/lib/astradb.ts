@@ -23,7 +23,7 @@ const client = new DataAPIClient(token);
 // This Db object is what we'll use to access collections.
 const db: Db = client.db(endpoint);
 
-console.log(`AstraDB client initialized. DB instance created for endpoint: ${endpoint}`);
+console.info(`AstraDB client initialized. DB instance created for endpoint: ${endpoint}`);
 
 // Export the initialized Db instance for use in other modules
 export default db; 

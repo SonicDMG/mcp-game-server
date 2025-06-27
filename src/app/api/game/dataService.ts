@@ -34,7 +34,7 @@ export async function getPlayerState(userId: string, storyId: string): Promise<P
       return playerState;
     }
     // Player not found, create new one
-    console.log(`Player ${playerDocId} not found, creating new state...`);
+    console.info(`Player ${playerDocId} not found, creating new state...`);
     const story = await getStory(storyId);
     if (!story) {
       console.error(`Cannot create player: Story ${storyId} not found.`);
@@ -54,8 +54,8 @@ export async function getPlayerState(userId: string, storyId: string): Promise<P
       }
     };
     // Insert the new player with the constructed _id
-    const result = await playersCollection.insertOne({ ...newPlayerData, _id: playerDocId });
-    console.log(`New player ${playerDocId} created, insertedId: ${result.insertedId}`);
+    const _result = await playersCollection.insertOne({ ...newPlayerData, _id: playerDocId });
+    console.info(`New player ${playerDocId} created successfully`);
     // Return the full player state including the _id
     return { ...newPlayerData, _id: playerDocId };
   } catch (error) {
@@ -75,11 +75,14 @@ export async function updatePlayerState(player: PlayerRecord): Promise<boolean> 
     const filter = { _id: _id }; 
     // Use replaceOne to overwrite the document with the new state
     const result = await playersCollection.replaceOne(filter, playerData);
-    console.log(`Updated player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+    console.info(`Updated player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+    if (result.modifiedCount === 0) {
+      console.warn(`Failed to update player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+    }
     // Check if the document was found and replaced
     return result.modifiedCount === 1;
   } catch (error) {
-    console.error(`Error updating player state for ${player._id}:`, error);
+      console.error(`Error updating player state for ${player._id}:`, error);
     return false;
   }
 }

@@ -14,11 +14,11 @@ function isFlexibleMatch(playerSolution: string, expectedSolution: string): bool
   const expected = expectedSolution.trim().toLowerCase();
   
   // Debug logging for troubleshooting
-  console.log(`[FlexibleMatch] Comparing: "${player}" vs "${expected}"`);
+  console.info(`[FlexibleMatch] Comparing: "${player}" vs "${expected}"`);
   
   // Strategy 1: Exact match
   if (player === expected) {
-    console.log(`[FlexibleMatch] ✅ Exact match`);
+    console.info(`[FlexibleMatch] ✅ Exact match`);
     return true;
   }
   
@@ -55,30 +55,30 @@ function isFlexibleMatch(playerSolution: string, expectedSolution: string): bool
     
     // If player matched most key concepts, consider it correct
     const matchPercentage = conceptMatches.length / expectedCore.length;
-    console.log(`[FlexibleMatch] Concept match: ${conceptMatches.length}/${expectedCore.length} (${Math.round(matchPercentage * 100)}%)`);
-    console.log(`[FlexibleMatch] Expected core: [${expectedCore.join(', ')}]`);
-    console.log(`[FlexibleMatch] Player core: [${playerCore.join(', ')}]`);
-    console.log(`[FlexibleMatch] Concept matches: [${conceptMatches.join(', ')}]`);
+    console.info(`[FlexibleMatch] Concept match: ${conceptMatches.length}/${expectedCore.length} (${Math.round(matchPercentage * 100)}%)`);
+    console.info(`[FlexibleMatch] Expected core: [${expectedCore.join(', ')}]`);
+    console.info(`[FlexibleMatch] Player core: [${playerCore.join(', ')}]`);
+    console.info(`[FlexibleMatch] Concept matches: [${conceptMatches.join(', ')}]`);
     
     if (matchPercentage >= 0.6) { // Lowered threshold to be more forgiving
-      console.log(`[FlexibleMatch] ✅ Concept match (${Math.round(matchPercentage * 100)}%)`);
+      console.info(`[FlexibleMatch] ✅ Concept match (${Math.round(matchPercentage * 100)}%)`);
       return true;
     }
   }
   
   // Strategy 4: Check if player's answer contains the expected answer as substring
   if (expected.length > 4 && player.includes(expected)) {
-    console.log(`[FlexibleMatch] ✅ Player contains expected`);
+    console.info(`[FlexibleMatch] ✅ Player contains expected`);
     return true;
   }
-  
+
   // Strategy 5: Check if expected answer contains player's answer as substring
   if (player.length > 4 && expected.includes(player)) {
-    console.log(`[FlexibleMatch] ✅ Expected contains player`);
+    console.info(`[FlexibleMatch] ✅ Expected contains player`);
     return true;
   }
   
-  console.log(`[FlexibleMatch] ❌ No match found`);
+  console.info(`[FlexibleMatch] ❌ No match found`);
   return false;
 }
 

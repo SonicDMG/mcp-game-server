@@ -116,9 +116,7 @@ export async function POST(request: NextRequest) {
     const description = inputData.description || `A game about ${theme}.`;
     const version = inputData.version || "1.0";
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`Resolved Story Metadata: ID=${storyId}, Title=${title}, Version=${version}`);
-    }
+    console.info(`Creating story: ${title} (${storyId})`);
 
     // --- 3. Check for Duplicate Story ID ---
     const existingStory = await storiesCollection.findOne({ id: storyId }, { projection: { _id: 1 } });
@@ -130,9 +128,7 @@ export async function POST(request: NextRequest) {
             : `Generated Story ID '${storyId}' collision. Please try again.`;
         return NextResponse.json({ error: errorMessage }, { status: 409 }); // 409 Conflict
     }
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`Story ID '${storyId}' is unique.`);
-    }
+    console.info(`Story ID '${storyId}' is unique.`);
 
     // --- 4. Call Langflow World Generator ---
     const langflowApiUrl = process.env.LANGFLOW_API_URL;
@@ -170,9 +166,7 @@ export async function POST(request: NextRequest) {
              console.error('Outer Response:', JSON.stringify(langflowOuterResponse, null, 2));
              throw new Error('Langflow response structure did not contain world data string at expected path.');
         }
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('POST /api/game/stories - Extracted World Data String:', worldDataString);
-        }
+        console.info('POST /api/game/stories - Extracted World Data String:', worldDataString);
     } catch (accessError) {
         // Catch errors during property access (though checks should prevent most)
         console.error('POST /api/game/stories - Error accessing nested path in Langflow response:', accessError);
@@ -316,7 +310,7 @@ export async function POST(request: NextRequest) {
       console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
     }
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
-    console.log('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
+    console.info('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
 
     // --- 7. Prepare and Insert Locations (with images) ---
     if (typeof storyId !== 'string') {
@@ -330,9 +324,8 @@ export async function POST(request: NextRequest) {
     }));
     console.log(`Attempting locationsCollection.insertMany() for ${locationsToInsert.length} locations...`);
     // Log the exact data being sent to insertMany
-    // console.log('>>> DEBUG: Locations prepared for insertion:', JSON.stringify(locationsToInsert, null, 2)); 
     const locationInsertResult = await locationsCollection.insertMany(locationsToInsert);
-    console.log(`Inserted ${locationInsertResult.insertedCount} locations.`);
+    console.debug(`Inserted ${locationInsertResult.insertedCount} locations.`);
     if (locationInsertResult.insertedCount !== locationsToInsert.length) {
          console.warn(`Warning: Mismatch in location insertion count. Expected ${locationsToInsert.length}, inserted ${locationInsertResult.insertedCount}`);
          // Consider adding more robust error handling or cleanup here if partial insertion is critical
@@ -350,7 +343,7 @@ export async function POST(request: NextRequest) {
     }));
     console.log(`Attempting itemsCollection.insertMany() for ${itemsToInsert.length} items...`);
     const itemInsertResult = await itemsCollection.insertMany(itemsToInsert);
-    console.log(`Inserted ${itemInsertResult.insertedCount} items.`);
+    console.debug(`Inserted ${itemInsertResult.insertedCount} items.`);
     if (itemInsertResult.insertedCount !== itemsToInsert.length) {
          console.warn(`Warning: Mismatch in item insertion count. Expected ${itemsToInsert.length}, inserted ${itemInsertResult.insertedCount}`);
          // Consider adding more robust error handling or cleanup here
@@ -358,13 +351,13 @@ export async function POST(request: NextRequest) {
 
     // --- 9. Generate Image using EverArt Utils ---
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Attempting to generate story image via EverArt...');
+      console.info('Attempting to generate story image via EverArt...');
     }
     const imagePrompt = `A digital painting game art banner for a text adventure game titled "${title}". Theme: ${theme}. Style: fantasy art, detailed, vibrant colors.`;
     generatedImageUrl = await generateImageWithPolling(imagePrompt);
 
     if (generatedImageUrl) {
-        console.log(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
+        console.info(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
         // --- 10. Update Story Record with Image URL, Challenges, and FinalTask ---
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
@@ -380,7 +373,7 @@ export async function POST(request: NextRequest) {
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.log(`Successfully updated story ${storyId} with image URL, challenges, and finalTask.`);
+            console.info(`Successfully updated story ${storyId} with image URL, challenges, and finalTask.`);
         } else {
             // This shouldn't happen if the initial insert succeeded, but log a warning
             console.warn(`Warning: Failed to update story ${storyId} with image URL, challenges, and finalTask. Update modified count: ${updateResult.modifiedCount}`);
@@ -401,7 +394,7 @@ export async function POST(request: NextRequest) {
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.log(`Successfully updated story ${storyId} with challenges and finalTask (no image).`);
+            console.info(`Successfully updated story ${storyId} with challenges and finalTask (no image).`);
         } else {
             console.warn(`Warning: Failed to update story ${storyId} with challenges and finalTask (no image). Update modified count: ${updateResult.modifiedCount}`);
         }
@@ -455,13 +448,13 @@ export async function GET(request: NextRequest) {
     const storyId = searchParams.get('id');
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
+      console.info(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
     }
     
     // Use the collection instance directly
     if (!storyId) {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Finding all stories (storiesCollection.find({}))...');
+        console.info('Finding all stories (storiesCollection.find({}))...');
       }
       // Find all stories
       const stories = await storiesCollection.find({}, {
@@ -477,7 +470,7 @@ export async function GET(request: NextRequest) {
         }
       }).toArray();
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Stories found:', stories.length);
+        console.info('Stories found:', stories.length);
       }
 
       // Fetch all players for all stories

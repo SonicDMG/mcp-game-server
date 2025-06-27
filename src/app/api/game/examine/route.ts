@@ -27,7 +27,7 @@ const ITEM_IMAGE_PLACEHOLDER = "/images/item-placeholder.png";
 // POST /api/game/examine
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV !== 'production') {
-    console.log('>>> ENTERING /api/game/examine handler <<<');
+    console.info('>>> ENTERING /api/game/examine handler <<<');
   }
   interface ExamineRequestBody {
     userId?: string;
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   try {
     requestBody = await request.json() as ExamineRequestBody;
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[API /examine] Received request body:', JSON.stringify(requestBody));
+      console.info('[API /examine] Received request body:', JSON.stringify(requestBody));
     }
     const { userId, storyId, target } = requestBody;
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`>>> Processing examine for userId: ${userId}, story: ${storyId}, target: ${target} (Database) <<<`);
+      console.info(`>>> Processing examine for userId: ${userId}, story: ${storyId}, target: ${target} (Database) <<<`);
     }
 
     const playerDocId = `${storyId}_${userId}`;

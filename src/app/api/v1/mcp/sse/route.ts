@@ -113,12 +113,12 @@ function removeClient(sessionId: string, reason = 'unspecified') {
   const writer = clients.get(sessionId);
   if (writer) {
     try {
-      console.log(`[MCP][SSE][removeClient] Closing writer for session ${sessionId}. Reason: ${reason}`);
+      console.debug(`[MCP][SSE][removeClient] Closing writer for session ${sessionId}. Reason: ${reason}`);
       writer.close();
     } catch (e) {
       console.error(`[MCP][SSE][removeClient] Error closing writer for session ${sessionId}:`, e);
     }
-    console.log(`[MCP][SSE][removeClient] Deleting client for session ${sessionId}. Reason: ${reason}`);
+    console.debug(`[MCP][SSE][removeClient] Deleting client for session ${sessionId}. Reason: ${reason}`);
     clients.delete(sessionId);
   }
 }
@@ -136,13 +136,13 @@ export async function GET(req: NextRequest) {
   // Generate a session ID
   const sessionId = Date.now() + Math.random();
   clients.set(String(sessionId), writer);
-  console.log(`[MCP][SSE][connect] New client ${sessionId}`);
+  console.info(`[MCP][SSE][connect] New client ${sessionId}`);
 
   // Set a TTL for the client (1 hour)
   setTimeout(() => {
     if (clients.has(String(sessionId))) {
       removeClient(String(sessionId), 'TTL expired');
-      console.log(`[MCP][SSE][cleanup] Session ${sessionId} expired after 1 hour`);
+      console.info(`[MCP][SSE][cleanup] Session ${sessionId} expired after 1 hour`);
     }
   }, 60 * 60 * 1000); // 1 hour in ms
 
@@ -219,12 +219,12 @@ export async function POST(req: NextRequest) {
   }
 
   const sessionId = req.nextUrl.searchParams.get('session_id');
-  console.log('[DEBUG] sessionId:', sessionId, 'clientsKeys:', Array.from(clients.keys()));
+  console.debug('[DEBUG] sessionId:', sessionId, 'clientsKeys:', Array.from(clients.keys()));
   const isSSE = !!sessionId;
   const writer = isSSE && clients.has(String(sessionId)) ? clients.get(String(sessionId)) : undefined;
   const body = await req.json();
   const { id, method, params } = body as { id: string; method: string; params: unknown };
-  console.log('[MCP][SSE][POST] Incoming:', {
+  console.info('[MCP][SSE][POST] Incoming:', {
     path: req.nextUrl.pathname,
     sessionId,
     method,
@@ -234,7 +234,7 @@ export async function POST(req: NextRequest) {
   function reply(msg: unknown) {
     if (isSSE && writer) {
       try {
-        console.log('[MCP][SSE][POST][REPLY] Sending:', JSON.stringify(msg));
+        console.info('[MCP][SSE][POST][REPLY] Sending:', JSON.stringify(msg));
         writer.write(encoder(`data: ${JSON.stringify(msg)}\n\n`));
       } catch (err) {
         if (err && typeof err === 'object' && err.constructor && err.constructor.name === 'ResponseAborted') {
@@ -268,7 +268,7 @@ export async function POST(req: NextRequest) {
         }
       }
     };
-    console.log('[MCP][SSE][POST][BRANCH] initialize');
+    console.info('[MCP][SSE][POST][BRANCH] initialize');
     reply(resultMsg);
     // Always return JSON-RPC result in HTTP response for initialize
     return NextResponse.json(resultMsg, { status: 200 });
@@ -276,13 +276,13 @@ export async function POST(req: NextRequest) {
 
   // 2) notifications/initialized
   if (method === 'notifications/initialized') {
-    console.log('[MCP][SSE][POST][BRANCH] notifications/initialized');
+    console.info('[MCP][SSE][POST][BRANCH] notifications/initialized');
     return new Response(null, { status: 200 });
   }
 
   // 3) tools/list
   if (method === 'tools/list') {
-    console.log('[MCP][SSE][POST][BRANCH] tools/list');
+    console.info('[MCP][SSE][POST][BRANCH] tools/list');
     const tools = getToolsForInspector();
     const resultMsg = { jsonrpc: '2.0', id, result: { tools } };
     reply(resultMsg);
@@ -304,7 +304,7 @@ export async function POST(req: NextRequest) {
 
   // 3.5) tools/call (proxy to tool endpoint)
   if (method === 'tools/call') {
-    console.log('[MCP][SSE][POST][BRANCH] tools/call received, params:', params);
+    console.info('[MCP][SSE][POST][BRANCH] tools/call received, params:', params);
     const toolName = params && typeof params === 'object' && 'name' in params ? (params as Record<string, unknown>).name as string : undefined;
     const toolArgs = params && typeof params === 'object' && 'arguments' in params && typeof (params as Record<string, unknown>).arguments === 'object' && (params as Record<string, unknown>).arguments !== null ? { ...((params as Record<string, unknown>).arguments as Record<string, unknown>) } : {};
     if (!toolName) {
@@ -313,7 +313,7 @@ export async function POST(req: NextRequest) {
         id,
         error: { code: -32601, message: 'Tool name missing in tools/call' }
       };
-      console.log('[MCP][SSE][POST][BRANCH] tools/call missing tool name', { params });
+      console.info('[MCP][SSE][POST][BRANCH] tools/call missing tool name', { params });
       if (isSSE && writer) {
         reply(errorMsg);
         return new Response(null, { status: 204 });
@@ -328,7 +328,7 @@ export async function POST(req: NextRequest) {
         id,
         error: { code: -32601, message: `Tool not found: ${toolName}` }
       };
-      console.log('[MCP][SSE][POST][BRANCH] tools/call endpoint not found', { toolName });
+      console.info('[MCP][SSE][POST][BRANCH] tools/call endpoint not found', { toolName });
       if (isSSE && writer) {
         reply(errorMsg);
         return new Response(null, { status: 204 });
@@ -342,7 +342,7 @@ export async function POST(req: NextRequest) {
     if (route.includes('{')) {
       route = fillPathParams(route, argsCopy);
     }
-    console.log('[MCP][SSE][POST][BRANCH] tools/call proxying', { toolName, endpoint, toolArgs: argsCopy });
+    console.info('[MCP][SSE][POST][BRANCH] tools/call proxying', { toolName, endpoint, toolArgs: argsCopy });
     try {
       const fetchOptions: RequestInit = {
         method: endpoint.method,
@@ -418,7 +418,7 @@ export async function POST(req: NextRequest) {
         finalResult = { content: [wrapAsTextContent(result)] };
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
-      console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
+      console.info('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
       if (isSSE && writer) {
         reply(resultMsg);
         return new Response(null, { status: 204 });
@@ -433,7 +433,7 @@ export async function POST(req: NextRequest) {
         id,
         error: { code: -32000, message }
       };
-      console.log('[MCP][SSE][POST][BRANCH] tools/call proxy error', { toolName, message });
+      console.info('[MCP][SSE][POST][BRANCH] tools/call proxy error', { toolName, message });
       if (isSSE && writer) {
         reply(errorMsg);
         return new Response(null, { status: 204 });
@@ -453,7 +453,7 @@ export async function POST(req: NextRequest) {
         id,
         error: { code: -32601, message: 'Method not found' }
       };
-      console.log('[MCP][SSE][POST][BRANCH] .run endpoint not found', { toolId });
+      console.info('[MCP][SSE][POST][BRANCH] .run endpoint not found', { toolId });
       if (isSSE && writer) {
         reply(errorMsg);
         return new Response(null, { status: 204 });
@@ -466,7 +466,7 @@ export async function POST(req: NextRequest) {
     if (route.includes('{')) {
       route = fillPathParams(route, argsCopy);
     }
-    console.log('[MCP][SSE][POST][BRANCH] .run proxying', { toolId, endpoint, params: argsCopy });
+    console.info('[MCP][SSE][POST][BRANCH] .run proxying', { toolId, endpoint, params: argsCopy });
     try {
       const fetchOptions: RequestInit = {
         method: endpoint.method,
@@ -523,7 +523,7 @@ export async function POST(req: NextRequest) {
         finalResult = { content: [wrapAsTextContent(result)] };
       }
       const resultMsg = { jsonrpc: '2.0', id, result: finalResult };
-      console.log('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
+      console.info('[MCP][SSE][POST][REPLY][PAYLOAD]', JSON.stringify(resultMsg, null, 2));
       if (isSSE && writer) {
         reply(resultMsg);
         return new Response(null, { status: 204 });
@@ -538,7 +538,7 @@ export async function POST(req: NextRequest) {
         id,
         error: { code: -32000, message }
       };
-      console.log('[MCP][SSE][POST][BRANCH] .run proxy error', { toolId, message });
+      console.info('[MCP][SSE][POST][BRANCH] .run proxy error', { toolId, message });
       if (isSSE && writer) {
         reply(errorMsg);
         return new Response(null, { status: 204 });
@@ -548,7 +548,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  console.log('[MCP][SSE][POST][BRANCH] fallback for method:', method);
+  console.info('[MCP][SSE][POST][BRANCH] fallback for method:', method);
   const errorMsg = { jsonrpc: '2.0', id, error: { code: -32601, message: 'Unknown method' } };
   if (isSSE && writer) {
     reply(errorMsg);

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log(`🔄 Reset requested for userId: ${userId}, storyId: ${storyId}`);
+    console.info(`🔄 Reset requested for userId: ${userId}, storyId: ${storyId}`);
 
     // 1. Get Story Info (DB)
     const story = await storiesCollection.findOne({ id: storyId });
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     );
     
     const action = playerUpdateResult.upsertedCount ? 'created' : 'reset';
-    console.log(`✅ Player ${playerDocId} state ${action} (DB). Matched: ${playerUpdateResult?.matchedCount}, Upserted: ${playerUpdateResult?.upsertedCount}, Modified: ${playerUpdateResult?.modifiedCount}`);
+    console.info(`✅ Player ${playerDocId} state ${action} (DB). Matched: ${playerUpdateResult?.matchedCount}, Upserted: ${playerUpdateResult?.upsertedCount}, Modified: ${playerUpdateResult?.modifiedCount}`);
     
     // Return success with detailed info
     return NextResponse.json({ 
