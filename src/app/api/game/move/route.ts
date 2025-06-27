@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleMoveAction } from './moveHandler';
 import { checkHasMessages } from '../utils/checkHasMessages';
+import logger from '@/lib/logger';
 
 /**
  * POST /api/game/move
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ ...result.body, hasMessages }, { status: result.status });
   } catch (error) {
-    console.error('Error in move handler (Database):', error);
+    logger.error('Error in move handler (Database):', error);
     let errorMessage = 'Failed to process move command due to an internal error.';
     const status = 500;
     if (error instanceof Error) {

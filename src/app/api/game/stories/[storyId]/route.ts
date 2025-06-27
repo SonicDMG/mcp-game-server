@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb';
+import logger from '@/lib/logger';
 import { Story, PlayerState, Location as GameLocation, GameItem } from '../../types'; // Adjusted path
 
 // Interfaces for DB Records
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest, context: any) { // Use 'any' and
   // Extract params from context
   const params = context.params;
   const storyId = params.storyId;
-  console.log(`>>> ENTERING GET /api/game/stories/${storyId} handler <<<`);
+  logger.debug(`GET /api/game/stories/${storyId} handler started`);
 
   if (!storyId) {
     return NextResponse.json({ success: false, error: 'Story ID parameter is required in the URL path.' }, { status: 400 });
@@ -38,11 +39,11 @@ export async function GET(request: NextRequest, context: any) { // Use 'any' and
     const story = await storiesCollection.findOne({ id: storyId });
 
     if (!story) {
-      console.log(`>>> Story with id ${storyId} not found <<<`);
+      logger.debug(`Story with id ${storyId} not found`);
       return NextResponse.json({ success: false, error: `Story with id '${storyId}' not found.` }, { status: 404 });
     }
 
-    console.log(`>>> Found story ${storyId}: ${story.title} <<<`);
+    logger.info(`Found story ${storyId}: ${story.title}`);
     // Return the full story object (including database _id if present)
     return NextResponse.json({
       storyId: storyId,
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest, context: any) { // Use 'any' and
     });
 
   } catch (error) {
-    console.error(`Error in GET handler for story ${storyId}:`, error);
+    logger.error(`Error in GET handler for story ${storyId}:`, error);
     let errorMessage = 'Failed to retrieve story due to an internal error.';
     const status = 500;
     if (error instanceof Error) {
@@ -66,7 +67,7 @@ export async function DELETE(request: NextRequest, context: any) { // Use 'any' 
   // Extract params from context
   const params = context.params;
   const storyId = params.storyId;
-  console.log(`>>> ENTERING DELETE /api/game/stories/${storyId} handler <<<`);
+  logger.info(`DELETE /api/game/stories/${storyId} handler started`);
 
   if (!storyId) {
     return NextResponse.json({ success: false, error: 'Story ID parameter is required in the URL path.' }, { status: 400 });
@@ -76,11 +77,11 @@ export async function DELETE(request: NextRequest, context: any) { // Use 'any' 
     // 1. Verify the story exists before attempting deletions
     const storyToDelete = await storiesCollection.findOne({ id: storyId });
     if (!storyToDelete) {
-        console.log(`>>> Story with id ${storyId} not found for deletion <<<`);
+        logger.debug(`Story with id ${storyId} not found for deletion`);
         return NextResponse.json({ success: false, error: `Story with id '${storyId}' not found.` }, { status: 404 });
     }
 
-    console.log(`>>> Attempting to delete story ${storyId} and associated data <<<`);
+    logger.info(`Attempting to delete story ${storyId} and associated data`);
 
     // 2. Perform deletions concurrently
     const deletePromises = [
@@ -101,7 +102,7 @@ export async function DELETE(request: NextRequest, context: any) { // Use 'any' 
       if (result.status === 'rejected') {
         success = false;
         const collectionName = ['stories', 'locations', 'items', 'players'][index];
-        console.error(`>>> Error deleting from ${collectionName} for story ${storyId}:`, result.reason);
+        logger.error(`Error deleting from ${collectionName} for story ${storyId}:`, result.reason);
         errors.push(`Failed to delete from ${collectionName}.`);
       } else {
          // Log success counts 
@@ -109,7 +110,7 @@ export async function DELETE(request: NextRequest, context: any) { // Use 'any' 
          // Use a more specific type assertion if possible, otherwise keep 'any' but be aware
          // Assuming the result.value has a deletedCount property based on MongoDB driver 
          const deletedCount = (result.value as { deletedCount?: number })?.deletedCount ?? 'N/A'; 
-         console.log(`>>> Successfully deleted ${deletedCount} document(s) from ${collectionName} for story ${storyId}.`);
+         logger.debug(`Successfully deleted ${deletedCount} document(s) from ${collectionName} for story ${storyId}`);
       }
     });
 
@@ -124,14 +125,14 @@ export async function DELETE(request: NextRequest, context: any) { // Use 'any' 
     }
 
     // 4. Return success
-    console.log(`>>> Successfully deleted story ${storyId} and all associated data <<<`);
+    logger.info(`Successfully deleted story ${storyId} and all associated data`);
     return NextResponse.json({
       success: true,
       message: `Story '${storyId}' and all associated data deleted successfully.`
     });
 
   } catch (error) {
-    console.error(`Error in DELETE handler for story ${storyId}:`, error);
+    logger.error(`Error in DELETE handler for story ${storyId}:`, error);
     let errorMessage = 'Failed to delete story due to an internal error.';
     const status = 500;
     if (error instanceof Error) {

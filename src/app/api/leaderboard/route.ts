@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
+import logger from '@/lib/logger';
 import { PlayerState } from '../game/types'; // Import core types
 
 // Define interface for Player DB record, adding _id and userId
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Story ID query parameter is required' }, { status: 400 });
     }
 
-    console.debug(`Fetching leaderboard data for story: ${storyId}...`);
+    logger.debug(`Fetching leaderboard data for story: ${storyId}...`);
 
     // Fetch players for the relevant story using the provided storyId
     const cursor = playersCollection.find({ storyId: storyId });
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const players = await cursor.toArray();
     if (players.length > 0) {
-      console.debug(`Found ${players.length} players for leaderboard.`);
+      logger.debug(`Found ${players.length} players for leaderboard.`);
     }
 
     // Defensive winner logic
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(leaderboardData);
 
   } catch (error) {
-    console.error('Error fetching leaderboard:', error);
+    logger.error('Error fetching leaderboard:', error);
     return NextResponse.json(
       { error: 'Failed to fetch leaderboard data' }, 
       { status: 500 } 

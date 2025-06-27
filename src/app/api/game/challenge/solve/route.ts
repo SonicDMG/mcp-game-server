@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb';
+import logger from '@/lib/logger';
 import type { Challenge, GameItem } from '../../types';
 import { checkHasMessages, pollMessagesForUser } from '../../utils/checkHasMessages';
 import type { Message } from '../../utils/checkHasMessages';
@@ -14,11 +15,11 @@ function isFlexibleMatch(playerSolution: string, expectedSolution: string): bool
   const expected = expectedSolution.trim().toLowerCase();
   
   // Debug logging for troubleshooting
-  console.info(`[FlexibleMatch] Comparing: "${player}" vs "${expected}"`);
+  logger.info(`[FlexibleMatch] Comparing: "${player}" vs "${expected}"`);
   
   // Strategy 1: Exact match
   if (player === expected) {
-    console.info(`[FlexibleMatch] ✅ Exact match`);
+    logger.info(`[FlexibleMatch] ✅ Exact match`);
     return true;
   }
   
@@ -55,30 +56,30 @@ function isFlexibleMatch(playerSolution: string, expectedSolution: string): bool
     
     // If player matched most key concepts, consider it correct
     const matchPercentage = conceptMatches.length / expectedCore.length;
-    console.info(`[FlexibleMatch] Concept match: ${conceptMatches.length}/${expectedCore.length} (${Math.round(matchPercentage * 100)}%)`);
-    console.info(`[FlexibleMatch] Expected core: [${expectedCore.join(', ')}]`);
-    console.info(`[FlexibleMatch] Player core: [${playerCore.join(', ')}]`);
-    console.info(`[FlexibleMatch] Concept matches: [${conceptMatches.join(', ')}]`);
+    logger.info(`[FlexibleMatch] Concept match: ${conceptMatches.length}/${expectedCore.length} (${Math.round(matchPercentage * 100)}%)`);
+    logger.info(`[FlexibleMatch] Expected core: [${expectedCore.join(', ')}]`);
+    logger.info(`[FlexibleMatch] Player core: [${playerCore.join(', ')}]`);
+    logger.info(`[FlexibleMatch] Concept matches: [${conceptMatches.join(', ')}]`);
     
     if (matchPercentage >= 0.6) { // Lowered threshold to be more forgiving
-      console.info(`[FlexibleMatch] ✅ Concept match (${Math.round(matchPercentage * 100)}%)`);
+      logger.info(`[FlexibleMatch] ✅ Concept match (${Math.round(matchPercentage * 100)}%)`);
       return true;
     }
   }
   
   // Strategy 4: Check if player's answer contains the expected answer as substring
   if (expected.length > 4 && player.includes(expected)) {
-    console.info(`[FlexibleMatch] ✅ Player contains expected`);
+    logger.info(`[FlexibleMatch] ✅ Player contains expected`);
     return true;
   }
 
   // Strategy 5: Check if expected answer contains player's answer as substring
   if (player.length > 4 && expected.includes(player)) {
-    console.info(`[FlexibleMatch] ✅ Expected contains player`);
+    logger.info(`[FlexibleMatch] ✅ Expected contains player`);
     return true;
   }
   
-  console.info(`[FlexibleMatch] ❌ No match found`);
+  logger.info(`[FlexibleMatch] ❌ No match found`);
   return false;
 }
 
@@ -304,7 +305,7 @@ export async function POST(request: NextRequest) {
       messages
     });
   } catch (error) {
-    console.error('Error in /api/game/challenge/solve:', error);
+    logger.error('Error in /api/game/challenge/solve:', error);
     return NextResponse.json({ success: false, error: 'Internal server error.' }, { status: 500 });
   }
 }

@@ -558,13 +558,4 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Global unhandledRejection handler for graceful logging
-if (typeof process !== 'undefined' && process.on) {
-  process.on('unhandledRejection', (reason) => {
-    if (reason && typeof reason === 'object' && reason.constructor && reason.constructor.name === 'ResponseAborted') {
-      // SSE client disconnected - this is normal, no need to log
-    } else {
-      console.error('[MCP][SSE][unhandledRejection]', reason);
-    }
-  });
-}
+// Global error handling is now handled in instrumentation.ts

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
+import logger from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 import { generateImageWithPolling } from '@/lib/everartUtils'; // Import the new utility function
 import { callLangflow } from '@/lib/langflow';
@@ -98,13 +99,11 @@ export async function POST(request: NextRequest) {
   let generatedImageUrl: string | undefined = undefined;
   try {
     const inputData: CreateStoryInput = await request.json();
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('POST /api/game/stories - Received data:', JSON.stringify(inputData, null, 2));
-    }
+    logger.debug('POST /api/game/stories - Received data:', inputData);
 
     // --- 1. Validate Input ---
     if (!inputData || !inputData.theme) {
-      console.error('POST /api/game/stories - Error: Theme is missing');
+      logger.error('POST /api/game/stories - Error: Theme is missing');
       return NextResponse.json({ error: 'Required field `theme` is missing' }, { status: 400 });
     }
     const theme = inputData.theme;
@@ -116,26 +115,26 @@ export async function POST(request: NextRequest) {
     const description = inputData.description || `A game about ${theme}.`;
     const version = inputData.version || "1.0";
 
-    console.info(`Creating story: ${title} (${storyId})`);
+    logger.info(`Creating story: ${title} (${storyId})`);
 
     // --- 3. Check for Duplicate Story ID ---
     const existingStory = await storiesCollection.findOne({ id: storyId }, { projection: { _id: 1 } });
     if (existingStory) {
-        console.error(`POST /api/game/stories - Error: Story ID '${storyId}' already exists.`);
+        logger.error(`POST /api/game/stories - Error: Story ID '${storyId}' already exists.`);
         // If the ID was provided by the user, return error. If generated, this indicates a UUID collision (highly unlikely).
         const errorMessage = inputData.id 
             ? `Story ID '${storyId}' already exists. Please provide a unique ID.`
             : `Generated Story ID '${storyId}' collision. Please try again.`;
         return NextResponse.json({ error: errorMessage }, { status: 409 }); // 409 Conflict
     }
-    console.info(`Story ID '${storyId}' is unique.`);
+    logger.debug(`Story ID '${storyId}' is unique.`);
 
     // --- 4. Call Langflow World Generator ---
     const langflowApiUrl = process.env.LANGFLOW_API_URL;
     const langflowEndpoint = process.env.LANGFLOW_ENDPOINT;
 
     if (!langflowApiUrl || !langflowEndpoint) {
-        console.error('POST /api/game/stories - Error: LANGFLOW_API_URL or LANGFLOW_ENDPOINT environment variables not set.');
+        logger.error('POST /api/game/stories - Error: LANGFLOW_API_URL or LANGFLOW_ENDPOINT environment variables not set.');
         throw new Error('World generation service URL components are not configured.');
     }
     
@@ -152,7 +151,7 @@ export async function POST(request: NextRequest) {
       langflowOuterResponse = result.outer;
       generatedWorld = result.world;
     } catch (err) {
-      console.error('POST /api/game/stories - Langflow call failed:', err);
+      logger.error('POST /api/game/stories - Langflow call failed:', err);
       throw err;
     }
 
@@ -162,26 +161,24 @@ export async function POST(request: NextRequest) {
         // Navigate the expected path, adding checks for safety
         worldDataString = langflowOuterResponse?.outputs?.[0]?.outputs?.[0]?.results?.message?.text;
         if (!worldDataString || typeof worldDataString !== 'string') {
-             console.error('POST /api/game/stories - Error: Could not find world data string at expected path in Langflow response.');
-             console.error('Outer Response:', JSON.stringify(langflowOuterResponse, null, 2));
+             logger.error('POST /api/game/stories - Error: Could not find world data string at expected path in Langflow response.');
+             logger.error('Outer Response:', langflowOuterResponse);
              throw new Error('Langflow response structure did not contain world data string at expected path.');
         }
-        console.info('POST /api/game/stories - Extracted World Data String:', worldDataString);
+        logger.info('POST /api/game/stories - Extracted World Data String:', worldDataString);
     } catch (accessError) {
         // Catch errors during property access (though checks should prevent most)
-        console.error('POST /api/game/stories - Error accessing nested path in Langflow response:', accessError);
-        console.error('Outer Response:', JSON.stringify(langflowOuterResponse, null, 2));
+        logger.error('POST /api/game/stories - Error accessing nested path in Langflow response:', accessError);
+        logger.error('Outer Response:', langflowOuterResponse);
         throw new Error('Error processing Langflow response structure.');
     }
 
     // --- NEW: Extract and validate challenges array ---
     const challenges = Array.isArray(generatedWorld.challenges) ? generatedWorld.challenges : [];
     if (challenges.length === 0) {
-      console.warn('No challenges array found in generated world data. Artifact acquisition may not be gated by challenges.');
+      logger.warn('No challenges array found in generated world data. Artifact acquisition may not be gated by challenges.');
     } else {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`Parsed ${challenges.length} challenges from generated world data.`);
-      }
+      logger.debug(`Parsed ${challenges.length} challenges from generated world data.`);
     }
 
     // --- NEW: Extract and validate finalTask ---
@@ -189,17 +186,15 @@ export async function POST(request: NextRequest) {
       ? generatedWorld.finalTask as FinalTask 
       : undefined;
     if (finalTask) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Parsed finalTask from generated world data:', JSON.stringify(finalTask, null, 2));
-      }
+      logger.info('Parsed finalTask from generated world data:', finalTask);
     } else {
-      console.log('No finalTask found in generated world data, will use standard win condition.');
+      logger.info('No finalTask found in generated world data, will use standard win condition.');
     }
 
     // --- Enforce MAX_ROOMS_PER_STORY ---
     const maxRooms = parseInt(process.env.MAX_ROOMS_PER_STORY || '10', 10);
     if (generatedWorld.locations.length > maxRooms) {
-        console.error(`POST /api/game/stories - Error: Generated world has ${generatedWorld.locations.length} rooms, which exceeds the maximum allowed (${maxRooms}).`);
+        logger.error(`POST /api/game/stories - Error: Generated world has ${generatedWorld.locations.length} rooms, which exceeds the maximum allowed (${maxRooms}).`);
         return NextResponse.json({
             error: `Too many rooms generated: ${generatedWorld.locations.length}. The maximum allowed per story is ${maxRooms}. Please try a different theme or adjust your settings.`
         }, { status: 400 });
@@ -207,9 +202,7 @@ export async function POST(request: NextRequest) {
 
     // +++ Add Debug Logging for Starting Location Items +++
     const startingLocData = generatedWorld.locations.find(loc => loc.id === generatedWorld.startingLocationId);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('>>> DEBUG: Parsed starting location data from Langflow:', JSON.stringify(startingLocData, null, 2));
-    }
+    logger.debug('Parsed starting location data from Langflow:', startingLocData);
     // +++ End Debug Logging +++
 
     // --- Select Required Artifacts ---
@@ -222,16 +215,14 @@ export async function POST(request: NextRequest) {
         .sort(() => Math.random() - 0.5)
         .slice(0, MAX_REQUIRED_ARTIFACTS);
     }
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
-    }
+    logger.debug(`Selected required artifacts for story '${storyId}':`, requiredArtifacts);
 
     // --- Select Goal Room ---
     // For now, pick the last location as the goal room (could be improved with a special property)
     const goalRoom = generatedWorld.locations[generatedWorld.locations.length - 1];
     const goalRoomId = goalRoom?.id;
     if (!goalRoomId) {
-      console.error('No goal room could be determined from generated locations.');
+      logger.error('No goal room could be determined from generated locations.');
       return NextResponse.json({
         error: 'No goal room could be determined from generated locations. Story is invalid.'
       }, { status: 400 });
@@ -242,7 +233,7 @@ export async function POST(request: NextRequest) {
     const allItemIds = generatedWorld.items.map(item => item.id);
     const missingArtifacts = requiredArtifacts.filter((id: string) => !allItemIds.includes(id));
     if (missingArtifacts.length > 0) {
-      console.error('Win path validation failed: missing required artifacts:', missingArtifacts);
+      logger.error('Win path validation failed: missing required artifacts:', missingArtifacts);
       return NextResponse.json({
         error: `Win path validation failed: missing required artifacts: ${missingArtifacts.join(', ')}`
       }, { status: 400 });
@@ -269,7 +260,7 @@ export async function POST(request: NextRequest) {
     }
     const canReachGoal = bfs(generatedWorld.startingLocationId, goalRoomId, generatedWorld.locations);
     if (!canReachGoal) {
-      console.error('Win path validation failed: goal room is not reachable from starting location.');
+      logger.error('Win path validation failed: goal room is not reachable from starting location.');
       return NextResponse.json({
         error: 'Win path validation failed: goal room is not reachable from starting location.'
       }, { status: 400 });
@@ -306,15 +297,13 @@ export async function POST(request: NextRequest) {
         creationStatus: 'pending',
         goalRoomId: goalRoomId
     };
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Attempting initial storiesCollection.insertOne() with artifacts...');
-    }
+    logger.debug('Attempting initial storiesCollection.insertOne() with artifacts...');
     const storyInsertResult = await storiesCollection.insertOne(storyRecordInitial);
-    console.info('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
+    logger.info('Initial story document inserted successfully, DB ID:', storyInsertResult.insertedId);
 
     // --- 7. Prepare and Insert Locations (with images) ---
     if (typeof storyId !== 'string') {
-        console.error('Critical Error: storyId is not defined before location insertion.');
+        logger.error('Critical Error: storyId is not defined before location insertion.');
         throw new Error('Internal error: Story identifier missing during data preparation.');
     }
     const currentStoryIdForLocations = storyId;
@@ -322,18 +311,18 @@ export async function POST(request: NextRequest) {
         ...loc,
         storyId: currentStoryIdForLocations
     }));
-    console.log(`Attempting locationsCollection.insertMany() for ${locationsToInsert.length} locations...`);
+    logger.debug(`Attempting locationsCollection.insertMany() for ${locationsToInsert.length} locations...`);
     // Log the exact data being sent to insertMany
     const locationInsertResult = await locationsCollection.insertMany(locationsToInsert);
-    console.debug(`Inserted ${locationInsertResult.insertedCount} locations.`);
+    logger.debug(`Inserted ${locationInsertResult.insertedCount} locations.`);
     if (locationInsertResult.insertedCount !== locationsToInsert.length) {
-         console.warn(`Warning: Mismatch in location insertion count. Expected ${locationsToInsert.length}, inserted ${locationInsertResult.insertedCount}`);
+         logger.warn(`Warning: Mismatch in location insertion count. Expected ${locationsToInsert.length}, inserted ${locationInsertResult.insertedCount}`);
          // Consider adding more robust error handling or cleanup here if partial insertion is critical
     }
 
     // --- 8. Prepare and Insert Items (with images) ---
     if (typeof storyId !== 'string') {
-        console.error('Critical Error: storyId is not defined before item insertion.');
+        logger.error('Critical Error: storyId is not defined before item insertion.');
         throw new Error('Internal error: Story identifier missing during data preparation.');
     }
     const currentStoryIdForItems = storyId;
@@ -341,23 +330,21 @@ export async function POST(request: NextRequest) {
         ...item,
         storyId: currentStoryIdForItems
     }));
-    console.log(`Attempting itemsCollection.insertMany() for ${itemsToInsert.length} items...`);
+    logger.debug(`Attempting itemsCollection.insertMany() for ${itemsToInsert.length} items...`);
     const itemInsertResult = await itemsCollection.insertMany(itemsToInsert);
-    console.debug(`Inserted ${itemInsertResult.insertedCount} items.`);
+    logger.debug(`Inserted ${itemInsertResult.insertedCount} items.`);
     if (itemInsertResult.insertedCount !== itemsToInsert.length) {
-         console.warn(`Warning: Mismatch in item insertion count. Expected ${itemsToInsert.length}, inserted ${itemInsertResult.insertedCount}`);
+         logger.warn(`Warning: Mismatch in item insertion count. Expected ${itemsToInsert.length}, inserted ${itemInsertResult.insertedCount}`);
          // Consider adding more robust error handling or cleanup here
     }
 
     // --- 9. Generate Image using EverArt Utils ---
-    if (process.env.NODE_ENV !== 'production') {
-      console.info('Attempting to generate story image via EverArt...');
-    }
+    logger.debug('Attempting to generate story image via EverArt...');
     const imagePrompt = `A digital painting game art banner for a text adventure game titled "${title}". Theme: ${theme}. Style: fantasy art, detailed, vibrant colors.`;
     generatedImageUrl = await generateImageWithPolling(imagePrompt);
 
     if (generatedImageUrl) {
-        console.info(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
+        logger.info(`EverArt image generated: ${generatedImageUrl}. Attempting to update story record...`);
         // --- 10. Update Story Record with Image URL, Challenges, and FinalTask ---
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
@@ -373,13 +360,13 @@ export async function POST(request: NextRequest) {
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.info(`Successfully updated story ${storyId} with image URL, challenges, and finalTask.`);
+            logger.info(`Successfully updated story ${storyId} with image URL, challenges, and finalTask.`);
         } else {
             // This shouldn't happen if the initial insert succeeded, but log a warning
-            console.warn(`Warning: Failed to update story ${storyId} with image URL, challenges, and finalTask. Update modified count: ${updateResult.modifiedCount}`);
+            logger.warn(`Warning: Failed to update story ${storyId} with image URL, challenges, and finalTask. Update modified count: ${updateResult.modifiedCount}`);
         }
     } else {
-        console.warn(`Warning: EverArt image generation failed or timed out for story ${storyId}. Story record will not have an image URL.`);
+        logger.warn(`Warning: EverArt image generation failed or timed out for story ${storyId}. Story record will not have an image URL.`);
         // Still update with challenges and finalTask even if image failed
         const updateResult = await storiesCollection.updateOne(
             { id: storyId },
@@ -394,9 +381,9 @@ export async function POST(request: NextRequest) {
             }
         );
         if (updateResult.modifiedCount === 1) {
-            console.info(`Successfully updated story ${storyId} with challenges and finalTask (no image).`);
+            logger.info(`Successfully updated story ${storyId} with challenges and finalTask (no image).`);
         } else {
-            console.warn(`Warning: Failed to update story ${storyId} with challenges and finalTask (no image). Update modified count: ${updateResult.modifiedCount}`);
+            logger.warn(`Warning: Failed to update story ${storyId} with challenges and finalTask (no image). Update modified count: ${updateResult.modifiedCount}`);
         }
     }
 
@@ -417,7 +404,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     // --- Error Handling ---
-    console.error('Detailed error in /api/game/stories POST:', error);
+    logger.error('Detailed error in /api/game/stories POST:', error);
     const status = 500; // Default status
     let errorMessage = 'Failed to create story using generation service'; 
 
@@ -447,15 +434,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const storyId = searchParams.get('id');
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.info(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
-    }
+    logger.debug(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
     
     // Use the collection instance directly
     if (!storyId) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.info('Finding all stories (storiesCollection.find({}))...');
-      }
+      logger.debug('Finding all stories (storiesCollection.find({}))...');
       // Find all stories
       const stories = await storiesCollection.find({}, {
         projection: {
@@ -469,9 +452,7 @@ export async function GET(request: NextRequest) {
           creationStatus: 1
         }
       }).toArray();
-      if (process.env.NODE_ENV !== 'production') {
-        console.info('Stories found:', stories.length);
-      }
+      logger.debug('Stories found:', stories.length);
 
       // Fetch all players for all stories
       const allPlayers = await playersCollection.find({}).toArray();
@@ -479,16 +460,6 @@ export async function GET(request: NextRequest) {
       const statsMap = new Map();
       for (const player of allPlayers) {
         if (!player.storyId) continue;
-        
-        // Debug logging for specific story ID
-        if (player.storyId === 'f6037f04-e785-4800-bbac-fe20b22aea62') {
-          console.log('Player data for DOOM story:', {
-            playerId: player._id,
-            itemsFound: player.gameProgress?.itemsFound,
-            foundCount: player.gameProgress?.itemsFound?.length,
-            status: player.status
-          });
-        }
 
         const stats = statsMap.get(player.storyId) || { playerCount: 0, totalArtifactsFound: 0, killedCount: 0 };
         stats.playerCount += 1;
@@ -536,13 +507,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(storiesWithStats);
     } else {
       // When fetching by specific ID, get the full record
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Finding story with id: ${storyId} (storiesCollection.findOne({ id: storyId }))...');
-      }
+      logger.debug('Finding story with id: ${storyId} (storiesCollection.findOne({ id: storyId }))...');
       const story = await storiesCollection.findOne({ id: storyId });
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Story found:', story ? story.id : 'None');
-      }
+      logger.debug('Story found:', story ? story.id : 'None');
       if (!story) {
         return NextResponse.json({ error: `Story with id ${storyId} not found`}, { status: 404 });
       }
@@ -584,7 +551,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Detailed error in /api/game/stories GET:', error);
+    logger.error('Detailed error in /api/game/stories GET:', error);
     const status = 500;
     let errorMessage = 'Failed to get stories';
     if (error instanceof Error) {

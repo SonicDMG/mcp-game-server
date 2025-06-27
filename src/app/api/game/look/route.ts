@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import DB instance
+import logger from '@/lib/logger';
 import { PlayerState, Location as GameLocation, GameItem, getAbsoluteProxiedImageUrl } from '../types'; // Correct path: ../types
 import { checkHasMessages, pollMessagesForUser } from '../utils/checkHasMessages';
 import type { Message } from '../utils/checkHasMessages';
@@ -25,7 +26,7 @@ const ITEM_IMAGE_PLACEHOLDER = "/images/item-placeholder.png";
  */
 // POST /api/game/look
 export async function POST(request: NextRequest) {
-  console.log('>>> ENTERING /api/game/look handler <<< ');
+  logger.debug('POST /api/game/look handler started');
   interface LookRequestBody {
     userId?: string;
     storyId?: string;
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
   try {
     requestBody = await request.json() as LookRequestBody;
     // Log request body after parsing
-    console.log('[API /look] Received request body:', JSON.stringify(requestBody)); 
+    logger.debug('Look request body:', requestBody); 
     const { userId, storyId } = requestBody;
 
     if (!userId || !storyId) {
@@ -44,12 +45,12 @@ export async function POST(request: NextRequest) {
         hint: 'Specify the player and story context'
       }, { status: 400 });
     }
-    console.log(`>>> Processing look for userId: ${userId}, story: ${storyId} (Database) <<<`);
+    logger.debug(`Processing look for userId: ${userId}, story: ${storyId}`);
 
     const playerDocId = `${storyId}_${userId}`;
 
     // 1. Get Player State
-    console.log(`>>> Fetching player: ${playerDocId} <<<`);
+    logger.debug(`Fetching player: ${playerDocId}`);
     const player = await playersCollection.findOne({ _id: playerDocId });
     if (!player) {
       return NextResponse.json({ success: false, error: 'Player not found.' }, { status: 404 });
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Get Current Location
-    console.log(`>>> Fetching location: id=${player.currentLocation}, storyId=${storyId} <<<`);
+    logger.debug(`Fetching location: id=${player.currentLocation}, storyId=${storyId}`);
     const location = await locationsCollection.findOne({ id: player.currentLocation, storyId: storyId });
     if (!location) {
       return NextResponse.json({ success: false, error: 'Internal server error: Current location data missing' }, { status: 500 });
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     // 3. Get Items in Location
     let visibleItems: GameItem[] = [];
     if (location.items && location.items.length > 0) {
-      console.log(`>>> Fetching details for items in location ${location.id}: ${location.items.join(', ')} <<<`);
+      logger.debug(`Fetching details for items in location ${location.id}: ${location.items.join(', ')}`);
       const itemRecords = await itemsCollection.find({ 
         id: { $in: location.items },
         storyId: storyId 
@@ -78,11 +79,11 @@ export async function POST(request: NextRequest) {
         const { _id, ...itemData } = dbItem;
         return itemData;
       });
-      console.log(`>>> Found ${visibleItems.length} item details. <<<`);
+      logger.debug(`Found ${visibleItems.length} item details`);
     }
 
     // 4. Prepare Response
-    console.log(`Preparing response for location db id: ${location._id}`); 
+    logger.debug(`Preparing response for location db id: ${location._id}`); 
     const { _id, ...locationResponseData } = location; 
     // Ensure image field is present and proxied
     locationResponseData.image = getAbsoluteProxiedImageUrl(request, locationResponseData.image || ROOM_IMAGE_PLACEHOLDER);
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
       return { image, alt, content: contentArr };
     });
 
-    console.log(`>>> Look successful for userId: ${userId} in location: ${location.id} <<<`);
+    logger.info(`Look successful for userId: ${userId} in location: ${location.id}`);
     const result = {
       success: true,
       storyId: storyId,
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ...result, hasMessages, messages }, { status: 200 });
 
   } catch (error) {
-    console.error('Error in look handler (Database):', error);
+    logger.error('Error in look handler:', error);
     let errorMessage = 'Failed to process look command due to an internal error.';
     if (error instanceof Error) {
       errorMessage = error.message;

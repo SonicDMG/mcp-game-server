@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleTakeAction } from './takeHandler';
 import { checkHasMessages, pollMessagesForUser } from '../utils/checkHasMessages';
 import type { Message } from '../utils/checkHasMessages';
+import logger from '@/lib/logger';
 
 /**
  * POST /api/game/take
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ ...result.body, hasMessages, messages }, { status: result.status });
   } catch (error) {
-    console.error('Error in take handler (Database):', error);
+    logger.error('Error in take handler (Database):', error);
     let errorMessage = 'Failed to process take command due to an internal error.';
     const status = 500;
     if (error instanceof Error) {

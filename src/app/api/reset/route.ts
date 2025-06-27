@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/astradb'; // Import the initialized Db instance
+import logger from '@/lib/logger';
 import { PlayerState, Story } from '../game/types'; // Import core types
 // Remove imports for in-memory maps and Location type if no longer needed
 // import { Location as GameLocation } from '../game/types'; 
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.info(`🔄 Reset requested for userId: ${userId}, storyId: ${storyId}`);
+    logger.info(`🔄 Reset requested for userId: ${userId}, storyId: ${storyId}`);
 
     // 1. Get Story Info (DB)
     const story = await storiesCollection.findOne({ id: storyId });
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
     );
     
     const action = playerUpdateResult.upsertedCount ? 'created' : 'reset';
-    console.info(`✅ Player ${playerDocId} state ${action} (DB). Matched: ${playerUpdateResult?.matchedCount}, Upserted: ${playerUpdateResult?.upsertedCount}, Modified: ${playerUpdateResult?.modifiedCount}`);
+    logger.info(`✅ Player ${playerDocId} state ${action} (DB). Matched: ${playerUpdateResult?.matchedCount}, Upserted: ${playerUpdateResult?.upsertedCount}, Modified: ${playerUpdateResult?.modifiedCount}`);
     
     // Return success with detailed info
     return NextResponse.json({ 
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Error in /api/reset:', error);
+    logger.error('❌ Error in /api/reset:', error);
     let errorMessage = 'Failed to reset game state due to internal error';
     const status = 500;
     if (error instanceof Error) {

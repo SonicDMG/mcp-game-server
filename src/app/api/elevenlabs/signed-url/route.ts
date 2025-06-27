@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -17,14 +18,14 @@ export async function GET() {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs API error:', response.status, errorText);
+      logger.error('ElevenLabs API error:', response.status, errorText);
       throw new Error(`Failed to get signed URL: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
     return NextResponse.json({ signedUrl: data.signed_url });
   } catch (error) {
-    console.error('Error generating signed URL:', error);
+    logger.error('Error generating signed URL:', error);
     return NextResponse.json(
       { error: 'Failed to generate signed URL' },
       { status: 500 }

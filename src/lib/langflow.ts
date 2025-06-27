@@ -1,4 +1,5 @@
 import { LangflowWorldResponse } from '@/app/api/game/types';
+import logger from './logger';
 
 /**
  * Calls the Langflow API to generate world/story content or chat responses.
@@ -69,12 +70,12 @@ export async function callLangflow({
       body: JSON.stringify(payload)
     });
   } catch (err) {
-    console.error('[Langflow] Network error:', err);
+    logger.error('[Langflow] Network error:', err);
     throw new Error('Failed to reach Langflow API.');
   }
   if (!response.ok) {
     const errorBody = await response.text();
-    console.error(`[Langflow] Error ${response.status}:`, errorBody);
+    logger.error(`[Langflow] Error ${response.status}:`, errorBody);
     throw new Error(`Langflow API error: ${response.status}`);
   }
   const raw = await response.text();
@@ -82,12 +83,12 @@ export async function callLangflow({
   try {
     outer = JSON.parse(raw);
   } catch (e) {
-    console.error('[Langflow] Failed to parse outer JSON:', e, raw);
+    logger.error('[Langflow] Failed to parse outer JSON:', e, raw);
     throw new Error('Failed to parse Langflow outer response.');
   }
   const worldDataString: string | undefined = outer?.outputs?.[0]?.outputs?.[0]?.results?.message?.text;
   if (!worldDataString || typeof worldDataString !== 'string') {
-    console.error('[Langflow] No world data string at expected path:', JSON.stringify(outer, null, 2));
+    logger.error('[Langflow] No world data string at expected path:', JSON.stringify(outer, null, 2));
     throw new Error('Langflow response missing world data string.');
   }
   let world: LangflowWorldResponse;
@@ -125,7 +126,7 @@ export async function callLangflow({
       throw new Error('Parsed world data does not match expected structure.');
     }
   } catch (e) {
-    console.error('[Langflow] Failed to parse world data JSON:', e, worldDataString);
+    logger.error('[Langflow] Failed to parse world data JSON:', e, worldDataString);
     throw new Error('Failed to parse Langflow world data.');
   }
   return { outer, world };

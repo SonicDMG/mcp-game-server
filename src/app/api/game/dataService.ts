@@ -1,4 +1,5 @@
 import { GameItem, Location as GameLocation, PlayerState, Story } from './types';
+import logger from '@/lib/logger';
 
 // Define interfaces for DB records adding _id 
 // Ensure these align with the actual data structures and types.ts
@@ -17,7 +18,7 @@ export async function getStory(storyId: string): Promise<StoryRecord | null> {
     const result = await storiesCollection.findOne({ id: storyId });
     return result;
   } catch (error) {
-    console.error(`Error getting story with id ${storyId}:`, error);
+    logger.error(`Error getting story with id ${storyId}:`, error);
     return null;
   }
 }
@@ -34,10 +35,10 @@ export async function getPlayerState(userId: string, storyId: string): Promise<P
       return playerState;
     }
     // Player not found, create new one
-    console.info(`Player ${playerDocId} not found, creating new state...`);
+    logger.info(`Player ${playerDocId} not found, creating new state...`);
     const story = await getStory(storyId);
     if (!story) {
-      console.error(`Cannot create player: Story ${storyId} not found.`);
+      logger.error(`Cannot create player: Story ${storyId} not found.`);
       return null;
     }
     // Create new player document data (without _id)
@@ -55,11 +56,11 @@ export async function getPlayerState(userId: string, storyId: string): Promise<P
     };
     // Insert the new player with the constructed _id
     const _result = await playersCollection.insertOne({ ...newPlayerData, _id: playerDocId });
-    console.info(`New player ${playerDocId} created successfully`);
+    logger.info(`New player ${playerDocId} created successfully`);
     // Return the full player state including the _id
     return { ...newPlayerData, _id: playerDocId };
   } catch (error) {
-    console.error(`Error getting/creating player state for ${playerDocId}:`, error);
+    logger.error(`Error getting/creating player state for ${playerDocId}:`, error);
     return null;
   }
 }
@@ -75,14 +76,14 @@ export async function updatePlayerState(player: PlayerRecord): Promise<boolean> 
     const filter = { _id: _id }; 
     // Use replaceOne to overwrite the document with the new state
     const result = await playersCollection.replaceOne(filter, playerData);
-    console.info(`Updated player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+    logger.info(`Updated player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
     if (result.modifiedCount === 0) {
-      console.warn(`Failed to update player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+      logger.warn(`Failed to update player ${_id}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
     }
     // Check if the document was found and replaced
     return result.modifiedCount === 1;
   } catch (error) {
-      console.error(`Error updating player state for ${player._id}:`, error);
+      logger.error(`Error updating player state for ${player._id}:`, error);
     return false;
   }
 }
@@ -96,7 +97,7 @@ export async function getLocation(locationId: string, storyId: string): Promise<
     const location = await locationsCollection.findOne({ id: locationId, storyId: storyId });
     return location;
   } catch (error) {
-    console.error(`Error getting location ${locationId} for story ${storyId}:`, error);
+    logger.error(`Error getting location ${locationId} for story ${storyId}:`, error);
     return null;
   }
 }
@@ -110,7 +111,7 @@ export async function getItem(itemId: string, storyId: string): Promise<ItemReco
     const item = await itemsCollection.findOne({ id: itemId, storyId: storyId });
     return item;
   } catch (error) {
-    console.error(`Error getting item ${itemId} for story ${storyId}:`, error);
+    logger.error(`Error getting item ${itemId} for story ${storyId}:`, error);
     return null;
   }
 } 

@@ -1,4 +1,5 @@
 import { DataAPIClient, Db } from "@datastax/astra-db-ts";
+import logger from './logger';
 
 // Retrieve Astra DB connection details from environment variables
 // Use ASTRA_DB_ENDPOINT as specified by the user
@@ -23,7 +24,7 @@ const client = new DataAPIClient(token);
 // This Db object is what we'll use to access collections.
 const db: Db = client.db(endpoint);
 
-console.info(`AstraDB client initialized. DB instance created for endpoint: ${endpoint}`);
+logger.info(`AstraDB client initialized. DB instance created for endpoint: ${endpoint}`);
 
 // Export the initialized Db instance for use in other modules
 export default db; 
