@@ -63,8 +63,13 @@
 }
 
 .storyCardImageContainer {
+  position: relative;
   width: 100%;
-  margin-bottom: 16px;
+  aspect-ratio: 16/9;
+  min-width: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .storyCardWrapper:hover {
@@ -153,14 +158,6 @@
   z-index: 2;
 }
 
-.storyCardImageContainer {
-  flex: 0 0 200px;
-  height: 150px;
-  min-width: 200px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
 .storyCardText {
   flex: 1;
   display: flex;
@@ -240,16 +237,6 @@
   aspect-ratio: 16/9;
   background: linear-gradient(135deg, #1e293b, #0f172a);
   overflow: hidden;
-}
-
-.storyCardImageContainer {
-  position: relative;
-  flex: 0 0 200px;
-  height: 150px;
-  min-width: 200px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex-shrink: 0;
 }
 
 .storyCardImage {
