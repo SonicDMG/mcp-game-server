@@ -475,3 +475,44 @@
     padding: 10px 10px;
   }
 }
+
+.paginationBar {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 0 0;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 640px) {
+  .paginationBar {
+    flex-wrap: wrap;
+    gap: 8px 0;
+  }
+}
+
+.paginationCount {
+  display: block;
+  width: 100%;
+  margin: 4px auto 0 auto;
+  text-align: center;
+  font-size: 1.05rem;
+  color: #aaa;
+  background: rgba(24, 24, 40, 0.92);
+  border-radius: 8px;
+  padding: 8px 0 6px 0;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 2px 8px #0002;
+}
+
+@media (max-width: 640px) {
+  .paginationCount {
+    margin-top: 0px;
+    margin-bottom: 64px;
+  }
+  .paginationBar {
+    flex-wrap: wrap;
+    gap: 8px 0;
+  }
+}

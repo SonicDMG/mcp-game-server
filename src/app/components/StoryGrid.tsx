@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getProxiedImageUrl, Story } from "@/app/api/game/types";
@@ -12,20 +12,6 @@ interface StoryGridProps {
     totalArtifactsFound: number;
     killedCount: number;
   }>;
-}
-
-// Type for the previous stats map
-interface StoryStats {
-  playerCount: number;
-  totalArtifactsFound: number;
-  killedCount: number;
-}
-
-// Type for the bump map
-interface BumpMap {
-  player: boolean;
-  artifact: boolean;
-  killed: boolean;
 }
 
 // Type for the previous stats map
@@ -105,8 +91,6 @@ const skeletonStyle = `
 }
 `;
 
-
-
 // Bump animation CSS
 const bumpAnimStyle = `
 @keyframes statBump {
@@ -134,9 +118,8 @@ function cleanTitle(title: string): string {
 }
 
 export default function StoryGrid({ initialStories }: StoryGridProps) {
-  const [stories, setStories] = useState<Array<Story & StoryStats>>(initialStories);
+  const stories = initialStories;
   const [newStoryIds, setNewStoryIds] = useState<Set<string>>(new Set());
-  const announcedStoryIds = useRef(new Set(initialStories.map(s => s.id)));
 
   // Track previous stats for bump animation
   const [prevStats, setPrevStats] = useState<{ [id: string]: StoryStats }>({});
@@ -155,51 +138,6 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
     }
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/game/stories");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setStories(prev => {
-            const prevMap = new Map(prev.map(s => [s.id, s]));
-            const merged = data.map((s: Story & { playerCount?: number; totalArtifactsFound?: number; killedCount?: number; image?: string }) => {
-              const prevStory = prevMap.get(s.id);
-              return {
-                ...s,
-                image: s.image || prevStory?.image || placeholderImage,
-                playerCount: s.playerCount ?? prevStory?.playerCount ?? 0,
-                totalArtifactsFound: s.totalArtifactsFound ?? prevStory?.totalArtifactsFound ?? 0,
-                killedCount: s.killedCount ?? prevStory?.killedCount ?? 0,
-              };
-            });
-            // Find new stories
-            const prevIds = new Set(prev.map(s => s.id));
-            const newStories = data.filter((s: Story) => !prevIds.has(s.id));
-            if (newStories.length > 0) {
-              newStories.forEach((s: Story) => {
-                if (!announcedStoryIds.current.has(s.id)) {
-                  announcedStoryIds.current.add(s.id);
-                }
-              });
-              // Mark new story IDs for animation
-              setNewStoryIds(ids => {
-                const updated = new Set(ids);
-                newStories.forEach(s => updated.add(s.id));
-                return updated;
-              });
-            }
-            return merged;
-          });
-        }
-      } catch {
-        // Optionally handle error
-      }
-    }, 7000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Remove pop-in class after animation
   useEffect(() => {
     if (newStoryIds.size === 0) return;
@@ -211,36 +149,33 @@ export default function StoryGrid({ initialStories }: StoryGridProps) {
 
   // Detect stat increases and trigger bump
   useEffect(() => {
-    setStories(prev => {
-      const newBumpMap: typeof bumpMap = {};
-      const newPrevStats: { [id: string]: StoryStats } = { ...prevStats };
-      for (const story of prev) {
-        const prevStat = prevStats[story.id];
-        newBumpMap[story.id] = {
-          player:
-            prevStat === undefined
-              ? story.playerCount > 0
-              : story.playerCount > prevStat.playerCount,
-          artifact:
-            prevStat === undefined
-              ? story.totalArtifactsFound > 0
-              : story.totalArtifactsFound > prevStat.totalArtifactsFound,
-          killed:
-            prevStat === undefined
-              ? story.killedCount > 0
-              : story.killedCount > prevStat.killedCount,
-        };
-        newPrevStats[story.id] = {
-          playerCount: story.playerCount,
-          totalArtifactsFound: story.totalArtifactsFound,
-          killedCount: story.killedCount,
-        };
-      }
-      setBumpMap(newBumpMap);
-      setTimeout(() => setBumpMap({}), 500); // Remove bump after animation
-      setPrevStats(newPrevStats);
-      return prev;
-    });
+    const newBumpMap: typeof bumpMap = {};
+    const newPrevStats: { [id: string]: StoryStats } = { ...prevStats };
+    for (const story of stories) {
+      const prevStat = prevStats[story.id];
+      newBumpMap[story.id] = {
+        player:
+          prevStat === undefined
+            ? story.playerCount > 0
+            : story.playerCount > prevStat.playerCount,
+        artifact:
+          prevStat === undefined
+            ? story.totalArtifactsFound > 0
+            : story.totalArtifactsFound > prevStat.totalArtifactsFound,
+        killed:
+          prevStat === undefined
+            ? story.killedCount > 0
+            : story.killedCount > prevStat.killedCount,
+      };
+      newPrevStats[story.id] = {
+        playerCount: story.playerCount,
+        totalArtifactsFound: story.totalArtifactsFound,
+        killedCount: story.killedCount,
+      };
+    }
+    setBumpMap(newBumpMap);
+    setTimeout(() => setBumpMap({}), 500); // Remove bump after animation
+    setPrevStats(newPrevStats);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stories]);
 

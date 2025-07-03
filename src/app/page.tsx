@@ -1,91 +1,39 @@
-export const dynamic = "force-dynamic";
-import db from '@/lib/astradb'; // Import DB instance
-import type { Story, PlayerState } from '@/app/api/game/types'; // Import types
+"use client";
+import React, { useState } from "react";
+import { useQuery } from '@tanstack/react-query';
 import AppFooter from './components/AppFooter';
 import AppHeader from './components/AppHeader';
 import StoryGrid from './components/StoryGrid';
 import EventFeed from './components/EventFeed';
 import HeroSection from './components/HeroSection';
 import mainContentStyles from './components/MainContent.module.css';
+import storyGridStyles from './components/StoryGrid.module.css';
+import { Story } from "@/app/api/game/types";
 
-// Define DB record interfaces
-interface StoryRecord extends Story { 
-  _id: string; 
-  image?: string; // Optional image field
-}
+const STORIES_PER_PAGE = 5;
 
-// Extend PlayerState to include necessary fields
-interface PlayerRecordForStats extends PlayerState {
-  _id: string;
-  storyId: string; 
-  gameProgress: {
-    itemsFound: string[];
-    puzzlesSolved: string[];
-    storyProgress: number;
-  };
-}
+export default function LandingPage() {
+  const [page, setPage] = useState(1);
+  const {
+    data,
+    isLoading,
+    isError,
+    error
+  } = useQuery<{ stories: (Story & { playerCount: number; totalArtifactsFound: number; killedCount: number; })[]; total: number }, Error>({
+    queryKey: ["stories", page],
+    queryFn: async () => {
+      const res = await fetch(`/api/game/stories?page=${page}&limit=${STORIES_PER_PAGE}`);
+      if (!res.ok) throw new Error("Failed to fetch stories");
+      return res.json();
+    },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // 30 seconds
+    placeholderData: (prev) => prev,
+  });
 
-// Interface for the final story data including stats
-interface StoryWithStats extends StoryRecord {
-  playerCount: number;
-  totalArtifactsFound: number;
-  killedCount: number;
-}
-
-// Mark as unused since they're not directly used in this file
-const _storiesCollection = db.collection<StoryRecord>('game_stories');
-const _playersCollection = db.collection<PlayerRecordForStats>('game_players');
-
-// Removed mockStories array
-
-// Make the component async to fetch data
-
-export default async function LandingPage() {
-  let storiesWithStats: StoryWithStats[] = [];
-  let fetchError = null;
-
-  try {
-    // Fetch stories from the API endpoint which already includes stats
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Fetching stories from API endpoint...');
-    }
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}/api/game/stories`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch stories: ${response.statusText}`);
-    }
-    
-    const stories = await response.json();
-    
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`Fetched ${stories.length} stories from API.`);
-    }
-    
-    // Map the API response to the expected format
-    storiesWithStats = stories.map((story: StoryRecord & { playerCount?: number; totalArtifactsFound?: number; killedCount?: number }) => {
-      const mapped = {
-        ...story,
-        _id: story.id, // Ensure _id is set for compatibility
-        image: story.image || null,
-        startingLocation: story.startingLocation || "",
-        // Ensure all required fields are present
-        playerCount: story.playerCount || 0,
-        totalArtifactsFound: story.totalArtifactsFound || 0,
-        killedCount: story.killedCount || 0
-      };
-      //console.log(`Mapped story ${story.id}:`, JSON.stringify(mapped, null, 2));
-      return mapped;
-    });
-    
-    if (process.env.NODE_ENV !== 'production') {
-      //console.log('Mapped stories with stats:', JSON.stringify(storiesWithStats, null, 2));
-    }
-
-  } catch (error) {
-    console.error("Failed to fetch stories or stats:", error);
-    fetchError = "Could not load story details. Please try again later.";
-  }
-
+  const stories = data?.stories ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / STORIES_PER_PAGE);
 
   return (
     <div className="relative min-h-screen">
@@ -96,12 +44,37 @@ export default async function LandingPage() {
             <HeroSection />
             <EventFeed storyId="all" />
             <div id="stories">
-              {fetchError ? (
-                <div className="text-red-500 text-center col-span-full">
-                  {fetchError}
-                </div>
+              {isError ? (
+                <div className="text-red-500 text-center col-span-full">{(error as Error)?.message || "Could not load story details. Please try again later."}</div>
+              ) : isLoading ? (
+                <div className="text-center py-8 text-lg text-blue-400">Loading stories…</div>
               ) : (
-                <StoryGrid initialStories={storiesWithStats} />
+                <>
+                  <StoryGrid initialStories={stories} />
+                  <div className={storyGridStyles.paginationBar}>
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      style={{ padding: '6px 16px', borderRadius: 6, border: '1px solid #444', background: page === 1 ? '#222' : '#2d2d5a', color: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                    >Prev</button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        disabled={p === page}
+                        style={{ padding: '6px 12px', borderRadius: 6, border: p === page ? '2px solid #3b82f6' : '1px solid #444', background: p === page ? '#3b82f6' : '#23244a', color: '#fff', fontWeight: p === page ? 700 : 400, cursor: p === page ? 'default' : 'pointer' }}
+                      >{p}</button>
+                    ))}
+                    <button
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages || totalPages === 0}
+                      style={{ padding: '6px 16px', borderRadius: 6, border: '1px solid #444', background: page === totalPages || totalPages === 0 ? '#222' : '#2d2d5a', color: '#fff', cursor: page === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer' }}
+                    >Next</button>
+                  </div>
+                  <span className={storyGridStyles.paginationCount}>
+                    Page {page} of {totalPages || 1} ({total} stories)
+                  </span>
+                </>
               )}
             </div>
           </div>

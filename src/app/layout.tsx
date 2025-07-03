@@ -4,6 +4,8 @@ import { Fira_Code } from 'next/font/google';
 import { Press_Start_2P } from 'next/font/google';
 import { useEffect } from "react";
 import "./globals.css";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +29,8 @@ const pressStart2P = Press_Start_2P({
   variable: '--font-press-start-2p',
   display: 'swap',
 });
+
+const queryClient = new QueryClient();
 
 export default function RootLayout({
   children,
@@ -54,7 +58,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} ${pressStart2P.variable} antialiased`}
       >
-        {children}
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </body>
     </html>
   );

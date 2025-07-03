@@ -433,25 +433,51 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const storyId = searchParams.get('id');
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : null;
+    const limit = limitParam ? Math.max(1, parseInt(limitParam, 10)) : null;
 
     logger.debug(`GET /api/game/stories - Requested storyId: ${storyId || 'ALL'}`);
     
     // Use the collection instance directly
     if (!storyId) {
       logger.debug('Finding all stories (storiesCollection.find({}))...');
-      // Find all stories
-      const stories = await storiesCollection.find({}, {
-        projection: {
-          id: 1,
-          title: 1,
-          description: 1,
-          version: 1,
-          theme: 1,
-          image: 1,
-          goalRoomId: 1,
-          creationStatus: 1
-        }
-      }).toArray();
+      // Pagination logic
+      let stories, total;
+      if (page && limit) {
+        total = await storiesCollection.countDocuments({}, Number.MAX_SAFE_INTEGER);
+        stories = await storiesCollection.find({}, {
+          projection: {
+            id: 1,
+            title: 1,
+            description: 1,
+            version: 1,
+            theme: 1,
+            image: 1,
+            goalRoomId: 1,
+            creationStatus: 1
+          },
+          sort: { id: 1 }
+        })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray();
+      } else {
+        stories = await storiesCollection.find({}, {
+          projection: {
+            id: 1,
+            title: 1,
+            description: 1,
+            version: 1,
+            theme: 1,
+            image: 1,
+            goalRoomId: 1,
+            creationStatus: 1
+          }
+        }).toArray();
+        total = stories.length;
+      }
       logger.debug('Stories found:', stories.length);
 
       // Fetch all players for all stories
@@ -503,8 +529,12 @@ export async function GET(request: NextRequest) {
           ].filter(Boolean)
         };
       });
-      // Return stories with stats
-      return NextResponse.json(storiesWithStats);
+      // Return paginated response if paginated, else old array for backward compatibility
+      if (page && limit) {
+        return NextResponse.json({ stories: storiesWithStats, total });
+      } else {
+        return NextResponse.json(storiesWithStats);
+      }
     } else {
       // When fetching by specific ID, get the full record
       logger.debug('Finding story with id: ${storyId} (storiesCollection.findOne({ id: storyId }))...');
